@@ -239,7 +239,7 @@ class IchimokuStrategy(IStrategy):
         # So these data will be available in backtest and in dry/live run
         dataframe["ich_lead_spanA"] = pd.concat([ichimoku["ISA_9"], ichimoku_forward["ISA_9"]]).shift(-26)
         dataframe["ich_lead_spanB"] = pd.concat([ichimoku["ISB_26"], ichimoku_forward["ISB_26"]]).shift(-26)
-        
+        #test
         # Bollinger Bands - Weighted (EMA based instead of SMA)
         # weighted_bollinger = qtpylib.weighted_bollinger_bands(
         #     qtpylib.typical_price(dataframe), window=20, stds=2
