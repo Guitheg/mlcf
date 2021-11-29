@@ -1,3 +1,6 @@
+#cgrbi
+commands.sh
+
 #freqtrade
 user_data/backtest_results
 user_data/data
