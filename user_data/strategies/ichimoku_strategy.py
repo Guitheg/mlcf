@@ -6,6 +6,8 @@ import numpy as np  # noqa
 import pandas as pd  # noqa
 from pandas import DataFrame
 
+from datetime import datetime
+from freqtrade.persistence import Trade
 from freqtrade.exchange import timeframe_to_minutes
 from freqtrade.strategy import (BooleanParameter, CategoricalParameter, DecimalParameter,
                                 IStrategy, IntParameter)
@@ -46,15 +48,14 @@ class IchimokuStrategy(IStrategy):
     # Minimal ROI designed for the strategy.
     # This attribute will be overridden if the config file contains "minimal_roi".
     minimal_roi = {
-        "0": 0.1,
-        str(timeframe_mins * 4) : 0.04,
-        str(timeframe_mins * 8) : 0.02,
-        str(timeframe_mins * 16) : 0.01
+        "0": 0.1
     }
 
+
+    use_custom_stoploss = True
     # Optimal stoploss designed for the strategy.
     # This attribute will be overridden if the config file contains "stoploss".
-    stoploss = -0.1
+    stoploss = -0.2
 
     # Trailing stoploss
     trailing_stop = False
@@ -345,16 +346,46 @@ class IchimokuStrategy(IStrategy):
 
         # Retrieve best bid and best ask from the orderbook
         # ------------------------------------
-        """
+
         # first check if dataprovider is available
         if self.dp:
             if self.dp.runmode.value in ('live', 'dry_run'):
                 ob = self.dp.orderbook(metadata['pair'], 1)
                 dataframe['best_bid'] = ob['bids'][0][0]
                 dataframe['best_ask'] = ob['asks'][0][0]
-        """
-
+        
         return dataframe
+
+    def custom_stoploss(self, pair: str, trade: 'Trade', current_time: datetime,
+                        current_rate: float, current_profit: float, **kwargs) -> float:
+        """
+        Custom stoploss logic, returning the new distance relative to current_rate (as ratio).
+        e.g. returning -0.05 would create a stoploss 5% below current_rate.
+        The custom stoploss can never be below self.stoploss, which serves as a hard maximum loss.
+
+        For full documentation please go to https://www.freqtrade.io/en/latest/strategy-advanced/
+
+        When not implemented by a strategy, returns the initial stoploss value
+        Only called when use_custom_stoploss is set to True.
+
+        :param pair: Pair that's currently analyzed
+        :param trade: trade object.
+        :param current_time: datetime object, containing the current datetime
+        :param current_rate: Rate, calculated based on pricing settings in ask_strategy.
+        :param current_profit: Current profit (as ratio), calculated based on current_rate.
+        :param **kwargs: Ensure to keep this here so updates to this won't break your strategy.
+        :return float: New stoploss value, relative to the current rate
+        """
+        
+        dataframe, last_updated = self.dp.get_analyzed_dataframe(pair=pair, timeframe=self.timeframe)
+        last_candle = dataframe.iloc[-1].squeeze()
+        
+        stoploss_price = last_candle["ich_spanA"]
+        
+        if stoploss_price < current_rate:
+            return (stoploss_price / current_rate) - 1
+         
+        return 1
 
     def populate_buy_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         """
@@ -375,13 +406,14 @@ class IchimokuStrategy(IStrategy):
         dataframe.loc[
         (
             # Signal: RSI crosses above 30
-            (dataframe["ich_spanA"] < dataframe["ich_spanB"]) &  # Guard: tema below BB middle
-            (dataframe['close'] > dataframe["ich_spanB"]) &  # Guard: tema is raising
-            (dataframe["ich_lead_spanA"] > dataframe["ich_spanB"]) &
+            (dataframe["ich_lead_spanA"] < dataframe["ich_lead_spanB"]) &
+            (dataframe["ich_spanB"] < dataframe["ich_spanA"]) &
+            (dataframe['close'] > dataframe["ich_spanB"]) &  
+            (dataframe["ich_chikou"] > dataframe["ich_spanB"]) &
             (dataframe["ich_tenkan"] > dataframe["ich_kijun"]) &
             (dataframe['volume'] > 0)  # Make sure Volume is not 0
         ),
-        'buy'] = 1
+        ['buy', 'buy_tag']] = (1, 'buy_signal_ichimoku')
 
         return dataframe
 
@@ -392,7 +424,15 @@ class IchimokuStrategy(IStrategy):
         :param metadata: Additional information, like the currently traded pair
         :return: DataFrame with sell column
         """
-        
-        
-        
+        dataframe.loc[
+        (
+            # Signal: RSI crosses above 30
+            (dataframe["ich_lead_spanA"] < dataframe["ich_lead_spanB"]) &
+            (dataframe["ich_spanB"] > dataframe["ich_spanA"]) &
+            (dataframe['close'] < dataframe["ich_spanA"]) &  
+            (dataframe["ich_chikou"] < dataframe["ich_spanA"]) &
+            (dataframe["ich_tenkan"] < dataframe["ich_kijun"]) &
+            (dataframe['volume'] > 0)  # Make sure Volume is not 0
+        ),
+        ['sell', 'exit_tag']] = (1, 'sell_signal_ichimoku')
         return dataframe
