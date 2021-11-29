@@ -1,29 +1,44 @@
 #!/usr/bin/env bash
 #encoding=utf8
 
-# sudo -i
-# git clone https://github.com/freqtrade/freqtrade
-# cd freqtrade
+sudo -i
+echo -n "Do you want to install miniconda3 (y/n)? "
+read answer
 
-# Check which python version is installed
-# function check_installed_python() {
-#     if [ -n "${VIRTUAL_ENV}" ]; then
-#         echo "Please deactivate your virtual environment before running setup.sh."
-#         echo "You can do this by running 'deactivate'."
-#         exit 2
-#     fi
+if [ "$answer" != "${answer#[Yy]}" ] ;then
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    chmod +x Miniconda3-latest-Linux-x86_64.sh
+    bash Miniconda3-latest-Linux-x86_64.sh -p $HOME/miniconda3
+    rm Miniconda3-latest-Linux-x86_64.sh
+    echo "Miniconda3 has been installed"
+else
+    echo "Miniconda3 has not been installed"
+fi
 
-#     for v in 9 8 7
-#     do
-#         PYTHON="python3.${v}"
-#         which $PYTHON
-#         if [ $? -eq 0 ]; then
-#             echo "using ${PYTHON}"
-#             check_installed_pip
-#             return
-#         fi
-#     done
+if [ "$answer" != "${answer#[Yy]}" ] ; then
+    source $HOME/miniconda3/activate
+    echo "Miniconda environment has been activated"
+    conda create -n cgrbi python=3.8.8
+    conda activate cgrbi
+else
+    echo "Miniconda environment has not been activated"
+else
 
-#     echo "No usable python found. Please make sure to have python3.7 or newer installed"
-#     exit 1
-# }
+git clone https://github.com/freqtrade/freqtrade
+cd freqtrade
+source setup.sh
+pip install psutil
+pip install freqtrade
+cd ..
+
+echo -n "Do you want to keep freqtrade repository (y/n)? "
+read fanswer
+
+if [ "$fanswer" != "${fanswer#[Yy]}" ] ; then
+    echo "freqtrade repository is keept"
+else
+    rm -r freqtrade
+    echo "freqtrade repository has been deleted"
+else
+
+echo "setup succeed"
