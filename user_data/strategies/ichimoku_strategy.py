@@ -6,6 +6,7 @@ import numpy as np  # noqa
 import pandas as pd  # noqa
 from pandas import DataFrame
 
+from freqtrade.exchange import timeframe_to_minutes
 from freqtrade.strategy import (BooleanParameter, CategoricalParameter, DecimalParameter,
                                 IStrategy, IntParameter)
 from pandas_ta.overlap.ichimoku import ichimoku
@@ -38,30 +39,32 @@ class IchimokuStrategy(IStrategy):
     # Check the documentation or the Sample strategy to get the latest version.
     INTERFACE_VERSION = 2
 
+    # Optimal timeframe for the strategy.
+    timeframe = '5m'
+    timeframe_mins = timeframe_to_minutes(timeframe)
+
     # Minimal ROI designed for the strategy.
     # This attribute will be overridden if the config file contains "minimal_roi".
     minimal_roi = {
-        "60": 0.01,
-        "30": 0.02,
-        "0": 0.04
+        "0": 0.1,
+        str(timeframe_mins * 4) : 0.04,
+        str(timeframe_mins * 8) : 0.02,
+        str(timeframe_mins * 16) : 0.01
     }
 
     # Optimal stoploss designed for the strategy.
     # This attribute will be overridden if the config file contains "stoploss".
-    stoploss = -0.10
+    stoploss = -0.1
 
     # Trailing stoploss
     trailing_stop = False
     # trailing_only_offset_is_reached = False
-    # trailing_stop_positive = 0.01
+    # trailing_stop_positive = 0.05
     # trailing_stop_positive_offset = 0.0  # Disabled / not configured
 
     # Hyperoptable parameters
-    buy_rsi = IntParameter(low=1, high=50, default=30, space='buy', optimize=True, load=True)
-    sell_rsi = IntParameter(low=50, high=100, default=70, space='sell', optimize=True, load=True)
-
-    # Optimal timeframe for the strategy.
-    timeframe = '5m'
+    # buy_rsi = IntParameter(low=1, high=50, default=30, space='buy', optimize=True, load=True)
+    # sell_rsi = IntParameter(low=50, high=100, default=70, space='sell', optimize=True, load=True)
 
     # Run "populate_indicators()" only for new candle.
     process_only_new_candles = False
@@ -232,6 +235,7 @@ class IchimokuStrategy(IStrategy):
         dataframe["ich_kijun"] = ichimoku["IKS_26"]
         dataframe["ich_spanA"] = ichimoku["ISA_9"]
         dataframe["ich_spanB"] = ichimoku["ISB_26"]
+        dataframe["ich_chikou"] = dataframe["close"].shift(26)
 
         # Warning : The use of shift(-26) is only to simulate the leading span A and B.
         # 26 candles forward
@@ -239,7 +243,7 @@ class IchimokuStrategy(IStrategy):
         # So these data will be available in backtest and in dry/live run
         dataframe["ich_lead_spanA"] = pd.concat([ichimoku["ISA_9"], ichimoku_forward["ISA_9"]]).shift(-26)
         dataframe["ich_lead_spanB"] = pd.concat([ichimoku["ISB_26"], ichimoku_forward["ISB_26"]]).shift(-26)
-        #test
+
         # Bollinger Bands - Weighted (EMA based instead of SMA)
         # weighted_bollinger = qtpylib.weighted_bollinger_bands(
         #     qtpylib.typical_price(dataframe), window=20, stds=2
@@ -359,15 +363,25 @@ class IchimokuStrategy(IStrategy):
         :param metadata: Additional information, like the currently traded pair
         :return: DataFrame with buy column
         """
+        
+        # dataframe["ich_tenkan"]
+        # dataframe["ich_kijun"]
+        # dataframe["ich_spanA"]
+        # dataframe["ich_spanB"]
+        # dataframe["ich_chikou"]
+        # dataframe["ich_lead_spanA"]
+        # dataframe["ich_lead_spanB"]
+
         dataframe.loc[
-            (
-                # Signal: RSI crosses above 30
-                (qtpylib.crossed_above(dataframe['rsi'], self.buy_rsi.value)) &
-                (dataframe['tema'] <= dataframe['bb_middleband']) &  # Guard: tema below BB middle
-                (dataframe['tema'] > dataframe['tema'].shift(1)) &  # Guard: tema is raising
-                (dataframe['volume'] > 0)  # Make sure Volume is not 0
-            ),
-            'buy'] = 1
+        (
+            # Signal: RSI crosses above 30
+            (dataframe["ich_spanA"] < dataframe["ich_spanB"]) &  # Guard: tema below BB middle
+            (dataframe['close'] > dataframe["ich_spanB"]) &  # Guard: tema is raising
+            (dataframe["ich_lead_spanA"] > dataframe["ich_spanB"]) &
+            (dataframe["ich_tenkan"] > dataframe["ich_kijun"]) &
+            (dataframe['volume'] > 0)  # Make sure Volume is not 0
+        ),
+        'buy'] = 1
 
         return dataframe
 
@@ -378,13 +392,7 @@ class IchimokuStrategy(IStrategy):
         :param metadata: Additional information, like the currently traded pair
         :return: DataFrame with sell column
         """
-        dataframe.loc[
-            (
-                # Signal: RSI crosses above 70
-                (qtpylib.crossed_above(dataframe['rsi'], self.sell_rsi.value)) &
-                (dataframe['tema'] > dataframe['bb_middleband']) &  # Guard: tema above BB middle
-                (dataframe['tema'] < dataframe['tema'].shift(1)) &  # Guard: tema is falling
-                (dataframe['volume'] > 0)  # Make sure Volume is not 0
-            ),
-            'sell'] = 1
+        
+        
+        
         return dataframe
