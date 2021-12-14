@@ -117,10 +117,41 @@ def untrend_data(data: np.ndarray) -> np.ndarray:
     return data-data_trend
 
 
-def data_trend_one_axis(data: np.ndarray, axis = 3) -> np.ndarray:
-    linear_regression = LinearRegression().fit(np.arange(len(data)).reshape(-1, 1), data[:,axis])
+def data_trend_one_axis(data: np.ndarray, num_axis: int = 3) -> np.ndarray:
+    linear_regression = LinearRegression().fit(np.arange(len(data)).reshape(-1, 1), 
+                                               data[:,num_axis])
     data_trend = (np.arange(len(data))*linear_regression.coef_)+linear_regression.intercept_
     return data_trend, (linear_regression.coef_, linear_regression.intercept_)
+
+
+def binary_soft_search(x, list: List, low = 0, high = -1):
+    high = len(list)-1 if high == -1 else high
+    if high <= low:
+        if low <= 0 :
+            return 0
+        else:
+            return len(list)-1
+    mid = int((low + high) / 2)
+    if x == list[mid] or x > list[mid] and x < list[mid+1]:
+        return mid
+    if x < list[mid]:
+        return binary_soft_search(x, list, low, mid-1)
+    if x > list[mid]:
+        return binary_soft_search(x, list, mid+1, high)
+
+    
+
+def histogram(data: np.ndarray, num_axis: int, start: float, stop: float, nb : float) -> np.ndarray:
+    h = np.zeros(nb, dtype=int)
+    list_step = np.linspace(start, stop, num=nb)
+    for i in range(len(data)):
+        d = data[i,num_axis]
+        
+        pass
+        o = binary_soft_search(d, list_step)
+        h[o] += 1
+
+    return h
 
 
 def main():
@@ -136,21 +167,26 @@ def main():
     untrended_data = untrend_data(data)
     untrended_data_df = untrend_data_df(data_df, columns=COL)
     
-    no_stationary_data = stationnarize_data(data)
-    no_stationary_data_df = stationnarize_data_df(data_df, columns=COL)
+    stationarized_data = stationnarize_data(data)
+    stationarized_data_data_df = stationnarize_data_df(data_df, columns=COL)
     
     data_trend,_ = data_trend_one_axis(data, 3)
 
-    fig = plotly.subplots.make_subplots(rows=3, cols=1)
-    fig.add_trace(go.Scatter(x=np.arange(len(data)), y=data[:,3]), row=1, col=1)
-    fig.add_trace(go.Scatter(x=np.arange(len(data)), y=data_trend, mode="lines"), row=1, col=1)
-    fig.add_trace(go.Scatter(x=np.arange(len(no_stationary_data)), y=no_stationary_data[:,3]), row=2, col=1)
-    fig.add_trace(go.Scatter(x=np.arange(len(untrended_data)), y=untrended_data[:,3]), row=3, col=1)
-
-    fig.show()
+    H = histogram(stationarized_data, 3, 0, 0.4, 40)
+    print(H)
     
-    process_pca(untrended_data_df, n_components=2, plot=True)
-    process_pca(no_stationary_data_df, n_components=2, plot=True)
+    fig = px.histogram(stationarized_data_data_df, x="close")
+    fig.show()
+    # fig = plotly.subplots.make_subplots(rows=3, cols=1)
+    # fig.add_trace(go.Scatter(x=np.arange(len(data)), y=data[:,3]), row=1, col=1)
+    # fig.add_trace(go.Scatter(x=np.arange(len(data)), y=data_trend, mode="lines"), row=1, col=1)
+    # fig.add_trace(go.Scatter(x=np.arange(len(stationarized_data_data)), y=stationarized_data_data[:,3]), row=2, col=1)
+    # fig.add_trace(go.Scatter(x=np.arange(len(untrended_data)), y=untrended_data[:,3]), row=3, col=1)
+
+    # fig.show()
+    
+    # process_pca(untrended_data_df, n_components=2, plot=True)
+    # process_pca(stationarized_data_df, n_components=2, plot=True)
 
     pass
     
