@@ -33,37 +33,64 @@ def process_pca(data_df: pd.DataFrame, n_components: int, plot: bool = False) ->
                                       columns=[f"C{i+1}" for i in range(n_components)])
     pcd_data_df_result["date"] = data_df["date"]
     pcd_data_df_result["color"] = np.linspace(0, 255, len(pcd_data_df_result))
-    if plot == True:
-        if n_components == 2:
-            fig = plotly.subplots.make_subplots(rows=2, cols=1)
-            trace = px.scatter(pcd_data_df_result,
-                                         text = 'date',
-                                         x = pcd_data_df_result.columns[0],
-                                         y = pcd_data_df_result.columns[1],
-                                         color = 'color')["data"]
-            # trace[0]["mode"] = 'lines'
-            trace[0]["mode"] = 'markers'
-            trace[0]["marker"]["symbol"] = "circle"
-            trace[0]["marker"]["size"] = 3
-            fig.add_trace(
-                trace[0],
-                row=1,
-                col=1
-            )
-            data_df["color"] = pcd_data_df_result["color"]
-
-            theline = px.scatter(data_df, x="date", y="close", color="color")["data"]
-            theline[0]["mode"] = "markers"
-            fig.add_trace(
-                theline[0],
-                row=2,
-                col=1
-            )
-            fig.show()
-        else:
-            raise NotImplementedError("n_component =/= 2 not implemented")
     
-    return pcd_data_df_result
+    if n_components == 2:
+        fig = plotly.subplots.make_subplots(rows=3, cols=2)
+        trace = px.scatter(pcd_data_df_result,
+                                        text = 'date',
+                                        x = pcd_data_df_result.columns[0],
+                                        y = pcd_data_df_result.columns[1],
+                                        color = 'color')["data"]
+        # trace[0]["mode"] = 'lines'
+        trace[0]["mode"] = 'markers'
+        trace[0]["marker"]["symbol"] = "circle"
+        trace[0]["marker"]["size"] = 3
+        fig.add_trace(
+            trace[0],
+            row=1,
+            col=1
+        )
+        
+        data_df["color"] = pcd_data_df_result["color"]
+        theline = px.scatter(data_df, x="date", y="close", color="color")["data"]
+        theline[0]["mode"] = "markers"
+        fig.add_trace(
+            theline[0],
+            row=2,
+            col=1
+        )
+        print(pca.noise_variance_)
+        print(pca.get_covariance())
+        df_components = pd.DataFrame(data=pca.components_.T, columns=['pc1', 'pc2'])
+        print(df_components)
+
+        compo = px.scatter(df_components, x="pc1", y="pc2")["data"][0]
+        fig.add_trace(
+            compo,
+            row=3,
+            col=2
+        )
+        
+        hist = px.histogram(y=pca.explained_variance_ratio_, x=np.arange(len(pca.explained_variance_ratio_)))["data"][0]
+        fig.add_trace(
+            hist,
+            row=1,
+            col=2
+        )
+        
+        hist = px.histogram(y=pca.singular_values_, x=np.arange(len(pca.explained_variance_ratio_)))["data"][0]
+        fig.add_trace(
+            hist,
+            row=2,
+            col=2
+        )
+        
+        if plot == True:
+            fig.show()
+    else:
+        raise NotImplementedError("n_component =/= 2 not implemented")
+
+    return pcd_data_df_result, (trace[0], theline[0])
 
 
 def _to_pd(fct: Callable, 
@@ -139,50 +166,133 @@ def binary_soft_search(x, list: List, low = 0, high = -1):
     if x > list[mid]:
         return binary_soft_search(x, list, mid+1, high)
 
+
+
+def analyse_acp(data_df: pd.DataFrame, 
+                columns : List[str], 
+                standardize : bool = True, 
+                mode : str = "default",
+                name : str = None):
     
-
-def histogram(data: np.ndarray, num_axis: int, start: float, stop: float, nb : float) -> np.ndarray:
-    h = np.zeros(nb, dtype=int)
-    list_step = np.linspace(start, stop, num=nb)
-    for i in range(len(data)):
-        d = data[i,num_axis]
+    data = data_df[columns].copy()
+    
+    if mode == "untrend":
+        data = untrend_data_df(data, columns)
+    
+    elif mode == "stationarize":
+        data = stationnarize_data_df(data, columns)
         
-        pass
-        o = binary_soft_search(d, list_step)
-        h[o] += 1
+    if standardize:
+        data = standardize_data_df(data, columns)
 
-    return h
+    acp = PCA()
+    
+    acp_results = acp.fit_transform(data)
+    acp_results_df = pd.DataFrame(data=acp_results, 
+                                    columns=[f"F{i+1}" for i in range(acp.n_components_)])
 
+    explained_variance_ratio = acp.explained_variance_ratio_
+    
+    fig = plotly.subplots.make_subplots(rows=2, cols=3,
+                                        subplot_titles=(
+                                            'Explained Variance Ratio', 
+                                            'Values represented on the Component Plan', 
+                                            'Values Contribution in the Total Inertie',
+                                            'title 4',
+                                            "Données d'entrée"))
+    fig.update_layout(
+        title_text=f"Analyse en Composantes Principales (ACP)"+\
+        f"{(f' - {name}' if not name is None else '')} - Colonnes étudiées : {columns}")
+
+    # First Plot ###
+    fig.add_trace(px.bar(explained_variance_ratio)["data"][0],
+                  row=1, col=1)
+    ####
+    
+    # Second Plot ###
+    min_val = min(np.min(acp_results_df[acp_results_df.columns[0]]), 
+                        np.min(acp_results_df[acp_results_df.columns[1]]))
+    max_val = max(np.max(acp_results_df[acp_results_df.columns[0]]), 
+                        np.max(acp_results_df[acp_results_df.columns[1]]))
+    acp_results_trace = px.scatter(acp_results_df,
+                       x = acp_results_df.columns[0],
+                       y = acp_results_df.columns[1])["data"][0]
+    acp_results_trace["mode"] = 'markers'
+    acp_results_trace["marker"]["symbol"] = "circle"
+    acp_results_trace["marker"]["size"] = 3
+
+    fig.add_trace(acp_results_trace,
+                  row=1, col=2)
+    fig.update_layout(xaxis2 = dict(range=[min_val, max_val]))
+    fig.update_layout(yaxis2 = dict(range=[min_val, max_val]))
+    ####
+    
+    total_inertie = (data**2).sum(axis=1)
+    
+    # Third Plot ###
+    fig.add_trace(px.line(total_inertie)["data"][0],
+                  row=1, col=3)
+    ####
+    
+    # fig.add_trace(,
+    #               row=2, col=1)
+    
+    # Fith plot ###
+    fig.add_trace(px.line(data[data.columns[0]])["data"][0],
+                  row=2, col=2)
+    ####
+    # fig.add_trace(,
+    #               row=2, col=3)
+
+    fig.show()
+    
 
 def main():
     print(os.path.abspath(os.path.curdir))
     BTC_BUSD_1m = load_pair_history("BTC/BUSD", "1m", Path("./user_data/data/binance"))
+    # print(BTC_BUSD_1m)
     
-    # pca_result = process_pca(BTC_BUSD_5m, n_components=2, plot=True)
+    analyse_acp(BTC_BUSD_1m, COL, name="Cours du BTC", mode = "default")
+    
     data = dataframe_to_numpy(BTC_BUSD_1m, columns=COL)
     
-    data = standardize_data(data)
-    data_df = standardize_data_df(BTC_BUSD_1m, columns=COL)
+    # data = standardize_data(data)
+    # data_df = standardize_data_df(BTC_BUSD_1m, columns=COL)
 
-    untrended_data = untrend_data(data)
-    untrended_data_df = untrend_data_df(data_df, columns=COL)
+    # untrended_data = untrend_data(data)
+    # untrended_data_df = untrend_data_df(data_df, columns=COL)
     
-    stationarized_data = stationnarize_data(data)
-    stationarized_data_data_df = stationnarize_data_df(data_df, columns=COL)
+    # stationarized_data = stationnarize_data(data)
+    # stationarized_data_df = stationnarize_data_df(data_df, columns=COL)
     
-    data_trend,_ = data_trend_one_axis(data, 3)
+    # data_trend,_ = data_trend_one_axis(data, 3)
 
-    H = histogram(stationarized_data, 3, 0, 0.4, 40)
-    print(H)
+    # acp = PCA()
+    # r = acp.fit_transform(stationarized_data_df[COL])
+    # hist = px.bar(y=acp.explained_variance_ratio_, x=np.arange(len(acp.explained_variance_ratio_)), title="explained variance ratio")
+    # hist.show()
+    # hist = px.bar(y=acp.singular_values_, x=np.arange(len(acp.singular_values_)), title="singular_values")
+    # hist.show()
+    # pca_result_untrended, (pca1, line1) = process_pca(untrended_data_df, n_components=2, plot=True)
+    # pca_result_stationarized, (pca2, line2) = process_pca(stationarized_data_data_df, n_components=2, plot=True)
+
+
+
+
+    # histogram
+    # hist_varia = px.histogram(stationarized_data_data_df, x="close", title="ratio variation histogram")
+    # hist_cov = px.histogram()
+    # print(hist_varia)
     
-    fig = px.histogram(stationarized_data_data_df, x="close")
-    fig.show()
-    # fig = plotly.subplots.make_subplots(rows=3, cols=1)
+    # fig = plotly.subplots.make_subplots(rows=4, cols=2)
+    # fig.add_trace(hist_varia['data'][0],  row=4, col=1)
     # fig.add_trace(go.Scatter(x=np.arange(len(data)), y=data[:,3]), row=1, col=1)
     # fig.add_trace(go.Scatter(x=np.arange(len(data)), y=data_trend, mode="lines"), row=1, col=1)
-    # fig.add_trace(go.Scatter(x=np.arange(len(stationarized_data_data)), y=stationarized_data_data[:,3]), row=2, col=1)
-    # fig.add_trace(go.Scatter(x=np.arange(len(untrended_data)), y=untrended_data[:,3]), row=3, col=1)
-
+    # fig.add_trace(line2, row=2, col=1)
+    # fig.add_trace(line1, row=3, col=1)
+    
+    # fig.add_trace(pca1,  row=3, col=2)
+    # fig.add_trace(pca2,  row=2, col=2)
     # fig.show()
     
     # process_pca(untrended_data_df, n_components=2, plot=True)
