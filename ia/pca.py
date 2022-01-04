@@ -6,6 +6,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import plotly
 import plotly.express as px
+import plotly.figure_factory as ff
 import plotly.graph_objects as go
 from pathlib import Path
 from sklearn.decomposition import PCA
@@ -168,22 +169,24 @@ def binary_soft_search(x, list: List, low = 0, high = -1):
 
 
 
-def analyse_acp(data_df: pd.DataFrame, 
+def analyse_acp_2d(data_df: pd.DataFrame, 
                 columns : List[str], 
-                standardize : bool = True, 
                 mode : str = "default",
+                input_plot : str = None,
                 name : str = None):
     
     data = data_df[columns].copy()
+    
+    if input_plot is None:
+        input_plot = columns[0]
     
     if mode == "untrend":
         data = untrend_data_df(data, columns)
     
     elif mode == "stationarize":
         data = stationnarize_data_df(data, columns)
-        
-    if standardize:
-        data = standardize_data_df(data, columns)
+
+    data = standardize_data_df(data, columns)
 
     acp = PCA()
     
@@ -192,58 +195,138 @@ def analyse_acp(data_df: pd.DataFrame,
                                     columns=[f"F{i+1}" for i in range(acp.n_components_)])
 
     explained_variance_ratio = acp.explained_variance_ratio_
+    cumul_explained_variance_ratio = np.cumsum(explained_variance_ratio)
     
     fig = plotly.subplots.make_subplots(rows=2, cols=3,
                                         subplot_titles=(
-                                            'Explained Variance Ratio', 
-                                            'Values represented on the Component Plan', 
-                                            'Values Contribution in the Total Inertie',
-                                            'title 4',
-                                            "Données d'entrée"))
+                                            f"Données d'entrée ({input_plot})",
+                                            "Pourcentage de variance expliquée avec somme cumulée", 
+                                            "Individus représentés sur F1 et F2 "+\
+                                                "de la nouvelle base", 
+                                            "Contribution de chaque individus à l'inertie totale",
+                                            "Cercle de corrélation (F1, F2)",
+                                            "Matrice des corrélation variables / axes"
+                                            ))
     fig.update_layout(
-        title_text=f"Analyse en Composantes Principales (ACP)"+\
-        f"{(f' - {name}' if not name is None else '')} - Colonnes étudiées : {columns}")
+        title_text=f"ACP"+\
+            f"{(f' - {name}' if not name is None else '')} - Colonnes étudiées : {columns}"+\
+            f"- (mode : {mode})" )
 
-    # First Plot ###
-    fig.add_trace(px.bar(explained_variance_ratio)["data"][0],
+    # 1 ###
+    data_trace_df = data.copy()
+    data_trace_df["color"] = np.linspace(0, 255, len(acp_results_df))
+    data_trace_df["date"] = data_df["date"]
+
+    input_data = px.scatter(data_trace_df, x="date", y=input_plot, 
+                            color='color', 
+                            text="date")["data"][0]
+    input_data.mode = "markers"
+    input_data.marker.symbol = "circle"
+    input_data.marker.size = 3
+    fig.add_trace(input_data,
                   row=1, col=1)
     ####
+
+
+    # 2 ###
+    fig.add_trace(go.Bar(x=np.arange(1, len(explained_variance_ratio)+1),
+                         y=explained_variance_ratio),
+                  row=1, col=2)
     
-    # Second Plot ###
+    fig.add_trace(go.Scatter(x=np.arange(1, len(cumul_explained_variance_ratio)+1),
+                             y=cumul_explained_variance_ratio,
+                             mode="lines+markers"),
+                  row=1, col=2)
+    ####
+    
+    # 3 ###
     min_val = min(np.min(acp_results_df[acp_results_df.columns[0]]), 
                         np.min(acp_results_df[acp_results_df.columns[1]]))
     max_val = max(np.max(acp_results_df[acp_results_df.columns[0]]), 
                         np.max(acp_results_df[acp_results_df.columns[1]]))
-    acp_results_trace = px.scatter(acp_results_df,
+    
+    acp_results_trace_df = acp_results_df.copy()
+    acp_results_trace_df["color"] = data_trace_df["color"]
+    acp_results_trace_df["date"] = data_trace_df["date"]
+    
+    acp_results_trace = px.scatter(acp_results_trace_df,
                        x = acp_results_df.columns[0],
-                       y = acp_results_df.columns[1])["data"][0]
-    acp_results_trace["mode"] = 'markers'
-    acp_results_trace["marker"]["symbol"] = "circle"
-    acp_results_trace["marker"]["size"] = 3
+                       y = acp_results_df.columns[1],
+                       color = 'color',
+                       text="date")["data"][0]
+    acp_results_trace.mode = 'markers'
+    acp_results_trace.marker.symbol = "circle"
+    acp_results_trace.marker.size = 3
 
     fig.add_trace(acp_results_trace,
-                  row=1, col=2)
-    fig.update_layout(xaxis2 = dict(range=[min_val, max_val]))
-    fig.update_layout(yaxis2 = dict(range=[min_val, max_val]))
-    ####
-    
-    total_inertie = (data**2).sum(axis=1)
-    
-    # Third Plot ###
-    fig.add_trace(px.line(total_inertie)["data"][0],
                   row=1, col=3)
+    fig.update_layout(xaxis3 = dict(range=[min_val, max_val]))
+    fig.update_layout(yaxis3 = dict(range=[min_val, max_val]))
     ####
     
-    # fig.add_trace(,
-    #               row=2, col=1)
+    total_inertie = (data[columns]**2).sum(axis=1)
     
-    # Fith plot ###
-    fig.add_trace(px.line(data[data.columns[0]])["data"][0],
-                  row=2, col=2)
+    # 4 ###
+    total_inertie_trace_df = pd.DataFrame()
+    total_inertie_trace_df["inertie"] = total_inertie
+    total_inertie_trace_df["color"] = data_trace_df["color"]
+    total_inertie_trace_df["date"] = data_trace_df["date"]
+    trace_intertie = px.scatter(total_inertie_trace_df, 
+                                x="date", 
+                                y="inertie", color="color")["data"][0]
+    trace_intertie.mode = 'markers'
+    trace_intertie.marker.symbol = "circle"
+    trace_intertie.marker.size = 3
+    fig.add_trace(trace_intertie,
+                  row=2, col=1)
+    
     ####
-    # fig.add_trace(,
-    #               row=2, col=3)
+    
+    qual_repr_indi = (acp_results**2)
+    for i in range(acp_results.shape[1]):
+        qual_repr_indi[:,i] = qual_repr_indi[:,i] / total_inertie
+    # print(qual_repr_indi)
+    contrib_axes = (acp_results**2)
+    for i in range(acp_results.shape[1]):
+        contrib_axes[:,i] = contrib_axes[:,i] / acp_results.shape[0]*acp.explained_variance_[i]
+    # print(contrib_axes)
+    
+    # 5 ###
+    corvar = np.zeros((acp.n_components_, acp.n_components_))
+    for k in range(acp.n_components_):
+        # variable en ligne et facteurs en colonnes
+        corvar[:,k] = acp.components_[k] * np.sqrt(acp.explained_variance_)[k]
+        
+    # fig.add_trace(go.Scatter(x=[0], y=[0], mode="markers"),
+    #               row=2, col=2)
+    
+    for var, col in zip(corvar, columns):
+        fig.add_trace(go.Scatter(x=[0,var[0]], y=[0,var[1]], mode="lines+markers", text=col),
+                    row=2, col=2)
+    fig.add_shape(dict(type="circle", x0=-1, x1=1, y0=-1, y1=1, line_color="purple"), 
+                  row=2, 
+                  col=2)
+    fig.layout.yaxis5.domain = (0.0, 0.5)
+    fig.layout.xaxis5.domain = (0.38, 0.62)
+    fig.layout.annotations[4].y = 0.5
+    fig.layout.shapes[0].line.color = 'black'
+    
+    # 6 ###
+    fig.add_trace(go.Heatmap(z=corvar, 
+                             y=columns, 
+                             x=[f"F{i+1}" for i in range(acp.n_components_)],
+                             text=corvar,
+                             visible=True,
+                             colorscale="spectral"),
+                  row=2, col=3)
+    fig.data[10].colorbar = {'x':1, 'y' : 0.188, "len": 0.4}
+    fig.data[10].text = list(np.array(np.round(corvar, 2), dtype=str))
+    fig.layout.annotations[5].text = True
 
+    print(fig)
+    ###
+    fig.update(layout_showlegend=False)
+    fig.update_coloraxes(showscale=False)
     fig.show()
     
 
@@ -252,7 +335,10 @@ def main():
     BTC_BUSD_1m = load_pair_history("BTC/BUSD", "1m", Path("./user_data/data/binance"))
     # print(BTC_BUSD_1m)
     
-    analyse_acp(BTC_BUSD_1m, COL, name="Cours du BTC", mode = "default")
+    analyse_acp_2d(BTC_BUSD_1m, COL,
+                name = "Cours du BTC", 
+                mode = "stationarize", 
+                input_plot="close")
     
     data = dataframe_to_numpy(BTC_BUSD_1m, columns=COL)
     
