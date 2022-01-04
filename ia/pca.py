@@ -321,7 +321,6 @@ def analyse_acp_2d(data_df: pd.DataFrame,
                   row=2, col=3)
     fig.data[10].colorbar = {'x':1, 'y' : 0.188, "len": 0.4}
     fig.data[10].text = list(np.array(np.round(corvar, 2), dtype=str))
-    fig.layout.annotations[5].text = True
 
     print(fig)
     ###
