@@ -13,6 +13,7 @@ from sklearn.decomposition import PCA
 from freqtrade.data.history.history_utils import load_pair_history
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
+from sklearn.cluster import KMeans
 
 
 COL = ["open", "high", "low", "close", "volume"]
@@ -169,13 +170,17 @@ def binary_soft_search(x, list: List, low = 0, high = -1):
 
 
 
-def analyse_acp_2d(data_df: pd.DataFrame, 
+def analyse_acp(data_df: pd.DataFrame, 
                 columns : List[str], 
                 mode : str = "default",
                 input_plot : str = None,
-                name : str = None):
+                name : str = None,
+                do_kmeans : bool = True,
+                n_cluster : int = 2,
+                n_cpt_kmeans : int = 2,
+                plot : bool = True) -> dict:
     
-    data = data_df[columns].copy()
+    data = data_df.copy()
     
     if input_plot is None:
         input_plot = columns[0]
@@ -190,9 +195,14 @@ def analyse_acp_2d(data_df: pd.DataFrame,
 
     acp = PCA()
     
-    acp_results = acp.fit_transform(data)
+    acp_results = acp.fit_transform(data[columns])
     acp_results_df = pd.DataFrame(data=acp_results, 
                                     columns=[f"F{i+1}" for i in range(acp.n_components_)])
+    if do_kmeans:
+        k_means = KMeans(n_clusters=n_cluster)
+        k_means.fit(acp_results_df[[f"F{i+1}" for i in range(n_cpt_kmeans)]])
+        acp_results_df['label'] = k_means.labels_
+        data['label'] = k_means.labels_
 
     explained_variance_ratio = acp.explained_variance_ratio_
     cumul_explained_variance_ratio = np.cumsum(explained_variance_ratio)
@@ -214,8 +224,7 @@ def analyse_acp_2d(data_df: pd.DataFrame,
 
     # 1 ###
     data_trace_df = data.copy()
-    data_trace_df["color"] = np.linspace(0, 255, len(acp_results_df))
-    data_trace_df["date"] = data_df["date"]
+    data_trace_df["color"] = data['label'] if do_kmeans else np.linspace(0, 255, len(acp_results_df))
 
     input_data = px.scatter(data_trace_df, x="date", y=input_plot, 
                             color='color', 
@@ -279,27 +288,25 @@ def analyse_acp_2d(data_df: pd.DataFrame,
     trace_intertie.marker.size = 3
     fig.add_trace(trace_intertie,
                   row=2, col=1)
-    
     ####
     
     qual_repr_indi = (acp_results**2)
     for i in range(acp_results.shape[1]):
         qual_repr_indi[:,i] = qual_repr_indi[:,i] / total_inertie
-    # print(qual_repr_indi)
+    qual_repr_indi_df = pd.DataFrame(qual_repr_indi, columns=columns)
+    qual_repr_indi_df["date"] = data_trace_df["date"]
+    
     contrib_axes = (acp_results**2)
     for i in range(acp_results.shape[1]):
         contrib_axes[:,i] = contrib_axes[:,i] / acp_results.shape[0]*acp.explained_variance_[i]
-    # print(contrib_axes)
+    contrib_axes_df = pd.DataFrame(contrib_axes, columns=columns)
+    contrib_axes_df["date"] = data_trace_df["date"]
     
     # 5 ###
     corvar = np.zeros((acp.n_components_, acp.n_components_))
     for k in range(acp.n_components_):
         # variable en ligne et facteurs en colonnes
         corvar[:,k] = acp.components_[k] * np.sqrt(acp.explained_variance_)[k]
-        
-    # fig.add_trace(go.Scatter(x=[0], y=[0], mode="markers"),
-    #               row=2, col=2)
-    
     for var, col in zip(corvar, columns):
         fig.add_trace(go.Scatter(x=[0,var[0]], y=[0,var[1]], mode="lines+markers", text=col),
                     row=2, col=2)
@@ -312,6 +319,9 @@ def analyse_acp_2d(data_df: pd.DataFrame,
     fig.layout.shapes[0].line.color = 'black'
     
     # 6 ###
+    corvar_df = pd.DataFrame(corvar, 
+                             index=columns,
+                             columns=[f"F{i+1}" for i in range(acp.n_components_)])
     fig.add_trace(go.Heatmap(z=corvar, 
                              y=columns, 
                              x=[f"F{i+1}" for i in range(acp.n_components_)],
@@ -321,12 +331,23 @@ def analyse_acp_2d(data_df: pd.DataFrame,
                   row=2, col=3)
     fig.data[10].colorbar = {'x':1, 'y' : 0.188, "len": 0.4}
     fig.data[10].text = list(np.array(np.round(corvar, 2), dtype=str))
-
-    print(fig)
     ###
+    
     fig.update(layout_showlegend=False)
     fig.update_coloraxes(showscale=False)
-    fig.show()
+    if plot:
+        fig.show()
+    
+    result = {}
+    result["data"] = data
+    result["fig"] = fig
+    result["acp"] = acp
+    result["coord"] = acp_results_df
+    result["total_inertie"] = total_inertie_trace_df[["inertie","date"]]
+    result["qual_repr"] = qual_repr_indi_df
+    result["contrib_axe"] = contrib_axes_df
+    result["corvar"] = corvar_df
+    return result
     
 
 def main():
@@ -334,12 +355,29 @@ def main():
     BTC_BUSD_1m = load_pair_history("BTC/BUSD", "1m", Path("./user_data/data/binance"))
     # print(BTC_BUSD_1m)
     
-    analyse_acp_2d(BTC_BUSD_1m, COL,
+    result_analyse = analyse_acp(BTC_BUSD_1m, COL,
                 name = "Cours du BTC", 
                 mode = "stationarize", 
-                input_plot="close")
+                input_plot="close",
+                n_cluster=3,
+                n_cpt_kmeans=3,
+                plot=True)
     
-    data = dataframe_to_numpy(BTC_BUSD_1m, columns=COL)
+    data_km = result_analyse["data"]
+    coord_acp = result_analyse["coord"]
+    kmeans = KMeans(n_clusters=4)
+    # k = kmeans.fit(data_km[COL])
+    k = kmeans.fit(coord_acp[["F1", "F2"]])
+
+    data_km["label"] = k.labels_
+    coord_acp["label"] = k.labels_
+    print(data_km)
+    
+    fig = px.scatter(data_km, x="date", y="close", color="label")
+    fig.show()
+    fig = px.scatter(coord_acp, x="F1", y="F2", color="label")
+    fig.show()
+    # data = dataframe_to_numpy(BTC_BUSD_1m, columns=COL)
     
     # data = standardize_data(data)
     # data_df = standardize_data_df(BTC_BUSD_1m, columns=COL)
