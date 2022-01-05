@@ -247,7 +247,7 @@ def analyse_acp(data_df: pd.DataFrame,
     
     result = {}
     result["data"] = data
-    result["kmeans"]
+    result["kmeans"] = k_means
     result["fig"] = fig
     result["acp"] = acp
     result["coord"] = acp_results_df
@@ -264,6 +264,7 @@ def main():
     ### A propos des données
     parser.add_argument("--pair_name", type=str, help="exemple : BTC/BUSD")
     parser.add_argument("-t", "--timeframe", type=str, help="exemple : 1m ")
+    parser.add_argument("--days", type=int, default="30")
     parser.add_argument("--path", type=str, help="chemin vers les données", 
                         default="./user_data/data/binance")
     
@@ -271,22 +272,30 @@ def main():
     parser.add_argument("--col", type=str, nargs='+', help="colonnes qui seront prise en compte ")
     parser.add_argument("--input_ploted", type=str, 
                         help="la colonne qui sera affiché en tant qu'entré")
-    parser.add_argument("--n_cluster", type=str, help="pour les kmeans")
-    parser.add_argument("--n_cpt_kmeans", type=str, 
+    parser.add_argument("--n_cluster", type=int, help="pour les kmeans")
+    parser.add_argument("--n_cpt_kmeans", type=int, 
                         help="le nombre de facteur que les kmeans prendront en compte")
     
     args = parser.parse_args()
     
     print(os.path.abspath(os.path.curdir))
-    try:
-        BTC_BUSD_1m = load_pair_history(args.pair_name, 
-                                        args.timeframe, 
-                                        Path(args.path))
-    except:
-        Exception("Soit le chemin d'accès est éronné,"
-                  +" soit la pair en question n'a pas été téléchargé")
+    path = Path(args.path)
+    if os.path.isdir(path):
+        try:
+            command = "freqtrade download-data --exchange binance"+ \
+                f" --pairs '{args.pair_name}' --days '{args.days}' --timeframe '{args.timeframe}'"
+            print(command)
+            os.system(command)
+        except:
+            raise Exception("Le téléchargement des données a échoué")
+
+        pair_history = load_pair_history(args.pair_name, args.timeframe, path)
+    else:
+        raise Exception(f"Le chemin est inconnu")
+
+        
     
-    result_analyse = analyse_acp(BTC_BUSD_1m, args.col,
+    result_analyse = analyse_acp(pair_history, args.col,
                 name = f"{args.pair_name}_{args.timeframe}", 
                 mode = "stationarize", 
                 input_plot=args.input_ploted,
