@@ -1,6 +1,9 @@
+# -*- coding: utf-8 -*-
+
 import os
 from re import T
-from typing import Callable, List
+from typing import List
+
 import numpy as np
 import pandas as pd
 import plotly
@@ -9,77 +12,14 @@ import plotly.graph_objects as go
 from pathlib import Path
 from sklearn.decomposition import PCA
 from freqtrade.data.history.history_utils import load_pair_history
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LinearRegression
 from sklearn.cluster import KMeans
 import argparse
 from pandas_ta.overlap.ichimoku import ichimoku
 import talib.abstract as ta
 import freqtrade.vendor.qtpylib.indicators as qtpylib
 
-def dataframe_to_numpy(data_df: pd.DataFrame,
-                       columns: List[str]) -> np.ndarray:
-    data = np.array(data_df[columns])
-        
-    return data
-
-def _to_pd(fct: Callable, 
-           data_df: pd.DataFrame, 
-           columns: List[str], *args, **kwargs) -> pd.DataFrame:
-    data = dataframe_to_numpy(data_df=data_df, columns=columns)
-    data = fct(data, *args, **kwargs)
-    new_data_df = pd.DataFrame(data=data, columns=columns)
-    for col in set(data_df.columns) ^ set(columns):
-        new_data_df[col] = data_df[col]
-    return new_data_df
-
-
-def standardize_data(data: np.ndarray,
-                     with_std_mean: bool = True, 
-                     with_std_scale: bool = True) -> np.ndarray:
-    data = StandardScaler(with_mean = with_std_mean, with_std = with_std_scale).fit_transform(data)
-    return data
-
-
-def standardize_data_df(data_df: pd.DataFrame, 
-                        columns: List[str], 
-                        *args, **kwargs) -> pd.DataFrame:
-    return _to_pd(standardize_data, data_df, columns, *args, **kwargs)
-
-
-def stationnarize_data_df(data_df: pd.DataFrame, 
-                          columns: List[str], 
-                          *args, **kwargs) -> pd.DataFrame:
-    return _to_pd(stationnarize_data, data_df, columns, *args, **kwargs)
-
-
-def untrend_data_df(data_df: pd.DataFrame, 
-                    columns: List[str], 
-                    *args, **kwargs) -> pd.DataFrame:
-    return _to_pd(untrend_data, data_df, columns, *args, **kwargs)
-
-
-def stationnarize_data(data: np.ndarray) -> np.ndarray:
-    return (data - np.roll(data, 1, axis=0)) [1:]
-
-
-def untrend_data(data: np.ndarray) -> np.ndarray:
-    _,c = data.shape
-    data_trend = np.ndarray(data.shape)
-    list_coef = []
-    for i in range(c):
-        trend, (a, b) = data_trend_one_axis(data, i)
-        data_trend[:,i] = trend
-        list_coef.append((a,b))
-    return data-data_trend
-
-
-def data_trend_one_axis(data: np.ndarray, num_axis: int = 3) -> np.ndarray:
-    linear_regression = LinearRegression().fit(np.arange(len(data)).reshape(-1, 1), 
-                                               data[:,num_axis])
-    data_trend = (np.arange(len(data))*linear_regression.coef_)+linear_regression.intercept_
-    return data_trend, (linear_regression.coef_, linear_regression.intercept_)
-
+from utils import add_past_shifted_columns, untrend_data_df, standardize_data_df, \
+    stationnarize_data_df
 
 def analyse_acp(data_df: pd.DataFrame, 
                 columns : List[str], 
@@ -263,63 +203,59 @@ def analyse_acp(data_df: pd.DataFrame,
     result["corvar"] = corvar_df
     return result
 
-def add_past_shifted_columns(dataframe, list_columns, n_shift):
-    data = dataframe.copy()
-    for i in range(1, n_shift):
-        for col in list_columns:
-            data[f"{col}{i}"] = data[col].shift(i)
-    return data
+
 
 def populate_indicators(data : pd.DataFrame) -> pd.DataFrame:
     dataframe = data.copy()
-    dataframe['adx'] = ta.ADX(dataframe)
-    dataframe['rsi'] = ta.RSI(dataframe)
-    stoch_fast = ta.STOCHF(dataframe)
-    dataframe['fastd'] = stoch_fast['fastd']
-    dataframe['fastk'] = stoch_fast['fastk']
-    macd = ta.MACD(dataframe)
-    dataframe['macd'] = macd['macd']
-    dataframe['macdsignal'] = macd['macdsignal']
-    dataframe['macdhist'] = macd['macdhist']
-    dataframe['mfi'] = ta.MFI(dataframe)
-    bollinger = qtpylib.bollinger_bands(qtpylib.typical_price(dataframe), window=20, stds=2)
-    dataframe['bb_lowerband'] = bollinger['lower']
-    dataframe['bb_middleband'] = bollinger['mid']
-    dataframe['bb_upperband'] = bollinger['upper']
-    dataframe["bb_percent"] = (
-        (dataframe["close"] - dataframe["bb_lowerband"]) /
-        (dataframe["bb_upperband"] - dataframe["bb_lowerband"])
-    )
-    dataframe["bb_width"] = (
-        (dataframe["bb_upperband"] - dataframe["bb_lowerband"]) / dataframe["bb_middleband"]
-    )
-    dataframe['sar'] = ta.SAR(dataframe)
-    dataframe['tema'] = ta.TEMA(dataframe, timeperiod=9)
-    hilbert = ta.HT_SINE(dataframe)
-    dataframe['htsine'] = hilbert['sine']
-    dataframe['htleadsine'] = hilbert['leadsine']
     
-    dataframe['ema50'] = ta.EMA(dataframe, timeperiod=50)
-    dataframe['sma50'] = ta.SMA(dataframe, timeperiod=50)
+    # dataframe['adx'] = ta.ADX(dataframe)
+    # dataframe['rsi'] = ta.RSI(dataframe)
+    # stoch_fast = ta.STOCHF(dataframe)
+    # dataframe['fastd'] = stoch_fast['fastd']
+    # dataframe['fastk'] = stoch_fast['fastk']
+    # macd = ta.MACD(dataframe)
+    # dataframe['macd'] = macd['macd']
+    # dataframe['macdsignal'] = macd['macdsignal']
+    # dataframe['macdhist'] = macd['macdhist']
+    # dataframe['mfi'] = ta.MFI(dataframe)
+    # bollinger = qtpylib.bollinger_bands(qtpylib.typical_price(dataframe), window=20, stds=2)
+    # dataframe['bb_lowerband'] = bollinger['lower']
+    # dataframe['bb_middleband'] = bollinger['mid']
+    # dataframe['bb_upperband'] = bollinger['upper']
+    # dataframe["bb_percent"] = (
+    #     (dataframe["close"] - dataframe["bb_lowerband"]) /
+    #     (dataframe["bb_upperband"] - dataframe["bb_lowerband"])
+    # )
+    # dataframe["bb_width"] = (
+    #     (dataframe["bb_upperband"] - dataframe["bb_lowerband"]) / dataframe["bb_middleband"]
+    # )
+    # dataframe['sar'] = ta.SAR(dataframe)
+    # dataframe['tema'] = ta.TEMA(dataframe, timeperiod=9)
+    # hilbert = ta.HT_SINE(dataframe)
+    # dataframe['htsine'] = hilbert['sine']
+    # dataframe['htleadsine'] = hilbert['leadsine']
     
-    ichimoku, ichimoku_forward = dataframe.ta.ichimoku(lookahead=False)
-    dataframe["ich_tenkan"] = ichimoku["ITS_9"]
-    dataframe["ich_kijun"] = ichimoku["IKS_26"]
-    dataframe["ich_spanA"] = ichimoku["ISA_9"]
-    dataframe["ich_spanB"] = ichimoku["ISB_26"]
-    dataframe["ich_chikou"] = dataframe["close"].shift(26)
+    # dataframe['ema50'] = ta.EMA(dataframe, timeperiod=50)
+    # dataframe['sma50'] = ta.SMA(dataframe, timeperiod=50)
+    
+    # ichimoku, ichimoku_forward = dataframe.ta.ichimoku(lookahead=False)
+    # dataframe["ich_tenkan"] = ichimoku["ITS_9"]
+    # dataframe["ich_kijun"] = ichimoku["IKS_26"]
+    # dataframe["ich_spanA"] = ichimoku["ISA_9"]
+    # dataframe["ich_spanB"] = ichimoku["ISB_26"]
+    # dataframe["ich_chikou"] = dataframe["close"].shift(26)
 
-    hilbert = ta.HT_SINE(dataframe)
-    dataframe['htsine'] = hilbert['sine']
-    dataframe['htleadsine'] = hilbert['leadsine']
+    # hilbert = ta.HT_SINE(dataframe)
+    # dataframe['htsine'] = hilbert['sine']
+    # dataframe['htleadsine'] = hilbert['leadsine']
     
-    dataframe["ich_lead_spanA"] = pd.concat([ichimoku["ISA_9"], 
-                                             ichimoku_forward["ISA_9"]]).shift(-26)
-    dataframe["ich_lead_spanB"] = pd.concat([ichimoku["ISB_26"], 
-                                             ichimoku_forward["ISB_26"]]).shift(-26)
+    # dataframe["ich_lead_spanA"] = pd.concat([ichimoku["ISA_9"], 
+    #                                          ichimoku_forward["ISA_9"]]).shift(-26)
+    # dataframe["ich_lead_spanB"] = pd.concat([ichimoku["ISB_26"], 
+    #                                          ichimoku_forward["ISB_26"]]).shift(-26)
     
-    columns = sorted(list(set(data.columns) ^ set(["date"])))
-    dataframe = add_past_shifted_columns(dataframe, list_columns = columns, n_shift=10)
+    # columns = sorted(list(set(data.columns) ^ set(["date"])))
+    dataframe = add_past_shifted_columns(dataframe, list_columns = ["close"], n_shift=10)
         # dataframe[f"ich_tenkan{i}"] = dataframe["ich_tenkan"].shift(i)
         # dataframe[f"ich_kijun{i}"] = dataframe["ich_kijun"].shift(i)
         # dataframe[f"ich_spanA{i}"] = dataframe["ich_spanA"].shift(i)
@@ -354,7 +290,8 @@ def main():
     parser.add_argument("--n_cluster", type=int, help="pour les kmeans")
     parser.add_argument("--n_cpt_kmeans", type=int, 
                         help="le nombre de facteur que les kmeans prendront en compte")
-    
+    parser.add_argument("--mode", type=str,
+                        help="stationarize, untrend, default", default="stationarize")
     args = parser.parse_args()
     
     print(os.path.abspath(os.path.curdir))
@@ -381,7 +318,7 @@ def main():
         
     result_analyse = analyse_acp(data, columns,
                 name = f"{args.pair_name}_{args.timeframe}", 
-                mode = "stationarize", 
+                mode = args.mode, 
                 input_plot=args.input_ploted,
                 n_cluster=args.n_cluster,
                 n_cpt_kmeans=args.n_cpt_kmeans,
