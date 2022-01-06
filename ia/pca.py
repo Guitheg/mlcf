@@ -13,6 +13,9 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
 from sklearn.cluster import KMeans
 import argparse
+from pandas_ta.overlap.ichimoku import ichimoku
+import talib.abstract as ta
+import freqtrade.vendor.qtpylib.indicators as qtpylib
 
 def dataframe_to_numpy(data_df: pd.DataFrame,
                        columns: List[str]) -> np.ndarray:
@@ -86,7 +89,6 @@ def analyse_acp(data_df: pd.DataFrame,
                 n_cluster : int = 2,
                 n_cpt_kmeans : int = 2,
                 plot : bool = True) -> dict:
-    
     data = data_df.copy()
     
     if input_plot is None:
@@ -105,7 +107,7 @@ def analyse_acp(data_df: pd.DataFrame,
     acp_results = acp.fit_transform(data[columns])
     acp_results_df = pd.DataFrame(data=acp_results, 
                                     columns=[f"F{i+1}" for i in range(acp.n_components_)])
-
+    n_cpt_kmeans = min(n_cpt_kmeans, acp.n_components_)
     k_means = KMeans(n_clusters=n_cluster)
     k_means.fit(acp_results_df[[f"F{i+1}" for i in range(n_cpt_kmeans)]])
     acp_results_df['label'] = k_means.labels_
@@ -136,7 +138,8 @@ def analyse_acp(data_df: pd.DataFrame,
     input_data = px.scatter(data_trace_df, x="date", y=input_plot, 
                             color='color', 
                             text="date")["data"][0]
-    input_data.mode = "markers"
+    input_data.mode = "lines+markers"
+    input_data.line.width = 1
     input_data.marker.symbol = "circle"
     input_data.marker.size = 3
     fig.add_trace(input_data,
@@ -190,7 +193,8 @@ def analyse_acp(data_df: pd.DataFrame,
     trace_intertie = px.scatter(total_inertie_trace_df, 
                                 x="date", 
                                 y="inertie", color="color")["data"][0]
-    trace_intertie.mode = 'markers'
+    trace_intertie.mode = 'lines+markers'
+    trace_intertie.line.width = 1
     trace_intertie.marker.symbol = "circle"
     trace_intertie.marker.size = 3
     fig.add_trace(trace_intertie,
@@ -236,8 +240,10 @@ def analyse_acp(data_df: pd.DataFrame,
                              visible=True,
                              colorscale="spectral"),
                   row=2, col=3)
-    fig.data[10].colorbar = {'x':1, 'y' : 0.188, "len": 0.4}
-    fig.data[10].text = list(np.array(np.round(corvar, 2), dtype=str))
+    fig.layout.yaxis6.domain = (0.0, 0.6)
+    fig.layout.annotations[5].y = -0.08
+    # fig.data[10].colorbar = {'x':1, 'y' : 0.188, "len": 0.4}
+    # fig.data[10].text = list(np.array(np.round(corvar, 2), dtype=str))
     ###
     
     fig.update(layout_showlegend=False)
@@ -256,7 +262,77 @@ def analyse_acp(data_df: pd.DataFrame,
     result["contrib_axe"] = contrib_axes_df
     result["corvar"] = corvar_df
     return result
+
+def add_past_shifted_columns(dataframe, list_columns, n_shift):
+    data = dataframe.copy()
+    for i in range(1, n_shift):
+        for col in list_columns:
+            data[f"{col}{i}"] = data[col].shift(i)
+    return data
+
+def populate_indicators(data : pd.DataFrame) -> pd.DataFrame:
+    dataframe = data.copy()
+    dataframe['adx'] = ta.ADX(dataframe)
+    dataframe['rsi'] = ta.RSI(dataframe)
+    stoch_fast = ta.STOCHF(dataframe)
+    dataframe['fastd'] = stoch_fast['fastd']
+    dataframe['fastk'] = stoch_fast['fastk']
+    macd = ta.MACD(dataframe)
+    dataframe['macd'] = macd['macd']
+    dataframe['macdsignal'] = macd['macdsignal']
+    dataframe['macdhist'] = macd['macdhist']
+    dataframe['mfi'] = ta.MFI(dataframe)
+    bollinger = qtpylib.bollinger_bands(qtpylib.typical_price(dataframe), window=20, stds=2)
+    dataframe['bb_lowerband'] = bollinger['lower']
+    dataframe['bb_middleband'] = bollinger['mid']
+    dataframe['bb_upperband'] = bollinger['upper']
+    dataframe["bb_percent"] = (
+        (dataframe["close"] - dataframe["bb_lowerband"]) /
+        (dataframe["bb_upperband"] - dataframe["bb_lowerband"])
+    )
+    dataframe["bb_width"] = (
+        (dataframe["bb_upperband"] - dataframe["bb_lowerband"]) / dataframe["bb_middleband"]
+    )
+    dataframe['sar'] = ta.SAR(dataframe)
+    dataframe['tema'] = ta.TEMA(dataframe, timeperiod=9)
+    hilbert = ta.HT_SINE(dataframe)
+    dataframe['htsine'] = hilbert['sine']
+    dataframe['htleadsine'] = hilbert['leadsine']
     
+    dataframe['ema50'] = ta.EMA(dataframe, timeperiod=50)
+    dataframe['sma50'] = ta.SMA(dataframe, timeperiod=50)
+    
+    ichimoku, ichimoku_forward = dataframe.ta.ichimoku(lookahead=False)
+    dataframe["ich_tenkan"] = ichimoku["ITS_9"]
+    dataframe["ich_kijun"] = ichimoku["IKS_26"]
+    dataframe["ich_spanA"] = ichimoku["ISA_9"]
+    dataframe["ich_spanB"] = ichimoku["ISB_26"]
+    dataframe["ich_chikou"] = dataframe["close"].shift(26)
+
+    hilbert = ta.HT_SINE(dataframe)
+    dataframe['htsine'] = hilbert['sine']
+    dataframe['htleadsine'] = hilbert['leadsine']
+    
+    dataframe["ich_lead_spanA"] = pd.concat([ichimoku["ISA_9"], 
+                                             ichimoku_forward["ISA_9"]]).shift(-26)
+    dataframe["ich_lead_spanB"] = pd.concat([ichimoku["ISB_26"], 
+                                             ichimoku_forward["ISB_26"]]).shift(-26)
+    
+    columns = sorted(list(set(data.columns) ^ set(["date"])))
+    dataframe = add_past_shifted_columns(dataframe, list_columns = columns, n_shift=10)
+        # dataframe[f"ich_tenkan{i}"] = dataframe["ich_tenkan"].shift(i)
+        # dataframe[f"ich_kijun{i}"] = dataframe["ich_kijun"].shift(i)
+        # dataframe[f"ich_spanA{i}"] = dataframe["ich_spanA"].shift(i)
+        # dataframe[f"ich_spanB{i}"] = dataframe["ich_spanB"].shift(i)
+        # dataframe[f"ich_chikou{i}"] = dataframe["ich_chikou"].shift(i)
+        # dataframe[f"ich_lead_spanA{i}"] = dataframe["ich_lead_spanA"].shift(i)
+        # dataframe[f"ich_lead_spanB{i}"] = dataframe["ich_lead_spanB"].shift(i)
+        # dataframe[f'rsi{i}'] = dataframe['rsi'].shift(i)
+
+    
+    
+    dataframe.dropna(inplace=True)
+    return dataframe
 
 def main():
     parser = argparse.ArgumentParser()
@@ -269,7 +345,10 @@ def main():
                         default="./user_data/data/binance")
     
     ### A propos de l'ACP et de l'analyse
-    parser.add_argument("--col", type=str, nargs='+', help="colonnes qui seront prise en compte ")
+    parser.add_argument("--col", type=str, default="all",
+                        nargs='+', help="colonnes qui seront prise en compte ")
+    parser.add_argument("--notcol", type=str, default="date",
+                        nargs='+', help="colonnes qui ne seront pas prise en compte (if col == 'all') ")
     parser.add_argument("--input_ploted", type=str, 
                         help="la colonne qui sera affiché en tant qu'entré")
     parser.add_argument("--n_cluster", type=int, help="pour les kmeans")
@@ -293,9 +372,14 @@ def main():
     else:
         raise Exception(f"Le chemin est inconnu")
 
-        
+    data = populate_indicators(pair_history)
     
-    result_analyse = analyse_acp(pair_history, args.col,
+    if args.col == ["all"]:
+        columns = sorted(list(set(data.columns) ^ set(args.notcol)))
+    else:
+        columns = args.col
+        
+    result_analyse = analyse_acp(data, columns,
                 name = f"{args.pair_name}_{args.timeframe}", 
                 mode = "stationarize", 
                 input_plot=args.input_ploted,
