@@ -42,6 +42,7 @@ def analyse_acp(data_df: pd.DataFrame,
 
     data = standardize_data_df(data, columns)
 
+    print(data)
     acp = PCA()
     
     acp_results = acp.fit_transform(data[columns])
@@ -50,8 +51,8 @@ def analyse_acp(data_df: pd.DataFrame,
     n_cpt_kmeans = min(n_cpt_kmeans, acp.n_components_)
     k_means = KMeans(n_clusters=n_cluster)
     k_means.fit(acp_results_df[[f"F{i+1}" for i in range(n_cpt_kmeans)]])
-    acp_results_df['label'] = k_means.labels_
-    data['label'] = k_means.labels_
+    acp_results_df['label_cpt'] = k_means.labels_
+    data['label_cpt'] = k_means.labels_
 
     explained_variance_ratio = acp.explained_variance_ratio_
     cumul_explained_variance_ratio = np.cumsum(explained_variance_ratio)
@@ -72,18 +73,18 @@ def analyse_acp(data_df: pd.DataFrame,
             f"- (mode : {mode})" )
 
     # 1 ###
-    data_trace_df = data.copy()
-    data_trace_df["color"] = data['label']
+    # data_trace_df = data.copy()
+    # data_trace_df["color"] = data['label_cpt']
 
-    input_data = px.scatter(data_trace_df, x="date", y=input_plot, 
-                            color='color', 
-                            text="date")["data"][0]
-    input_data.mode = "lines+markers"
-    input_data.line.width = 1
-    input_data.marker.symbol = "circle"
-    input_data.marker.size = 3
-    fig.add_trace(input_data,
-                  row=1, col=1)
+    # input_data = px.scatter(data_trace_df, x="date", y=input_plot, 
+    #                         color='color', 
+    #                         text="date")["data"][0]
+    # input_data.mode = "lines+markers"
+    # input_data.line.width = 1
+    # input_data.marker.symbol = "circle"
+    # input_data.marker.size = 3
+    # fig.add_trace(input_data,
+    #               row=1, col=1)
     ####
 
 
@@ -105,8 +106,8 @@ def analyse_acp(data_df: pd.DataFrame,
                         np.max(acp_results_df[acp_results_df.columns[1]]))
     
     acp_results_trace_df = acp_results_df.copy()
-    acp_results_trace_df["color"] = data_trace_df["color"]
-    acp_results_trace_df["date"] = data_trace_df["date"]
+    acp_results_trace_df["color"] = data['label_cpt']
+    acp_results_trace_df["date"] = data['label_cpt']
     
     acp_results_trace = px.scatter(acp_results_trace_df,
                        x = acp_results_df.columns[0],
@@ -126,32 +127,32 @@ def analyse_acp(data_df: pd.DataFrame,
     total_inertie = (data[columns]**2).sum(axis=1)
     
     # 4 ###
-    total_inertie_trace_df = pd.DataFrame()
-    total_inertie_trace_df["inertie"] = total_inertie
-    total_inertie_trace_df["color"] = data_trace_df["color"]
-    total_inertie_trace_df["date"] = data_trace_df["date"]
-    trace_intertie = px.scatter(total_inertie_trace_df, 
-                                x="date", 
-                                y="inertie", color="color")["data"][0]
-    trace_intertie.mode = 'lines+markers'
-    trace_intertie.line.width = 1
-    trace_intertie.marker.symbol = "circle"
-    trace_intertie.marker.size = 3
-    fig.add_trace(trace_intertie,
-                  row=2, col=1)
+    # total_inertie_trace_df = pd.DataFrame()
+    # total_inertie_trace_df["inertie"] = total_inertie
+    # total_inertie_trace_df["color"] = data['label_cpt']
+    # total_inertie_trace_df["date"] = data_trace_df["date"]
+    # trace_intertie = px.scatter(total_inertie_trace_df, 
+    #                             x="date", 
+    #                             y="inertie", color="color")["data"][0]
+    # trace_intertie.mode = 'lines+markers'
+    # trace_intertie.line.width = 1
+    # trace_intertie.marker.symbol = "circle"
+    # trace_intertie.marker.size = 3
+    # fig.add_trace(trace_intertie,
+    #               row=2, col=1)
     ####
     
-    qual_repr_indi = (acp_results**2)
-    for i in range(acp_results.shape[1]):
-        qual_repr_indi[:,i] = qual_repr_indi[:,i] / total_inertie
-    qual_repr_indi_df = pd.DataFrame(qual_repr_indi, columns=columns)
-    qual_repr_indi_df["date"] = data_trace_df["date"]
+    # qual_repr_indi = (acp_results**2)
+    # for i in range(acp_results.shape[1]):
+    #     qual_repr_indi[:,i] = qual_repr_indi[:,i] / total_inertie
+    # qual_repr_indi_df = pd.DataFrame(qual_repr_indi, columns=columns)
+    # qual_repr_indi_df["date"] = data_trace_df["date"]
     
-    contrib_axes = (acp_results**2)
-    for i in range(acp_results.shape[1]):
-        contrib_axes[:,i] = contrib_axes[:,i] / acp_results.shape[0]*acp.explained_variance_[i]
-    contrib_axes_df = pd.DataFrame(contrib_axes, columns=columns)
-    contrib_axes_df["date"] = data_trace_df["date"]
+    # contrib_axes = (acp_results**2)
+    # for i in range(acp_results.shape[1]):
+    #     contrib_axes[:,i] = contrib_axes[:,i] / acp_results.shape[0]*acp.explained_variance_[i]
+    # contrib_axes_df = pd.DataFrame(contrib_axes, columns=columns)
+    # contrib_axes_df["date"] = data_trace_df["date"]
     
     # 5 ###
     corvar = np.zeros((acp.n_components_, acp.n_components_))
@@ -197,9 +198,9 @@ def analyse_acp(data_df: pd.DataFrame,
     result["fig"] = fig
     result["acp"] = acp
     result["coord"] = acp_results_df
-    result["total_inertie"] = total_inertie_trace_df[["inertie","date"]]
-    result["qual_repr"] = qual_repr_indi_df
-    result["contrib_axe"] = contrib_axes_df
+    # result["total_inertie"] = total_inertie_trace_df[["inertie","date"]]
+    # result["qual_repr"] = qual_repr_indi_df
+    # result["contrib_axe"] = contrib_axes_df
     result["corvar"] = corvar_df
     return result
 
