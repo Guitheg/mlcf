@@ -113,13 +113,13 @@ def main():
     print(os.path.abspath(os.path.curdir))
     path = Path(args.path)
     if os.path.isdir(path):
-        # try:
-        #     command = "freqtrade download-data --exchange binance"+ \
-        #         f" --pairs '{args.pair_name}' --days '{args.days}' --timeframe '{args.timeframe}'"
-        #     print(command)
-        #     os.system(command)
-        # except:
-        #     raise Exception("Le téléchargement des données a échoué")
+        try:
+            command = "freqtrade download-data --exchange binance"+ \
+                f" --pairs '{args.pair_name}' --days '{args.days}' --timeframe '{args.timeframe}'"
+            print(command)
+            os.system(command)
+        except:
+            raise Exception("Le téléchargement des données a échoué")
 
         pair_history = load_pair_history(args.pair_name, args.timeframe, path)
     else:
@@ -218,3 +218,9 @@ def main():
     
 if __name__ == "__main__":
     main()
+    
+# Modélisation du problème :
+# Agrégation de stratégie / agent qui simule le cours
+# agent modélisant une catégorie de comportement (qui devront ne pas converger vers la meme strat)
+# Le système évolue au cours du temps
+# capter l'inertie du système pour prédire comment le système va évoluer
