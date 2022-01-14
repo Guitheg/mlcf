@@ -40,7 +40,7 @@ def analyse_acp(data_df: pd.DataFrame,
     elif mode == "stationarize":
         data = stationnarize_data_df(data, columns)
 
-    data = standardize_data_df(data, columns)
+    data = standardize_data_df(data, columns, with_std_mean=False)
 
     print(data)
     acp = PCA()
@@ -73,18 +73,18 @@ def analyse_acp(data_df: pd.DataFrame,
             f"- (mode : {mode})" )
 
     # 1 ###
-    # data_trace_df = data.copy()
-    # data_trace_df["color"] = data['label_cpt']
+    data_trace_df = data.copy()
+    data_trace_df["color"] = data['label_cpt']
 
-    # input_data = px.scatter(data_trace_df, x="date", y=input_plot, 
-    #                         color='color', 
-    #                         text="date")["data"][0]
-    # input_data.mode = "lines+markers"
-    # input_data.line.width = 1
-    # input_data.marker.symbol = "circle"
-    # input_data.marker.size = 3
-    # fig.add_trace(input_data,
-    #               row=1, col=1)
+    input_data = px.scatter(data_trace_df, x="date", y=input_plot, 
+                            color='color', 
+                            text="date")["data"][0]
+    input_data.mode = "lines+markers"
+    input_data.line.width = 1
+    input_data.marker.symbol = "circle"
+    input_data.marker.size = 3
+    fig.add_trace(input_data,
+                  row=1, col=1)
     ####
 
 

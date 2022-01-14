@@ -14,6 +14,8 @@ from pandas_ta.overlap.ichimoku import ichimoku
 import talib.abstract as ta
 import freqtrade.vendor.qtpylib.indicators as qtpylib
 
+from sklearn.linear_model import LinearRegression
+
 import plotly
 import plotly.express as px
 import plotly.graph_objects as go
@@ -59,8 +61,16 @@ def build_graphs(path, pair_name, days, timeframe, col, notcol):
     
     mean_mid = data_dt["mid"].mean()
 
-    data_dt["volatilite"] = [np.sqrt(((data_dt["mid"].iloc[:i] - mean_mid)**2).sum()/len(data_dt["mid"])) for i in range(len(data_dt))]
+    # data_dt["volatilite"] = [((data_dt["mid"].tail(i) - mean_mid)**2).sum()/i for i in range(len(data_dt))]
     data_dt["abs"] = data_dt["mid"].abs()
+    data_dt["volatilite"] = np.array([data_dt["abs"].iloc[i-100:i].var() for i in range(len(data_dt["abs"]))])
+    # data_vol = pd.DataFrame(data_dt["volatilite"], columns=["volatilite"])
+    corr_win_size = 500
+    data_corr_ret_vol = pd.DataFrame(np.array([data_dt["mid"].corr(data_dt["volatilite"].shift(-i)) for i in range(-corr_win_size, corr_win_size)]), columns=["corr_ret_vol"])
+    data_vol = pd.DataFrame(np.array([data_dt["abs"].tail(i).var() for i in range(5000)]), columns=["volatilite"])
+
+    data_corr = pd.DataFrame(np.array([data_dt["abs"].autocorr(t) for t in range(500)]), columns=["autocorr"])
+
     
     data_dt_stats = pd.DataFrame()
     cumul_value = 10
@@ -72,61 +82,87 @@ def build_graphs(path, pair_name, days, timeframe, col, notcol):
     data_dt_stats["log_cdf"] = np.log10(data_dt_stats["cdf"])
     data_dt_stats["log_var_abs"] = np.log10(data_dt_stats["var_abs"])
     
+    
     figures = []
     
-    trace_data = px.line(data, x="date", y="mid")
+    trace_data = go.Scatter(x=data["date"], y=data["mid"], name=f"({pair_name}) C(t)")
     figures.append((trace_data, 
                     f"Cours", 
                    "Temps - t", 
                    "Prix - C(t)"))
     
-    trace_data_dt = px.line(data_dt, x="date", y="mid")
+    trace_data_dt = go.Scatter(x=data_dt["date"], y=data_dt["mid"], name=f"({pair_name}) dC(t)/dt")
     figures.append((trace_data_dt, 
                     f"Variation du cours", 
                     "Temps - t", 
                     "Variation Prix - dC(t)/dt"))
     
-    trace_data_dt_abs = px.line(data_dt, x="date", y="abs")
+    trace_data_dt_abs = go.Scatter(x=data_dt["date"], y=data_dt["abs"], name = f"({pair_name}) abs(dC(t)/dt)")
     figures.append((trace_data_dt_abs, 
                     f"Variation absolu du cours", 
                     "Temps - t", 
                     "Variation Prix - abs(dC(t)/dt)"))
     
-    trace_histogram_data_dt = px.histogram(data_dt, x="mid")
+    count, values = np.histogram(data_dt["mid"], bins = max(len(data_dt)//cumul_value, 1)) 
+    trace_histogram_data_dt = go.Scatter(x=values[:-1], y=count,  name=f"({pair_name}) Nombre par dC(t)/dt")
     figures.append((trace_histogram_data_dt, 
                     f"Histogramme des variations", 
                    "dC(t)/dt", 
                    "Nombre"))
     
-    trace_histogram_data_dt_abs = px.histogram(data_dt, x="abs")
+    count, values = np.histogram(data_dt["abs"], bins = max(len(data_dt)//cumul_value, 1)) 
+    trace_histogram_data_dt_abs = go.Scatter(x=values[:-1], y=count, name=f"({pair_name}) Nombre par abs(dC(t)/dt)") 
     figures.append((trace_histogram_data_dt_abs, 
                     f"Histogramme des variations absolues", 
                    "abs(dC(t)/dt)", 
                    "Nombre"))
     
     
-    trace_cdf = px.line(data_dt_stats, x="log_var_abs", y="log_cdf")
+    trace_cdf = go.Scatter(x=data_dt_stats["log_var_abs"], y=data_dt_stats["log_cdf"], name = f"({pair_name}) Log(Prob[x<=abs(dC(t)/dt)])")
     figures.append((trace_cdf, 
                     f"Probabilité cumulé (log)", 
                    "Variation - Log(abs(dC(t)/dt))",
                    "Probabilité cumulé - Log(Prob[x<=abs(dC(t)/dt)])" ))
     
-    trace_vol = px.line(data_dt, x="date", y="volatilite")
+    trace_vol = go.Scatter(x=data_dt["date"], y=data_dt["volatilite"], name = f"({pair_name}) Var(dC(t)/dt)")
     figures.append((trace_vol, 
                     f"Evolution de la volatilité",
                     "Temps - t",
-                    "Volatilité - Var_{E[C]}(dC(t)/dt)"
+                    "Volatilité - Var(dC(t)/dt)"
                    ))
-
+    
+    trace_vol = go.Scatter(x=data_vol.index, y=data_vol["volatilite"], name = f"({pair_name}) Var(dC(t)/dt)")
+    figures.append((trace_vol, 
+                    f"Volatilité calculé sur une fenêtre de T",
+                    "Temps - T",
+                    "Volatilité - Var(dC(t)/dt)"
+                   ))
+    
+    
+    trace_autocorr = go.Scatter(x=np.log10(data_corr.index), y=np.log10(data_corr["autocorr"]), name = f"({pair_name}) log10(Corr[r²_t, r²_t+T])")
+    figures.append((trace_autocorr, 
+                    f"Log des Autocorrelations de la variation absolu à T",
+                    "Temps - log10(T)",
+                    "Auto-corrélation à T - log10(Corr[r²_t, r²_t+T])"
+                   ))
+    
+    trace_autocorr = go.Scatter(x=data_corr.index, y=data_corr["autocorr"], name = f"({pair_name}) Corr[r²_t, r²_t+T]")
+    figures.append((trace_autocorr, 
+                    f"Autocorrelations de la variation absolu à T",
+                    "Temps - T",
+                    "Auto-corrélation à T - Corr[r²_t, r²_t+T]"
+                   ))
+    
+    trace_corr_ret_vol = go.Scatter(x=data_corr_ret_vol.index-corr_win_size, y=data_corr_ret_vol["corr_ret_vol"], name = f"({pair_name}) Corr[R, V.shift(-T)]")
+    figures.append((trace_corr_ret_vol, 
+                    f"Corrélation entre variation et volatilité",
+                    "Temps - T",
+                    "Corrélation - Corr[R, V.shift(-T)] "
+                   ))
+    
+    
     return figures
 
-def merge_graph(graph_a, graph_b):
-    
-    # print(graph_a)
-    for i in range(len(graph_b.data)):
-        graph_a.data[i]["y2"] = graph_b.data[i].y
-    
-    return graph_a
 def main():
     parser = argparse.ArgumentParser()
     
@@ -156,22 +192,38 @@ def main():
                                             ))
     window.update_layout(title_text=f"Etude sur {args.pair_names}")
     window.update_layout(height=height_by_row*r)
-    for num_pair, figures in enumerate(graphes) : 
+    for figures in graphes : 
         for i, (trace, _,_,_) in enumerate(figures):
-            for trace_i in range(len(trace.data)):
+            # for trace_i in range(len(trace.data)):
                 # if "line" in trace.data[trace_i]:
                 #     trace.data[trace_i].line.color = px.colors.qualitative.Alphabet[num_pair]
                 # elif "marker" in trace.data[trace_i]:
                 #     trace.data[trace_i].marker.color = px.colors.qualitative.Alphabet[num_pair]
-                window.add_trace(trace, row=(i//c)+1, col=(i%c)+1)
-                
-    # if len(graphes[0]) > 1:
-    #     window.layout.xaxis["title"] = graphes[0][0][2]
-    #     window.layout.yaxis["title"] = graphes[0][0][3]
-    #     for num_pair, figures in enumerate(graphes):
-    #         for trace in range(1, len(figures)):
-    #             window.layout[f"xaxis{trace+1}"]["title"] = figures[trace][2]
-    #             window.layout[f"yaxis{trace+1}"]["title"] = figures[trace][3]
+            window.add_trace(trace, row=(i//c)+1, col=(i%c)+1)
+    
+    ## droite indicatrice :
+    x = np.linspace(1, 10, 100)
+    window.add_trace(go.Scatter(x = np.log10(x),
+                                   y = np.log10(1/x**3), name="1/x^3"
+                                   ), row = 2, col = 3)
+    
+    x = np.linspace(0, 500, 100)
+    window.add_trace(go.Scatter(x = np.log10(x),
+                                y = np.log10((x**-0.4)), name="T^-0.4"
+                                ), row = 3, col = 3)
+    
+    x = np.linspace(0, 500, 100)
+    window.add_trace(go.Scatter(x = x,
+                                y = (x**-0.4), name="T^-0.4"
+                                ), row = 4, col = 1)
+            
+    if len(graphes[0]) > 1:
+        window.layout.xaxis["title"] = graphes[0][0][2]
+        window.layout.yaxis["title"] = graphes[0][0][3]
+        for num_pair, figures in enumerate(graphes):
+            for trace in range(1, len(figures)):
+                window.layout[f"xaxis{trace+1}"]["title"] = figures[trace][2]
+                window.layout[f"yaxis{trace+1}"]["title"] = figures[trace][3]
     window.update(layout_showlegend=True)
     window.show()
 
