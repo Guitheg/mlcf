@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import os
 import argparse
 from pathlib import Path
@@ -17,24 +18,60 @@ import plotly
 import plotly.express as px
 import plotly.graph_objects as go
 import numpy as np
+import statsmodels.tsa.stattools as ts
 
-W_SIZE_VOL = 10
+W_SIZE_VOL = 20
 
-def populate_indicators(data : pd.DataFrame) -> pd.DataFrame:
+
+tf = {"1m" : 60}
+tf["5m"] = 5 * tf["1m"]
+tf["15m"] = 15 * tf["1m"]
+tf["30m"] = 30 * tf["1m"]
+tf["1h"] = 60 * tf["1m"]
+tf["4h"] = 4 * tf["1h"]
+tf["1d"] = 24 * tf["1h"]
+tf["1w"] = 7 * tf["1d"]
+
+def f_given_tf(t : str) -> float:
+    return 1/tf[t]
+    
+def populate_indicators(data : pd.DataFrame, *args, **kwargs) -> pd.DataFrame:
     dataframe = data.copy()
     
     # Prix p
     dataframe["p"] = data[['high', 'low']].mean(axis=1)
     
+    print(ts.adfuller(dataframe.p))
+    
     # Return r - Variation p(t)/dt
-    dataframe["r"] = dataframe.p / dataframe.p.shift(1)
+    dataframe["r"] = np.log(dataframe.p / dataframe.p.shift(1))
+    
+    print(ts.adfuller(dataframe.r.dropna()))
+    
+    cov_r = pd.Series()
+    for i in dataframe.index:
+        cov_r.loc[i] = dataframe.loc[:i].r.cov(dataframe.r.shift(1).loc[:i])
+    dataframe["cov_r"] = cov_r
+    
+    dataframe["var_r"] = dataframe.r.expanding().var()
     
     # Volatility from volume
     dataframe["dv"] = dataframe.volume / dataframe.volume.shift(1)
     
     # Volatility
-    dataframe[f"o[{W_SIZE_VOL}]"] = dataframe.r.rolling(window=W_SIZE_VOL).var()
-    dataframe["o"] = dataframe.r.expanding().var()
+    u = dataframe.high - dataframe.open
+    d = dataframe.low - dataframe.open
+    c = dataframe.close - dataframe.open
+    a = 0.12
+    if "t" in kwargs:
+        f = f_given_tf(kwargs["t"])
+    else:
+        f = 1/3600
+    # dataframe["o"] 
+    o = (0.511*((u - d)**2)) - (0.019*(c*(u+d) - 2*u*d)) - (0.383*(c**2))
+    dataframe["o"] = (a * (dataframe.open - dataframe.close.shift(1))**2 / f) + ((1-a)*o/(1-f))
+    dataframe[f"o[{W_SIZE_VOL}]"] = np.sqrt(dataframe.r.rolling(window=W_SIZE_VOL).var())
+    # dataframe["o"] = dataframe.r.expanding().var()
     
     # Volatily derivative
     dataframe[f"do[{W_SIZE_VOL}]"] = dataframe[f"o[{W_SIZE_VOL}]"] / dataframe[f"o[{W_SIZE_VOL}]"].shift(1)
@@ -42,7 +79,7 @@ def populate_indicators(data : pd.DataFrame) -> pd.DataFrame:
     # dataframe["log_do"] = np.log10(dataframe.do)
     
     # Next Volatily
-    dataframe[f"no[{W_SIZE_VOL}]"] = dataframe[f"o[{W_SIZE_VOL}]"].shift(-30)
+    # dataframe[f"no[{W_SIZE_VOL}]"] = dataframe[f"o[{W_SIZE_VOL}]"].shift(-30)
     dataframe["no"] = dataframe.o.shift(-30)
     
     dataframe.dropna(inplace=True)
@@ -101,11 +138,12 @@ def main():
     pair = "BTC/BUSD"
     timeframe = ["1m", "5m", "15m", "1h", "4h", "1d", "1w"] 
     col = ["all"]
+    t = timeframe[4]
     
-    pair_history = load_pair_history(pair, timeframe[5], path)
+    pair_history = load_pair_history(pair, t, path)
     pair_history.set_index(args.key, inplace=True)
     pair_history = pair_history.loc['2020-12-22':]
-    data = populate_indicators(pair_history)
+    data = populate_indicators(pair_history, t=t)
                   
     if col == ["all"]:
         columns = sorted(list(set(data.columns) ^ set(args.notcol)))
@@ -122,8 +160,17 @@ def main():
     corr_logp_oT = pd.DataFrame()
     corr = pd.Series()
     for i in range(-400, 400):
-        corr.loc[i] = data.r.corr(data.o.shift(-i))
+        corr.loc[i] = data.p.corr(data[f"o[{W_SIZE_VOL}]"].shift(-i))
     corr_logp_oT["corr"] = corr
+    
+    stats = pd.DataFrame()
+    cumul_value = 10
+    count, values = np.histogram(data.r, bins = max(len(data.r)//cumul_value, 1)) 
+    stats["frequency"] = count
+    stats["var_abs"] = values[:-1]
+    stats["pdf"] = stats["frequency"] / stats["frequency"].sum()
+    stats['cdf'] = 1 - stats["pdf"].cumsum() # prob(x>=)
+    
     ###
     
     ### DESSINS COURBE
@@ -139,6 +186,30 @@ def main():
                     f"r(t)", 
                    "Temps - t", 
                    "r(t)"))
+    
+    trace_data = go.Scatter(x=data.index, y=data.cov_r, name=f"Cov(r(t),r(t-1))")
+    figures.append((trace_data, 
+                    f"Cov(r(t),r(t-1))", 
+                   "Temps - t", 
+                   "Cov(r(t),r(t-1))"))
+    
+    trace_data = go.Scatter(x=data.index, y=data.var_r, name=f"Var(r(t))")
+    figures.append((trace_data, 
+                    f"Var(r(t))", 
+                   "Temps - t", 
+                   "Var(r(t))"))
+    
+    trace_data = go.Scatter(x=stats.index, y=stats.pdf, name=f"P(r)")
+    figures.append((trace_data, 
+                    f"r(t)", 
+                   "Variation - r", 
+                   "P(r)"))
+    
+    trace_data = go.Scatter(x=stats.index, y=stats.cdf, name=f"P(r>=a)")
+    figures.append((trace_data, 
+                    f"r(t)", 
+                   "Variation - a", 
+                   "P(r>=a)"))
     
     trace_data = go.Scatter(x=data.index, y=data.volume, name=f"v(t)")
     figures.append((trace_data, 
@@ -176,11 +247,11 @@ def main():
                    "Temps - t", 
                    "do(t)/dt"))
     
-    trace_data = go.Scatter(x=data.index, y=data[f"no[{W_SIZE_VOL}]"], name=f"o[{W_SIZE_VOL}](t+30)")
-    figures.append((trace_data, 
-                    f"o[{W_SIZE_VOL}](t+30)", 
-                   "Temps - t", 
-                   "o[{W_SIZE_VOL}](t+30)"))
+    # trace_data = go.Scatter(x=data.index, y=data[f"no[{W_SIZE_VOL}]"], name=f"o[{W_SIZE_VOL}](t+30)")
+    # figures.append((trace_data, 
+    #                 f"o[{W_SIZE_VOL}](t+30)", 
+    #                "Temps - t", 
+    #                "o[{W_SIZE_VOL}](t+30)"))
     
     trace_data = go.Scatter(x=data.index, y=data.no, name=f"o(t+30)")
     figures.append((trace_data, 
