@@ -29,6 +29,10 @@ cd freqtrade
 source setup.sh
 pip install psutil
 pip install freqtrade
+pip install statsmodels
+pip install talib
+pip install sklearn
+pip install arch
 cd ..
 
 echo -n "Do you want to keep freqtrade repository (y/n)? "

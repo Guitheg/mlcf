@@ -19,6 +19,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 import numpy as np
 import statsmodels.tsa.stattools as ts
+from statsmodels.graphics.tsaplots import plot_acf
+from matplotlib import pyplot as plt
 
 W_SIZE_VOL = 20
 
@@ -39,9 +41,9 @@ def populate_indicators(data : pd.DataFrame, *args, **kwargs) -> pd.DataFrame:
     dataframe = data.copy()
     
     # Prix p
-    dataframe["p"] = data[['high', 'low']].mean(axis=1)
-    
-    print(ts.adfuller(dataframe.p))
+    # dataframe["p"] = data[['high', 'low']].mean(axis=1)
+    dataframe["p"] = ta.SMA(dataframe, timeperiod=5)
+    print(ts.adfuller(dataframe.p.dropna()))
     
     # Return r - Variation p(t)/dt
     dataframe["r"] = np.log(dataframe.p / dataframe.p.shift(1))
@@ -56,7 +58,7 @@ def populate_indicators(data : pd.DataFrame, *args, **kwargs) -> pd.DataFrame:
     dataframe["var_r"] = dataframe.r.expanding().var()
     
     # Volatility from volume
-    dataframe["dv"] = dataframe.volume / dataframe.volume.shift(1)
+    dataframe["dv"] = np.log(dataframe.volume / dataframe.volume.shift(1))
     
     # Volatility
     u = dataframe.high - dataframe.open
@@ -144,7 +146,8 @@ def main():
     pair_history.set_index(args.key, inplace=True)
     pair_history = pair_history.loc['2020-12-22':]
     data = populate_indicators(pair_history, t=t)
-                  
+    plot_acf(data.o)
+    plt.show()
     if col == ["all"]:
         columns = sorted(list(set(data.columns) ^ set(args.notcol)))
     else:
