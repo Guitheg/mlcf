@@ -98,7 +98,7 @@ packages-install:
 	git clone https://github.com/freqtrade/freqtrade
 	source freqtrade/setup.sh
 	$(PIP) install freqtrade
-	rm -r freqtrade
+	rm -rf freqtrade
 # }
 
 #---CONDITIONNAL INSTALLATION
