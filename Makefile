@@ -32,6 +32,10 @@ endif # Linux
 endif # not Windows
 CONDAURL:=https://repo.anaconda.com/miniconda/$(CONDASH)
 
+ifeq (,$(shell echo $(PATH) | grep $(CONDA_BIN_DIR)))
+PATH:=$(CONDA_BIN_DIR):$(PATH)
+endif
+
 conda-install: # If conda is not installed
 	@echo ">>> Setting up miniconda3..."
 	@echo ">>> Downloading $(CONDAURL) : ... "
@@ -46,7 +50,7 @@ endif # not HAS_CONDA
 
 
 ####################################################################################################
-############################## Check if the conda environment exist ################################
+#################### Check if the conda environment exist (create if not) ##########################
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||#
 conda-env-create:
 ifeq (,$(shell conda env list | grep $(ENV_NAME))) # check if the conda environment exist
@@ -60,19 +64,48 @@ endif
 ################### Check dependencies and update/install packages #################################
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||#
 
+#-------------- EDIT CONDITIONNAL INSTALLATION -----------
+ifeq (,$(shell lshw -C display | grep NVIDIA))
+TORCH_INSTALL:=$(PIP) install torch torchvision -f https://download.pytorch.org/whl/rocm4.2/torch_stable.html
+else
+TORCH_INSTALL:=conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch -y
+endif
+#-------------- /EDIT CONDITIONNAL INSTALLATION ----------
+
+
 packages-install:
-#conda update -n base -c defaults conda -y
+	conda update -n base -c defaults conda -y
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~REQUIREMENTS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #---CONDA INSTALLATION
-#	conda install -n $(ENV_NAME) pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch -y
-#	conda install -n $(ENV_NAME) -c conda-forge -c pytorch u8darts-all -y
-
+	conda install -n $(ENV_NAME) -c conda-forge scikit-learn -y
+	conda install -n $(ENV_NAME) -c plotly plotly=5.5.0 -y
+	conda install -n $(ENV_NAME) -c conda-forge ta-lib -y
 
 #---PIP INSTALLATION
 	$(PIP) install ritl
+	$(PIP) install psutil
+	$(PIP) install statsmodels
+	$(PIP) install arch
+	$(PIP) install matplotlib
+	$(PIP) install geneticalgorithm2
+
+#---GIT INSTALLATION
+
+# { freqtrade
+	git clone https://github.com/freqtrade/freqtrade
+	source freqtrade/setup.sh
+	$(PIP) install freqtrade
+	rm -r freqtrade
+# }
+
+#---CONDITIONNAL INSTALLATION
+	$(TORCH_INSTALL)
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 run:
 	$(PYTHON) main.py

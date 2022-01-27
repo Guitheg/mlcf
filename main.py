@@ -1,6 +1,4 @@
 
-import ritl
-
 def main():
     print("Hello World")    
 
