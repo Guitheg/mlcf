@@ -5,10 +5,22 @@ from freqtrade.data.history.history_utils import load_pair_history
 import pandas as pd
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
-from sqlalchemy import column
+
+import random
 
 def split_pandas(dataframe : pd.DataFrame, 
                  prop_snd_elem : float = 0.5) -> Tuple[pd.DataFrame, pd.DataFrame] :
+    """Split (from indexes) a dataframe in two dataframes which keep the same columns.
+    The {prop_snd_elem} is the proportion of row for the second element.
+
+    Args:
+        dataframe (pd.DataFrame): The dataframe we want to split in two
+        prop_snd_elem (float, optional): The proportion of row of the second elements in percentage. 
+        Defaults to 0.5.
+
+    Returns:
+        Tuple[pd.DataFrame, pd.DataFrame]: The first and second part of the split
+    """
     data = dataframe.copy()
     times = sorted(data.index.values)
     second_part = sorted(data.index.values)[-int(prop_snd_elem*len(times))]
@@ -19,21 +31,53 @@ def split_pandas(dataframe : pd.DataFrame,
 def to_train_val_test(dataframe : pd.DataFrame, 
                       test_val : float = 0.2,
                       val : float = 0.5) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame] :
+    """Divide a dataframe into 3 parts : train part, validation part and test part.
+
+    Args:
+        dataframe (pd.DataFrame): dataframe we want to split in 3
+        test_val (float, optional): the proportion of the union of the [test and validation] part. 
+        Defaults to 0.2.
+        val (float, optional): the proportion of the validation part in the union of [test and 
+        validation] part. Defaults to 0.5.
+
+    Returns:
+        Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: Respectively the train, val and test part
+    """
     data = dataframe.copy()
     train_data, test_val_data = split_pandas(data, prop_snd_elem = test_val)
     test_data, val_data = split_pandas(test_val_data, prop_snd_elem = val)
     return train_data, val_data, test_data
 
-def divide_in_period(dataframe : pd.DataFrame, 
-                     n_period : int = 1) -> List[pd.DataFrame]:
+def split_in_interval(dataframe : pd.DataFrame, 
+                     n_interval : int = 1) -> List[pd.DataFrame]:
+    """split (in row) the dataframe in {n_interval} intervals 
+
+    Args:
+        dataframe (pd.DataFrame): the dataframe we want to split
+        n_interval (int, optional): the number of interval. Defaults to 1.
+
+    Returns:
+        List[pd.DataFrame]: The list of intervals
+    """
     data = dataframe.copy()
-    window_width : int = len(data.index)//n_period
+    window_width : int = len(data.index)//n_interval
    
     return window_data(data, window_width, step=window_width)
 
 def window_data(dataframe : pd.DataFrame, 
                 window_width : int,
                 step : int = 1) -> List[pd.DataFrame]:
+    """Window the data given a {window_width} and a {step}.
+
+    Args:
+        dataframe (pd.DataFrame): The dataframe we want to window
+        window_width (int): the windows size
+        step (int, optional): the step between each window. Defaults to 1.
+
+    Returns:
+        List[pd.DataFrame]: The list of created windows of size {window_width} and 
+        selected every step {step}
+    """
     data = dataframe.copy()
     n_windows = ((len(data.index)-window_width) // step) + 1
     n_columns = len(data.columns)
@@ -62,6 +106,18 @@ def window_data(dataframe : pd.DataFrame,
 def input_label_data_windows(data_windows : List[pd.DataFrame],
                             input_width : int,
                             label_width : int) -> Tuple[List[pd.DataFrame], List[pd.DataFrame]]:
+    """Given a list of windows (of dataframe), return list of the input and the label parts 
+    of these windows.
+
+    Args:
+        data_windows (List[pd.DataFrame]): The windowed data (dataframe)
+        input_width (int): input width in the window
+        label_width (int): label width in the window
+
+    Returns:
+        Tuple[List[pd.DataFrame], List[pd.DataFrame]]: The list of inputpars, 
+        and the list of label parts
+    """
     list_in : List[pd.DataFrame] = []
     list_lab : List[pd.DataFrame] = []
     for window in data_windows:
@@ -74,6 +130,20 @@ def input_label_data_windows(data_windows : List[pd.DataFrame],
 def input_label_data(dataframe : pd.DataFrame,
                input_width : int,
                label_width : int) -> Tuple[pd.DataFrame, pd.DataFrame] :
+    """From a window (a dataframe), return the list of the input and the label part given the
+    {input_width} and the {label_width}.
+
+    Args:
+        dataframe (pd.DataFrame): The dataframe
+        input_width (int): the size of the input
+        label_width (int): the size of the label
+
+    Raises:
+        Exception: if the input and label sizes are greater than the window size
+
+    Returns:
+        Tuple[pd.DataFrame, pd.DataFrame]: the input part and the label part
+    """
     data = dataframe.copy()
     if len(data) < input_width + label_width:
         raise Exception("Input width and Label width must not be greater than window size")
@@ -82,32 +152,58 @@ def input_label_data(dataframe : pd.DataFrame,
     return input_data, label_data
 
 def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
-                                       input_width : int = 3,
-                                       offset : int = 0,
+                                       input_width : int,
                                        label_width : int = 1,
+                                       offset : int = 0,
                                        step : int = 1,
-                                       n_period : int = 1,
+                                       n_interval : int = 1,
                                        test_val_prop : float = 0.2,
-                                       val_prop : float = 0.4
+                                       val_prop : float = 0.4,
+                                       do_shuffle : bool = True,
                                        ) -> Tuple[List[pd.DataFrame],
                                                   List[pd.DataFrame],
                                                   List[pd.DataFrame],
                                                   List[pd.DataFrame],
                                                   List[pd.DataFrame],
                                                   List[pd.DataFrame]]:
-    """Build a forecast time series training dataset
+    """ From a time serie dataframe, build a forecast training dataset:
+    -> ({n_interval} > 1) : divide the dataframe in {n_interval} intervals
+    -> split the dataframe in train, validation and test part
+    -> windows the data with a window size of ({input_width} + {label_width} + {offset}) and 
+    a step of {step}
+    -> make the X and y (input and label) parts given the {input_width} and {label_width}
+    -> make the lists of train part inputs, train part labels, validation part inputs, validation
+    part labels, test part inputs and test part labels
+    -> ({do_shuffle} is True) : shuffle all the lists
 
     Args:
-        dataframe (pd.DataFrame): [1-D Time series]
-        past_window (int, optional): Defaults to 20.
-        fututre_window (int, optional): Defaults to 20.
+        dataframe (pd.DataFrame): The dataframe (time serie)
+        input_width (int): The input size in a window of the data
+        label_width (int, optional): The label size in a window of the data. Defaults to 1.
+        offset (int, optional): the offset size between the input width and the label width. 
+        Defaults to 0.
+        step (int, optional): to select a window every step. Defaults to 1.
+        n_interval (int, optional): the number of splited intervals. Defaults to 1.
+        test_val_prop (float, optional): the proportion of the union of [test and validation] part.
+        Defaults to 0.2.
+        val_prop (float, optional): the proportion of validation in the union of 
+        [test and validation] part. Defaults to 0.4.
+        do_shuffle (bool, optional) : if True, do a shuffle on the data
 
     Returns:
-        pd.DataFrame: [description]
+        Tuple[
+            List[pd.DataFrame], 
+            List[pd.DataFrame], 
+            List[pd.DataFrame],
+            List[pd.DataFrame],
+            List[pd.DataFrame], 
+            List[pd.DataFrame]]: 
+            the lists of train part inputs, train part labels, validation part inputs, 
+            validation part labels,  test part inputs and test part labels
     """
     data = dataframe.copy()
     # Divide data in N period
-    list_period_data_df : List[pd.DataFrame] = divide_in_period(data, n_period=n_period)
+    list_period_data_df : List[pd.DataFrame] = split_in_interval(data, n_interval=n_interval)
     
     # Split each period data in train val test
     list_splited_period_data_df : List[Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]] = []
@@ -137,6 +233,7 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
             window_data(test, window_size, step=step),
             input_width, 
             label_width)
+        
         list_train_input.extend(train_input)
         list_train_label.extend(train_label)
         list_val_input.extend(val_input)
@@ -144,12 +241,10 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
         list_test_input.extend(test_input)
         list_test_label.extend(test_label)
 
-    return (list_train_input, 
-            list_train_label, 
-            list_val_input, 
-            list_val_label, 
-            list_test_input, 
-            list_test_label)
+    if do_shuffle:
+        list_train_input.shuffle
+    return (list_train_input, list_train_label, list_val_input, 
+            list_val_label, list_test_input, list_test_label)
 
 
 def main():
