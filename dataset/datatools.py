@@ -159,7 +159,7 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
                                        n_interval : int = 1,
                                        test_val_prop : float = 0.2,
                                        val_prop : float = 0.4,
-                                       do_shuffle : bool = True,
+                                       do_shuffle : bool = False,
                                        ) -> Tuple[List[pd.DataFrame],
                                                   List[pd.DataFrame],
                                                   List[pd.DataFrame],
@@ -220,6 +220,7 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
     list_val_label : List[pd.DataFrame] = []
     list_test_input : List[pd.DataFrame] = []
     list_test_label : List[pd.DataFrame] = []
+    
     for train, val, test in list_splited_period_data_df:
         train_input, train_label = input_label_data_windows(
             window_data(train, window_size, step=step), 
@@ -242,7 +243,17 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
         list_test_label.extend(test_label)
 
     if do_shuffle:
-        list_train_input.shuffle
+        list_train = list(zip(list_train_input, list_train_label))
+        list_validation = list(zip(list_val_input, list_val_label))
+        list_test = list(zip(list_test_input, list_test_label))
+        random.shuffle(list_train)
+        random.shuffle(list_validation)
+        random.shuffle(list_test)
+        list_train_input, list_train_label = zip(*list_train)
+        list_val_input, list_val_label = zip(*list_validation)
+        list_test_input, list_test_label = zip(*list_test)
+        
+        
     return (list_train_input, list_train_label, list_val_input, 
             list_val_label, list_test_input, list_test_label)
 
@@ -257,11 +268,17 @@ def main():
     pair_history = load_pair_history(pair, t, path)
     # pair_history.set_index("date", inplace=True)
     dataframe = pair_history[["close", "open", "volume"]]
-    x,y,_,_,_,_ =  build_forecast_ts_training_dataset(dataframe)
-    print(x[0])
-    print(y[0])
-    
-    print(dataframe)
+    x,y,val,valy,test,testy = build_forecast_ts_training_dataset(dataframe, 
+                                                                  n_interval=2,
+                                                                  input_width=5,
+                                                                  label_width=3,
+                                                                  test_val_prop=0.1,
+                                                                  step=1,
+                                                                  do_shuffle=False)
+    print(len(x), len(val), len(test))
+
+
+
     # data_ts.plot()
 
 
