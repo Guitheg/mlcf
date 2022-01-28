@@ -1,6 +1,5 @@
-from pathlib import Path
+
 from typing import List, Tuple
-from freqtrade.data.history.history_utils import load_pair_history
 
 import pandas as pd
 import numpy as np
@@ -22,15 +21,24 @@ def split_pandas(dataframe : pd.DataFrame,
         Tuple[pd.DataFrame, pd.DataFrame]: The first and second part of the split
     """
     data = dataframe.copy()
-    times = sorted(data.index.values)
-    second_part = sorted(data.index.values)[-int(prop_snd_elem*len(times))]
-    second_data = data[(data.index >= second_part)]
-    first_data = data[(data.index < second_part)]
-    return first_data, second_data
+    if len(data) == 0:
+        return pd.DataFrame(columns=data.columns), pd.DataFrame(columns=data.columns)
+    if prop_snd_elem == 0.0:
+        return data, pd.DataFrame(columns=data.columns)
+    elif prop_snd_elem == 1.0:
+        return pd.DataFrame(columns=data.columns), data
+    elif prop_snd_elem < 0.0 or prop_snd_elem > 1.0:
+        raise Exception("prop_sn_elem should be between 0 and 1")
+    else:
+        times = sorted(data.index)
+        second_part = times[-int(prop_snd_elem*len(times))]
+        second_data = data[(data.index >= second_part)]
+        first_data = data[(data.index < second_part)]
+        return first_data, second_data
 
 def to_train_val_test(dataframe : pd.DataFrame, 
-                      test_val : float = 0.2,
-                      val : float = 0.5) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame] :
+                      test_val_prop : float = 0.2,
+                      val_prop : float = 0.5) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame] :
     """Divide a dataframe into 3 parts : train part, validation part and test part.
 
     Args:
@@ -44,8 +52,8 @@ def to_train_val_test(dataframe : pd.DataFrame,
         Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: Respectively the train, val and test part
     """
     data = dataframe.copy()
-    train_data, test_val_data = split_pandas(data, prop_snd_elem = test_val)
-    test_data, val_data = split_pandas(test_val_data, prop_snd_elem = val)
+    train_data, test_val_data = split_pandas(data, prop_snd_elem = test_val_prop)
+    test_data, val_data = split_pandas(test_val_data, prop_snd_elem = val_prop)
     return train_data, val_data, test_data
 
 def split_in_interval(dataframe : pd.DataFrame, 
@@ -60,6 +68,8 @@ def split_in_interval(dataframe : pd.DataFrame,
         List[pd.DataFrame]: The list of intervals
     """
     data = dataframe.copy()
+    if len(data) == 0:
+        return [pd.DataFrame(columns=data.columns)]
     window_width : int = len(data.index)//n_interval
    
     return window_data(data, window_width, step=window_width)
@@ -79,6 +89,8 @@ def window_data(dataframe : pd.DataFrame,
         selected every step {step}
     """
     data = dataframe.copy()
+    if len(data) == 0:
+        return [pd.DataFrame(columns=data.columns)]
     n_windows = ((len(data.index)-window_width) // step) + 1
     n_columns = len(data.columns)
     
@@ -145,6 +157,8 @@ def input_label_data(dataframe : pd.DataFrame,
         Tuple[pd.DataFrame, pd.DataFrame]: the input part and the label part
     """
     data = dataframe.copy()
+    if len(data) == 0:
+        return pd.DataFrame(columns=data.columns), pd.DataFrame(columns=data.columns)
     if len(data) < input_width + label_width:
         raise Exception("Input width and Label width must not be greater than window size")
     input_data = data.iloc[:input_width]
@@ -209,7 +223,7 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
     list_splited_period_data_df : List[Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]] = []
     for period_data_df in list_period_data_df:
         list_splited_period_data_df.append(
-            to_train_val_test(period_data_df, test_val=test_val_prop, val=val_prop) 
+            to_train_val_test(period_data_df, test_val_prop=test_val_prop, val_prop=val_prop) 
         )
     
     # Generate windowed data and labels
@@ -256,31 +270,3 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
         
     return (list_train_input, list_train_label, list_val_input, 
             list_val_label, list_test_input, list_test_label)
-
-
-def main():
-    path = Path("./user_data/data/binance")
-    pair = "BTC/BUSD"
-    timeframe = ["1m", "5m", "15m", "1h", "4h", "1d", "1w"] 
-    col = ["all"]
-    t = timeframe[4]
-    
-    pair_history = load_pair_history(pair, t, path)
-    # pair_history.set_index("date", inplace=True)
-    dataframe = pair_history[["close", "open", "volume"]]
-    x,y,val,valy,test,testy = build_forecast_ts_training_dataset(dataframe, 
-                                                                  n_interval=2,
-                                                                  input_width=5,
-                                                                  label_width=3,
-                                                                  test_val_prop=0.1,
-                                                                  step=1,
-                                                                  do_shuffle=False)
-    print(len(x), len(val), len(test))
-
-
-
-    # data_ts.plot()
-
-
-if __name__ == "__main__":
-    main()
