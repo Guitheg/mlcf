@@ -77,7 +77,7 @@ endif
 ifeq (,$(shell lshw -C display | grep NVIDIA))
 TORCH_INSTALL:=$(PIP) install torch torchvision -f https://download.pytorch.org/whl/rocm4.2/torch_stable.html
 else
-TORCH_INSTALL:=conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch -y
+TORCH_INSTALL:=conda install -n $(ENV_NAME) pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch -y
 endif
 #-------------- /EDIT CONDITIONNAL INSTALLATION ----------
 
