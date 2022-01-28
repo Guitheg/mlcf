@@ -1,6 +1,5 @@
-from pathlib import Path
+
 from typing import List, Tuple
-from freqtrade.data.history.history_utils import load_pair_history
 
 import pandas as pd
 import numpy as np
@@ -271,29 +270,3 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
         
     return (list_train_input, list_train_label, list_val_input, 
             list_val_label, list_test_input, list_test_label)
-
-
-def main():
-    path = Path("./user_data/data/binance")
-    pair = "BTC/BUSD"
-    timeframe = ["1m", "5m", "15m", "1h", "4h", "1d", "1w"] 
-    col = ["all"]
-    t = timeframe[4]
-    
-    pair_history = load_pair_history(pair, t, path)
-    # pair_history.set_index("date", inplace=True)
-    dataframe = pair_history[["close", "open", "volume"]]
-    x,y,val,valy,test,testy = build_forecast_ts_training_dataset(dataframe, 
-                                                                  n_interval=2,
-                                                                  input_width=5,
-                                                                  label_width=3,
-                                                                  test_val_prop=0.1,
-                                                                  val_prop = 0.0,
-                                                                  step=1,
-                                                                  do_shuffle=False)
-
-    # data_ts.plot()
-
-
-if __name__ == "__main__":
-    main()
