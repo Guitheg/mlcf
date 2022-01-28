@@ -30,8 +30,8 @@ def split_pandas(dataframe : pd.DataFrame,
     elif prop_snd_elem < 0.0 or prop_snd_elem > 1.0:
         raise Exception("prop_sn_elem should be between 0 and 1")
     else:
-        times = sorted(data.index.values)
-        second_part = sorted(data.index.values)[-int(prop_snd_elem*len(times))]
+        times = sorted(data.index)
+        second_part = times[-int(prop_snd_elem*len(times))]
         second_data = data[(data.index >= second_part)]
         first_data = data[(data.index < second_part)]
         return first_data, second_data

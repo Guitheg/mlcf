@@ -42,15 +42,53 @@ class Time_Series_Dataset(object):
                                                               test_val_prop=test_val_prop,
                                                               val_prop=val_prop,
                                                               do_shuffle=do_shuffle)
-        self.train_data = (self.train_data[0].extend(training_dataset[0]), 
-                           self.train_data[1].extend(training_dataset[1]))
+        if len(training_dataset[0]) != 0 and len(training_dataset[0][0]) != 0:
+            self.train_data[0].extend(training_dataset[0])
+            
+        if len(training_dataset[1]) != 0 and len(training_dataset[1][0]) != 0:
+            self.train_data[1].extend(training_dataset[1])
+            
+        if len(training_dataset[2]) != 0 and len(training_dataset[2][0]) != 0:
+            self.val_data[0].extend(training_dataset[2])
+            
+        if len(training_dataset[3]) != 0 and len(training_dataset[3][0]) != 0:
+            self.val_data[1].extend(training_dataset[3])
+            
+        if len(training_dataset[4]) != 0 and len(training_dataset[4][0]) != 0:
+            self.test_data[0].extend(training_dataset[4])
+            
+        if len(training_dataset[5]) != 0 and len(training_dataset[5][0]) != 0:
+            self.test_data[1].extend(training_dataset[5])
+    
+    def x_train(self, index : int = None):
+        if index is None:
+            return self.train_data[0]
+        return self.train_data[0][index]
+    
+    def y_train(self, index : int = None):
+        if index is None:
+            return self.train_data[1]
+        return self.train_data[1][index]
+    
+    def x_val(self, index : int = None):
+        if index is None:
+            return self.val_data[0]
+        return self.val_data[0][index]
         
-        self.val_data = (self.val_data[0].extend(training_dataset[2]), 
-                         self.val_data[1].extend(training_dataset[3]))
-        
-        self.test_data = (self.test_data[0].extend(training_dataset[4]), 
-                          self.test_data[1].extend(training_dataset[5]))
-        
+    def y_val(self, index : int = None):
+        if index is None:
+            return self.val_data[1]
+        return self.val_data[1][index]
+    
+    def x_test(self, index : int = None):
+        if index is None:
+            return self.test_data[0]
+        return self.test_data[0][index]
+    
+    def y_test(self, index : int = None):
+        if index is None:
+            return self.test_data[1]
+        return self.test_data[1][index]
 
 def main():
     path = Path("./user_data/data/binance")
@@ -60,6 +98,8 @@ def main():
     t = timeframe[4]
     
     pair_history = load_pair_history(pair, t, path)
+    pair_history3 = load_pair_history("ETH/BUSD", t, path)
+    pair_history2 = load_pair_history(pair, "1d", path)
     # pair_history.set_index("date", inplace=True)
     dataframe = pair_history[["close", "open", "volume"]]
     x,y,val,valy,test,testy = build_forecast_ts_training_dataset(dataframe, 
@@ -72,9 +112,11 @@ def main():
                                                                   do_shuffle=False)
 
     ts_dataset = Time_Series_Dataset(input_size=20, column_index="date", selected_columns=["close"])
-    ts_dataset.add_time_serie(pair_history)
-
-    print(ts_dataset.train_data)
+    ts_dataset.add_time_serie(pair_history, test_val_prop=0)
+    ts_dataset.add_time_serie(pair_history2, test_val_prop=0)
+    ts_dataset.add_time_serie(pair_history3, test_val_prop=1)
     
+    print(pair_history3.iloc[0:20])
+    print(ts_dataset.x_test(0))
 if __name__ == "__main__":
     main()
