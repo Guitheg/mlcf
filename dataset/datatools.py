@@ -115,59 +115,66 @@ def window_data(dataframe : pd.DataFrame,
             )
     return list_data
 
-def input_label_data_windows(data_windows : List[pd.DataFrame],
+def input_target_data_windows(data_windows : List[pd.DataFrame],
                             input_width : int,
-                            label_width : int) -> Tuple[List[pd.DataFrame], List[pd.DataFrame]]:
-    """Given a list of windows (of dataframe), return list of the input and the label parts 
+                            target_width : int) -> Tuple[List[pd.DataFrame], List[pd.DataFrame]]:
+    """Given a list of windows (of dataframe), return list of the input and the target parts 
     of these windows.
 
     Args:
         data_windows (List[pd.DataFrame]): The windowed data (dataframe)
         input_width (int): input width in the window
-        label_width (int): label width in the window
+        target_width (int): target width in the window
 
     Returns:
         Tuple[List[pd.DataFrame], List[pd.DataFrame]]: The list of inputpars, 
-        and the list of label parts
+        and the list of target parts
     """
     list_in : List[pd.DataFrame] = []
     list_lab : List[pd.DataFrame] = []
     for window in data_windows:
-        inp, lab = input_label_data(window, input_width, label_width)
+        inp, lab = input_target_data(window, input_width, target_width)
         list_in.append(inp)
         list_lab.append(lab)
     
     return list_in, list_lab
 
-def input_label_data(dataframe : pd.DataFrame,
+def input_target_data(dataframe : pd.DataFrame,
                input_width : int,
-               label_width : int) -> Tuple[pd.DataFrame, pd.DataFrame] :
-    """From a window (a dataframe), return the list of the input and the label part given the
-    {input_width} and the {label_width}.
+               target_width : int) -> Tuple[pd.DataFrame, pd.DataFrame] :
+    """From a window (a dataframe), return the list of the input and the target part given the
+    {input_width} and the {target_width}.
 
     Args:
         dataframe (pd.DataFrame): The dataframe
         input_width (int): the size of the input
-        label_width (int): the size of the label
+        target_width (int): the size of the target
 
     Raises:
-        Exception: if the input and label sizes are greater than the window size
+        Exception: if the input and target sizes are greater than the window size
 
     Returns:
-        Tuple[pd.DataFrame, pd.DataFrame]: the input part and the label part
+        Tuple[pd.DataFrame, pd.DataFrame]: the input part and the target part
     """
     data = dataframe.copy()
     if len(data) == 0:
         return pd.DataFrame(columns=data.columns), pd.DataFrame(columns=data.columns)
-    if len(data) < input_width + label_width:
+    if len(data) < input_width + target_width:
         raise Exception("Input width and Label width must not be greater than window size")
     input_data = data.iloc[:input_width]
-    label_data = data.iloc[-label_width:]
-    return input_data, label_data
+    target_data = data.iloc[-target_width:]
+    return input_data, target_data
+
+def make_commmon_shuffle(data_1 : pd.DataFrame, 
+                         data_2 : pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    data_1_2 = list(zip(data_1.copy(), data_2.copy()))
+    random.shuffle(data_1_2)
+    data_1_shuffled, data_2_shuffled = zip(*data_1_2)
+    return data_1_shuffled, data_2_shuffled
 
 def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
                                        input_width : int,
-                                       label_width : int = 1,
+                                       target_width : int = 1,
                                        offset : int = 0,
                                        step : int = 1,
                                        n_interval : int = 1,
@@ -183,18 +190,18 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
     """ From a time serie dataframe, build a forecast training dataset:
     -> ({n_interval} > 1) : divide the dataframe in {n_interval} intervals
     -> split the dataframe in train, validation and test part
-    -> windows the data with a window size of ({input_width} + {label_width} + {offset}) and 
+    -> windows the data with a window size of ({input_width} + {target_width} + {offset}) and 
     a step of {step}
-    -> make the X and y (input and label) parts given the {input_width} and {label_width}
-    -> make the lists of train part inputs, train part labels, validation part inputs, validation
-    part labels, test part inputs and test part labels
+    -> make the X and y (input and target) parts given the {input_width} and {target_width}
+    -> make the lists of train part inputs, train part targets, validation part inputs, validation
+    part targets, test part inputs and test part targets
     -> ({do_shuffle} is True) : shuffle all the lists
 
     Args:
         dataframe (pd.DataFrame): The dataframe (time serie)
         input_width (int): The input size in a window of the data
-        label_width (int, optional): The label size in a window of the data. Defaults to 1.
-        offset (int, optional): the offset size between the input width and the label width. 
+        target_width (int, optional): The target size in a window of the data. Defaults to 1.
+        offset (int, optional): the offset size between the input width and the target width. 
         Defaults to 0.
         step (int, optional): to select a window every step. Defaults to 1.
         n_interval (int, optional): the number of splited intervals. Defaults to 1.
@@ -212,8 +219,8 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
             List[pd.DataFrame],
             List[pd.DataFrame], 
             List[pd.DataFrame]]: 
-            the lists of train part inputs, train part labels, validation part inputs, 
-            validation part labels,  test part inputs and test part labels
+            the lists of train part inputs, train part targets, validation part inputs, 
+            validation part targets,  test part inputs and test part targets
     """
     data = dataframe.copy()
     # Divide data in N period
@@ -226,47 +233,41 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
             to_train_val_test(period_data_df, test_val_prop=test_val_prop, val_prop=val_prop) 
         )
     
-    # Generate windowed data and labels
-    window_size : int = input_width + offset + label_width
+    # Generate windowed data and targets
+    window_size : int = input_width + offset + target_width
     list_train_input : List[pd.DataFrame] = []
-    list_train_label : List[pd.DataFrame] = []
+    list_train_target : List[pd.DataFrame] = []
     list_val_input : List[pd.DataFrame] = []
-    list_val_label : List[pd.DataFrame] = []
+    list_val_target : List[pd.DataFrame] = []
     list_test_input : List[pd.DataFrame] = []
-    list_test_label : List[pd.DataFrame] = []
+    list_test_target : List[pd.DataFrame] = []
     
     for train, val, test in list_splited_period_data_df:
-        train_input, train_label = input_label_data_windows(
+        train_input, train_target = input_target_data_windows(
             window_data(train, window_size, step=step), 
             input_width, 
-            label_width)
-        val_input, val_label = input_label_data_windows(
+            target_width)
+        val_input, val_target = input_target_data_windows(
             window_data(val, window_size, step=step),
             input_width, 
-            label_width)
-        test_input, test_label = input_label_data_windows(
+            target_width)
+        test_input, test_target = input_target_data_windows(
             window_data(test, window_size, step=step),
             input_width, 
-            label_width)
+            target_width)
         
         list_train_input.extend(train_input)
-        list_train_label.extend(train_label)
+        list_train_target.extend(train_target)
         list_val_input.extend(val_input)
-        list_val_label.extend(val_label)
+        list_val_target.extend(val_target)
         list_test_input.extend(test_input)
-        list_test_label.extend(test_label)
+        list_test_target.extend(test_target)
 
     if do_shuffle:
-        list_train = list(zip(list_train_input, list_train_label))
-        list_validation = list(zip(list_val_input, list_val_label))
-        list_test = list(zip(list_test_input, list_test_label))
-        random.shuffle(list_train)
-        random.shuffle(list_validation)
-        random.shuffle(list_test)
-        list_train_input, list_train_label = zip(*list_train)
-        list_val_input, list_val_label = zip(*list_validation)
-        list_test_input, list_test_label = zip(*list_test)
+        list_train_input, list_train_target = make_commmon_shuffle(list_train_input, list_train_target)
+        list_val_input, list_val_target = make_commmon_shuffle(list_val_input, list_val_target)
+        list_test_input, list_test_target = make_commmon_shuffle(list_test_input, list_test_target)
         
         
-    return (list_train_input, list_train_label, list_val_input, 
-            list_val_label, list_test_input, list_test_label)
+    return (list_train_input, list_train_target, list_val_input, 
+            list_val_target, list_test_input, list_test_target)

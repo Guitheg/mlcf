@@ -1,9 +1,9 @@
 from pathlib import Path
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 from freqtrade.data.history.history_utils import load_pair_history
 import pandas as pd
 from torch.utils.data import Dataset
-from datatools import build_forecast_ts_training_dataset
+from datatools import build_forecast_ts_training_dataset, make_commmon_shuffle
 
 class Time_Series_Dataset(object):
     def __init__(self, 
@@ -12,16 +12,54 @@ class Time_Series_Dataset(object):
                  selected_columns : List[str] = None,
                  column_index : str = None):
         
-        self.data : List[pd.DataFrame] = []
+        self.TRAIN : str = "train"
+        self.VALIDATION : str = "validation"
+        self.TEST : str = "test"
+        self.INPUT : str = "input"
+        self.TARGET : str = "target"
+        
+        self.raw_data : List[pd.DataFrame] = []
         self.input_size : int = input_size
         self.label_size : int = label_size
         self.columns : List[str] = selected_columns
         self.column_index : str = column_index
-         
-        self.train_data : Tuple[List[pd.DataFrame], List[pd.DataFrame]] = ([], [])
-        self.val_data : Tuple[List[pd.DataFrame], List[pd.DataFrame]] = ([], [])
-        self.test_data : Tuple[List[pd.DataFrame], List[pd.DataFrame]] = ([], [])
         
+        self.train_data : Dict[List[pd.DataFrame], List[pd.DataFrame]] = {self.INPUT : [], 
+                                                                          self.TARGET : []}
+        
+        self.val_data : Dict[List[pd.DataFrame], List[pd.DataFrame]] = {self.INPUT : [], 
+                                                                        self.TARGET : []}
+        
+        self.test_data : Dict[List[pd.DataFrame], List[pd.DataFrame]] = {self.INPUT : [], 
+                                                                        self.TARGET : []}
+        
+        self.ts_data : Dict = {self.TRAIN : self.train_data,
+                               self.VALIDATION : self.val_data,
+                               self.TEST : self.test_data}
+    
+    def __getitem__(self, index, partition : str = ""):
+        pass    
+    
+    def _add_ts_data(self, 
+                     input_ts_data : List[pd.DataFrame],
+                     target_ts_data : List[pd.DataFrame],
+                     partition : str,
+                     do_shuffle : bool = False,
+                     ignore_empty_dataframe : bool = False):
+        
+        if len(input_ts_data) != 0 and len(input_ts_data[0]) != 0:
+            self.ts_data[partition][self.INPUT].extend(input_ts_data)
+            self.ts_data[partition][self.TARGET].extend(target_ts_data)
+            if do_shuffle:
+                (input_data_shuffle, target_data_shuffle) = make_commmon_shuffle(
+                    self.ts_data[partition][self.INPUT],
+                    self.ts_data[partition][self.TARGET]) 
+                self.ts_data[partition][self.INPUT] = input_data_shuffle
+                self.ts_data[partition][self.TARGET] = target_data_shuffle    
+        else:
+            if not ignore_empty_dataframe:
+                raise Exception("The data is empty")
+    
     def add_time_serie(self, dataframe : pd.DataFrame, 
                        test_val_prop : float = 0.2,
                        val_prop : float = 0.3,
@@ -31,9 +69,9 @@ class Time_Series_Dataset(object):
                        step_window : int = 1,):
         data = dataframe.copy()
         data.set_index(self.column_index, inplace=True)
-        self.data.append(data)
+        self.raw_data.append(data)
         
-        training_dataset = build_forecast_ts_training_dataset(data[self.columns], 
+        training_dataset : Tuple = build_forecast_ts_training_dataset(data[self.columns], 
                                                               input_width=self.input_size,
                                                               label_width=self.label_size,
                                                               offset=offset,
@@ -42,24 +80,25 @@ class Time_Series_Dataset(object):
                                                               test_val_prop=test_val_prop,
                                                               val_prop=val_prop,
                                                               do_shuffle=do_shuffle)
-        if len(training_dataset[0]) != 0 and len(training_dataset[0][0]) != 0:
-            self.train_data[0].extend(training_dataset[0])
-            
-        if len(training_dataset[1]) != 0 and len(training_dataset[1][0]) != 0:
-            self.train_data[1].extend(training_dataset[1])
-            
-        if len(training_dataset[2]) != 0 and len(training_dataset[2][0]) != 0:
-            self.val_data[0].extend(training_dataset[2])
-            
-        if len(training_dataset[3]) != 0 and len(training_dataset[3][0]) != 0:
-            self.val_data[1].extend(training_dataset[3])
-            
-        if len(training_dataset[4]) != 0 and len(training_dataset[4][0]) != 0:
-            self.test_data[0].extend(training_dataset[4])
-            
-        if len(training_dataset[5]) != 0 and len(training_dataset[5][0]) != 0:
-            self.test_data[1].extend(training_dataset[5])
-    
+
+        self._add_ts_data(input_ts_data=training_dataset[0],
+                          target_ts_data=training_dataset[1],
+                          partition=self.TRAIN,
+                          do_shuffle=do_shuffle,
+                          ignore_empty_dataframe=True)
+        
+        self._add_ts_data(input_ts_data=training_dataset[2],
+                          target_ts_data=training_dataset[3],
+                          partition=self.VALIDATION,
+                          do_shuffle=do_shuffle,
+                          ignore_empty_dataframe=True)
+        
+        self._add_ts_data(input_ts_data=training_dataset[4],
+                          target_ts_data=training_dataset[5],
+                          partition=self.TEST,
+                          do_shuffle=do_shuffle,
+                          ignore_empty_dataframe=True)
+        
     def x_train(self, index : int = None):
         if index is None:
             return self.train_data[0]
