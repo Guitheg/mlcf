@@ -73,9 +73,7 @@ def split_in_interval(dataframe : pd.DataFrame,
         return [pd.DataFrame(columns=data.columns)]
     window_width : int = len(data.index)//n_interval
    
-    return window_data(data, window_width, step=window_width)
-
-
+    return window_data(data, window_width, window_step=window_width)
 
 def input_target_data_windows(data_windows : Window_Data,
                             input_width : int,
