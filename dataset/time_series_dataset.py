@@ -10,7 +10,9 @@ class Time_Series_Dataset(object):
                  input_size : int,
                  label_size : int = 1,
                  selected_columns : List[str] = None,
-                 column_index : str = None):
+                 column_index : str = None,
+                 *args, **kwargs):
+        super(Time_Series_Dataset, self).__init__(*args, **kwargs)
         
         self.TRAIN : str = "train"
         self.VALIDATION : str = "validation"

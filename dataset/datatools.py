@@ -6,6 +6,7 @@ import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
 
 import random
+from window_data import Window_Data, window_data
 
 def split_pandas(dataframe : pd.DataFrame, 
                  prop_snd_elem : float = 0.5) -> Tuple[pd.DataFrame, pd.DataFrame] :
@@ -74,48 +75,9 @@ def split_in_interval(dataframe : pd.DataFrame,
    
     return window_data(data, window_width, step=window_width)
 
-def window_data(dataframe : pd.DataFrame, 
-                window_width : int,
-                step : int = 1) -> List[pd.DataFrame]:
-    """Window the data given a {window_width} and a {step}.
 
-    Args:
-        dataframe (pd.DataFrame): The dataframe we want to window
-        window_width (int): the windows size
-        step (int, optional): the step between each window. Defaults to 1.
 
-    Returns:
-        List[pd.DataFrame]: The list of created windows of size {window_width} and 
-        selected every step {step}
-    """
-    data = dataframe.copy()
-    if len(data) == 0:
-        return [pd.DataFrame(columns=data.columns)]
-    n_windows = ((len(data.index)-window_width) // step) + 1
-    n_columns = len(data.columns)
-    
-    # Slid window on all data
-    windowed_data : np.ndarray = sliding_window_view(data, 
-                                        window_shape=(window_width, len(data.columns)))
-
-    # Take data every step
-    windowed_data = windowed_data[::step]
-    
-    # Reshape windowed data
-    windowed_data_shape : Tuple[int, int, int]= (n_windows, window_width, n_columns)
-    windowed_data = np.reshape(windowed_data, newshape = windowed_data_shape)
-    
-    # Make list of dataframe
-    list_data : List[pd.DataFrame] = []
-    for idx in range(n_windows):
-        list_data.append(
-            pd.DataFrame(windowed_data[idx], 
-                        index = data.index[idx*step : (idx*step)+window_width],
-                        columns = data.columns)
-            )
-    return list_data
-
-def input_target_data_windows(data_windows : List[pd.DataFrame],
+def input_target_data_windows(data_windows : Window_Data,
                             input_width : int,
                             target_width : int) -> Tuple[List[pd.DataFrame], List[pd.DataFrame]]:
     """Given a list of windows (of dataframe), return list of the input and the target parts 
@@ -223,51 +185,55 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
             validation part targets,  test part inputs and test part targets
     """
     data = dataframe.copy()
-    # Divide data in N period
-    list_period_data_df : List[pd.DataFrame] = split_in_interval(data, n_interval=n_interval)
+    # Divide data in N interval
+    list_interval_data_df : List[pd.DataFrame] = split_in_interval(data, n_interval=n_interval)
     
-    # Split each period data in train val test
-    list_splited_period_data_df : List[Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]] = []
-    for period_data_df in list_period_data_df:
-        list_splited_period_data_df.append(
-            to_train_val_test(period_data_df, test_val_prop=test_val_prop, val_prop=val_prop) 
-        )
+    # Split each interval data in train val test
+    splited_interval_data_df : Tuple[List[pd.DataFrame], List[pd.DataFrame], List[pd.DataFrame]] = []
+    for interval_data_df in list_interval_data_df:
+        train, val, test  = to_train_val_test(interval_data_df, 
+                                              test_val_prop=test_val_prop, 
+                                              val_prop=val_prop)
+        splited_interval_data_df[0].append(train)
+        splited_interval_data_df[1].append(val)
+        splited_interval_data_df[2].append(test)
     
     # Generate windowed data and targets
     window_size : int = input_width + offset + target_width
-    list_train_input : List[pd.DataFrame] = []
-    list_train_target : List[pd.DataFrame] = []
-    list_val_input : List[pd.DataFrame] = []
-    list_val_target : List[pd.DataFrame] = []
-    list_test_input : List[pd.DataFrame] = []
-    list_test_target : List[pd.DataFrame] = []
+    train_input : Window_Data
+    train_target : Window_Data
+    val_input : Window_Data
+    val_target : Window_Data
+    test_input : Window_Data
+    test_target : Window_Data
     
-    for train, val, test in list_splited_period_data_df:
-        train_input, train_target = input_target_data_windows(
-            window_data(train, window_size, step=step), 
-            input_width, 
-            target_width)
-        val_input, val_target = input_target_data_windows(
-            window_data(val, window_size, step=step),
-            input_width, 
-            target_width)
-        test_input, test_target = input_target_data_windows(
-            window_data(test, window_size, step=step),
-            input_width, 
-            target_width)
+    for train, val, test in zip(*splited_interval_data_df): # for each interval
+        train_data : Window_Data = window_data(train, window_size, step=step)
+        train_input_tmp, train_target_tmp = input_target_data_windows(train_data, 
+                                                                      input_width, 
+                                                                      target_width)
         
-        list_train_input.extend(train_input)
-        list_train_target.extend(train_target)
-        list_val_input.extend(val_input)
-        list_val_target.extend(val_target)
-        list_test_input.extend(test_input)
-        list_test_target.extend(test_target)
+        val_data : Window_Data = window_data(val, window_size, step=step)
+        val_input_tmp, val_target_tmp = input_target_data_windows(val_data, 
+                                                                      input_width, 
+                                                                      target_width)
+        
+        test_data : Window_Data = window_data(test, window_size, step=step)
+        test_input_tmp, test_target_tmp = input_target_data_windows(test_data, 
+                                                                      input_width, 
+                                                                      target_width)
+        
+        train_input.merge_window_data(train_input_tmp)
+        train_target.merge_window_data(train_target_tmp)
+        val_input.merge_window_data(val_input_tmp)
+        val_target.merge_window_data(val_target_tmp)
+        test_input.merge_window_data(test_input_tmp)
+        test_target.merge_window_data(test_target_tmp)
 
     if do_shuffle:
-        list_train_input, list_train_target = make_commmon_shuffle(list_train_input, list_train_target)
-        list_val_input, list_val_target = make_commmon_shuffle(list_val_input, list_val_target)
-        list_test_input, list_test_target = make_commmon_shuffle(list_test_input, list_test_target)
+        train_input, train_target = make_commmon_shuffle(train_input(), train_target())
+        val_input, val_target = make_commmon_shuffle(val_input(), val_target())
+        test_input, test_target = make_commmon_shuffle(test_input(), test_target())
         
-        
-    return (list_train_input, list_train_target, list_val_input, 
-            list_val_target, list_test_input, list_test_target)
+    return (train_input, train_target, val_input, 
+            val_target, test_input, test_target)
