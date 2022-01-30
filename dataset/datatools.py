@@ -6,7 +6,7 @@ import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
 
 import random
-from window_data import Window_Data, window_data
+from dataset.window_data import Window_Data, window_data
 
 def split_pandas(dataframe : pd.DataFrame, 
                  prop_snd_elem : float = 0.5) -> Tuple[pd.DataFrame, pd.DataFrame] :
