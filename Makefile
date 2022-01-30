@@ -84,17 +84,17 @@ endif
 packages-install: conda-env-create
 	conda update -n base -c defaults conda -y
 
-#---CONDITIONNAL INSTALLATION
-	$(TORCH_INSTALL)
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~REQUIREMENTS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#---CONDITIONNAL INSTALLATION
+	$(TORCH_INSTALL)
+
 #---CONDA INSTALLATION
 	conda install -n $(ENV_NAME) -c conda-forge scikit-learn -y
 	conda install -n $(ENV_NAME) -c plotly plotly=5.5.0 -y
 	conda install -n $(ENV_NAME) -c conda-forge ta-lib -y
+	conda install -n $(ENV_NAME) -c anaconda pytest
 
 #---PIP INSTALLATION
 	$(PIP) install ritl
@@ -114,6 +114,8 @@ ifeq (,$(shell $(PIP) list | grep freqtrade))
 	rm -rf freqtrade
 endif
 # }
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 run:
 	$(PYTHON) main.py
