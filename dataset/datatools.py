@@ -1,12 +1,8 @@
 
 from typing import List, Tuple
-
 import pandas as pd
-import numpy as np
-from numpy.lib.stride_tricks import sliding_window_view
-
 import random
-from dataset.window_data import Window_Data, window_data
+from dataset.window_data import Window_Data
 
 def split_pandas(dataframe : pd.DataFrame, 
                  prop_snd_elem : float = 0.5) -> Tuple[pd.DataFrame, pd.DataFrame] :
@@ -129,6 +125,15 @@ def input_target_data(dataframe : pd.DataFrame,
 
 def make_commmon_shuffle(data_1 : pd.DataFrame, 
                          data_2 : pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """perform a common shuffle on two dataframe
+
+    Args:
+        data_1 (pd.DataFrame): A DataFrame
+        data_2 (pd.DataFrame): A DataFrame
+
+    Returns:
+        Tuple[pd.DataFrame, pd.DataFrame]: The two given dataframes shuffled in parallel
+    """
     data_1_2 = list(zip(data_1.copy(), data_2.copy()))
     random.shuffle(data_1_2)
     data_1_shuffled, data_2_shuffled = zip(*data_1_2)
