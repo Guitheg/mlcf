@@ -23,11 +23,14 @@ def window_data(dataframe : pd.DataFrame,
             window_step (int, optional): the window_step between each window. Defaults to 1.
 
         Returns:
-            List[pd.DataFrame]: The list of created windows of size {window_size} and 
+            List[pd.DataFrame]: The list of asscreated windows of size {window_size} and 
             selected every window_step {window_step}
         """
         data = dataframe.copy()
         if len(data) == 0:
+            return [pd.DataFrame(columns=data.columns)]
+        if len(data) < window_size:
+            raise Warning("The length of data is smaller than the window size (return Empty DataFrame)")
             return [pd.DataFrame(columns=data.columns)]
         n_windows = ((len(data.index)-window_size) // window_step) + 1
         n_columns = len(data.columns)
@@ -54,17 +57,23 @@ def window_data(dataframe : pd.DataFrame,
         return list_data
 
 class Window_Data(object):
-    def __init__(self, data : pd.DataFrame, 
+    def __init__(self, 
                  window_size : int, 
-                 window_step : int = 1, 
+                 data : pd.DataFrame = None, 
+                 window_step : int = 1,
                  *args, **kwargs):
         super(Window_Data, self).__init__(*args, **kwargs)
         
-        self.raw_data : pd.DataFrame = data
+        self.raw_data : pd.DataFrame = data 
         self._window_size : int = window_size
-        self.win_data : List[pd.DataFrame] = window_data(self.raw_data, 
-                                                         self.window_size(), 
-                                                         window_step)
+        self.features_has_been_set = False
+        if not data is None:
+            self.win_data : List[pd.DataFrame] = window_data(self.raw_data, 
+                                                            self.window_size(), 
+                                                            window_step)
+            self.set_features(self.raw_data.columns)
+        else:
+            self.win_data : List = []
         if not self.is_empty() and len(self.win_data[0].index) != self.window_size():
             raise Exception("The window size is suppose to be equal "+\
                             "to the number of row if it is not empty")
@@ -72,17 +81,26 @@ class Window_Data(object):
     def __len__(self):
         return len(self.win_data)
     
+    def set_features(self, columns : List[str]):
+        self.features = columns
+        self.features_has_been_set = True
+        
+    def get_features(self):
+        return self.features
+    
     def window_size(self):
         return self._window_size
     
     def n_features(self):
-        return len(self.win_data[0].columns)
+        if self.features_has_been_set:
+            return len(self.features)
+        return 0
     
     def shape(self):
         return (len(self), self.window_size(), self.n_features())
     
     def is_empty(self):
-        return len(self) == 0 and len(self.win_data[0].index) == 0
+        return len(self) == 0 or len(self.win_data[0].index) == 0
     
     def __str__(self):
         return f"window n°1:\n{str(self[0])}\n" +\
@@ -103,22 +121,28 @@ class Window_Data(object):
                  window_step : int = 1, 
                  ignore_data_empty : bool = False):
         if len(data) != 0:
-            if len(data.columns) != self.n_features():
-                raise Exception ("The number of features is supposed to be the same")
+            if self.features_has_been_set:
+                if len(data.columns) != self.n_features():
+                    raise Exception ("The number of features is supposed to be the same")
             data_to_add : List[pd.DataFrame] = window_data(data, self.window_size(), window_step)
             self.win_data.extend(data_to_add)
+            if not self.features_has_been_set:
+                self.set_features(data.columns)
         else:
             if not ignore_data_empty:
                 raise Exception("Data is empty")
             
     def add_one_window(self, window : pd.DataFrame, ignore_data_empty : bool = False):
         if len(window) != 0:
-            if len(window.columns) != self.n_features():
-                raise Exception ("The number of features is supposed to be the same")
+            if self.features_has_been_set:
+                if len(window.columns) != self.n_features():
+                    raise Exception ("The number of features is supposed to be the same")
             if len(window.index) != self.window_size():
                 raise Exception ("The window size is supposed to be the same")
             data = window.copy()
             self.win_data.append(data)
+            if not self.features_has_been_set:
+                self.set_features(data.columns)
         else:
             if not ignore_data_empty:
                 raise Exception("Data is empty")
@@ -127,11 +151,14 @@ class Window_Data(object):
                           window_data : Window_Data, 
                           ignore_data_empty : bool = False):
         if not window_data.is_empty():
-            if window_data.n_features() != self.n_features():
-                raise Exception ("The number of features is supposed to be the same")
+            if self.features_has_been_set:
+                if window_data.n_features() != self.n_features():
+                    raise Exception ("The number of features is supposed to be the same")
             if window_data.window_size() != self.window_size():
                 raise Exception ("The window size is supposed to be the same")
             self.win_data.extend(window_data())
+            if not self.features_has_been_set:
+                self.set_features(window_data.get_features())
         else:
             if not ignore_data_empty:
                 raise Exception("Data is empty")

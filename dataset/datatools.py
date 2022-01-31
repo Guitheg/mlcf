@@ -71,13 +71,15 @@ def split_in_interval(dataframe : pd.DataFrame,
     data = dataframe.copy()
     if len(data) == 0:
         return [pd.DataFrame(columns=data.columns)]
-    window_width : int = len(data.index)//n_interval
-   
-    return window_data(data, window_width, window_step=window_width)
+
+    k, m = divmod(len(data), n_interval)
+    list_interval : List[pd.DataFrame] = [data.iloc[i*k+min(i, m):(i+1)*k+min(i+1, m)] 
+                                          for i in range(n_interval)]
+    return list_interval
 
 def input_target_data_windows(data_windows : Window_Data,
                             input_width : int,
-                            target_width : int) -> Tuple[List[pd.DataFrame], List[pd.DataFrame]]:
+                            target_width : int) -> Tuple[Window_Data, Window_Data]:
     """Given a list of windows (of dataframe), return list of the input and the target parts 
     of these windows.
 
@@ -90,14 +92,14 @@ def input_target_data_windows(data_windows : Window_Data,
         Tuple[List[pd.DataFrame], List[pd.DataFrame]]: The list of inputpars, 
         and the list of target parts
     """
-    list_in : List[pd.DataFrame] = []
-    list_lab : List[pd.DataFrame] = []
+    list_in : Window_Data = Window_Data(input_width)
+    list_tar : Window_Data = Window_Data(target_width)
     for window in data_windows:
-        inp, lab = input_target_data(window, input_width, target_width)
-        list_in.append(inp)
-        list_lab.append(lab)
+        inp, tar = input_target_data(window, input_width, target_width)
+        list_in.add_one_window(inp)
+        list_tar.add_one_window(tar)
     
-    return list_in, list_lab
+    return list_in, list_tar
 
 def input_target_data(dataframe : pd.DataFrame,
                input_width : int,
@@ -136,7 +138,7 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
                                        input_width : int,
                                        target_width : int = 1,
                                        offset : int = 0,
-                                       step : int = 1,
+                                       window_step : int = 1,
                                        n_interval : int = 1,
                                        test_val_prop : float = 0.2,
                                        val_prop : float = 0.4,
@@ -151,7 +153,7 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
     -> ({n_interval} > 1) : divide the dataframe in {n_interval} intervals
     -> split the dataframe in train, validation and test part
     -> windows the data with a window size of ({input_width} + {target_width} + {offset}) and 
-    a step of {step}
+    a window_step of {window_step}
     -> make the X and y (input and target) parts given the {input_width} and {target_width}
     -> make the lists of train part inputs, train part targets, validation part inputs, validation
     part targets, test part inputs and test part targets
@@ -163,7 +165,7 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
         target_width (int, optional): The target size in a window of the data. Defaults to 1.
         offset (int, optional): the offset size between the input width and the target width. 
         Defaults to 0.
-        step (int, optional): to select a window every step. Defaults to 1.
+        window_step (int, optional): to select a window every window_step. Defaults to 1.
         n_interval (int, optional): the number of splited intervals. Defaults to 1.
         test_val_prop (float, optional): the proportion of the union of [test and validation] part.
         Defaults to 0.2.
@@ -187,36 +189,44 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
     list_interval_data_df : List[pd.DataFrame] = split_in_interval(data, n_interval=n_interval)
     
     # Split each interval data in train val test
-    splited_interval_data_df : Tuple[List[pd.DataFrame], List[pd.DataFrame], List[pd.DataFrame]] = []
+    splited_interval_data : Tuple[List[pd.DataFrame], 
+                                     List[pd.DataFrame], 
+                                     List[pd.DataFrame]] = ([],[],[])
     for interval_data_df in list_interval_data_df:
         train, val, test  = to_train_val_test(interval_data_df, 
                                               test_val_prop=test_val_prop, 
                                               val_prop=val_prop)
-        splited_interval_data_df[0].append(train)
-        splited_interval_data_df[1].append(val)
-        splited_interval_data_df[2].append(test)
-    
+        splited_interval_data[0].append(train)
+        splited_interval_data[1].append(val)
+        splited_interval_data[2].append(test)
+
     # Generate windowed data and targets
     window_size : int = input_width + offset + target_width
-    train_input : Window_Data
-    train_target : Window_Data
-    val_input : Window_Data
-    val_target : Window_Data
-    test_input : Window_Data
-    test_target : Window_Data
+    train_input : Window_Data = Window_Data(window_size=input_width, window_step=window_step)
+    train_target : Window_Data = Window_Data(window_size=target_width, window_step=window_step)
+    val_input : Window_Data = Window_Data(window_size=input_width, window_step=window_step)
+    val_target : Window_Data = Window_Data(window_size=target_width, window_step=window_step)
+    test_input : Window_Data = Window_Data(window_size=input_width, window_step=window_step)
+    test_target : Window_Data = Window_Data(window_size=target_width, window_step=window_step)
     
-    for train, val, test in zip(*splited_interval_data_df): # for each interval
-        train_data : Window_Data = window_data(train, window_size, step=step)
+    for train, val, test in zip(*splited_interval_data): # for each interval
+        train_data : Window_Data = Window_Data(data=train, 
+                                               window_size=window_size, 
+                                               window_step=window_step)
         train_input_tmp, train_target_tmp = input_target_data_windows(train_data, 
                                                                       input_width, 
                                                                       target_width)
         
-        val_data : Window_Data = window_data(val, window_size, step=step)
+        val_data : Window_Data = Window_Data(data=val, 
+                                             window_size=window_size, 
+                                             window_step=window_step)
         val_input_tmp, val_target_tmp = input_target_data_windows(val_data, 
                                                                       input_width, 
                                                                       target_width)
         
-        test_data : Window_Data = window_data(test, window_size, step=step)
+        test_data : Window_Data = Window_Data(data=test, 
+                                              window_size=window_size, 
+                                              window_step=window_step)
         test_input_tmp, test_target_tmp = input_target_data_windows(test_data, 
                                                                       input_width, 
                                                                       target_width)
