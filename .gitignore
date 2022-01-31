@@ -1,3 +1,6 @@
+#all main script to try some things...
+maintest_*.py
+
 #vscode
 .vscode/
 
@@ -145,6 +148,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-
-#Ambroise solo files
-main_ambroise.py
