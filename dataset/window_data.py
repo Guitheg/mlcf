@@ -1,6 +1,4 @@
 from __future__ import annotations
-from types import UnionType
-
 from typing import List, Tuple, Union
 import pandas as pd
 import numpy as np
