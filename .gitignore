@@ -1,3 +1,6 @@
+#all main script to try some things...
+maintest_*.py
+
 #vscode
 .vscode/
 
