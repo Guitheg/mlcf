@@ -1,8 +1,5 @@
-from pathlib import Path
 from typing import Dict, List, Tuple
-from freqtrade.data.history.history_utils import load_pair_history
 import pandas as pd
-from torch.utils.data import Dataset
 from dataset.datatools import build_forecast_ts_training_dataset, make_commmon_shuffle
 from dataset.window_data import Window_Data
 
@@ -121,34 +118,3 @@ class Time_Series_Dataset(object):
         if index is None:
             return self.test_data[self.TARGET]
         return self.test_data[self.TARGET][index]
-
-def main():
-    path = Path("./user_data/data/binance")
-    pair = "BTC/BUSD"
-    timeframe = ["1m", "5m", "15m", "1h", "4h", "1d", "1w"] 
-    col = ["all"]
-    t = timeframe[4]
-    
-    pair_history = load_pair_history(pair, t, path)
-    pair_history3 = load_pair_history("ETH/BUSD", t, path)
-    pair_history2 = load_pair_history(pair, "1d", path)
-    # pair_history.set_index("date", inplace=True)
-    dataframe = pair_history[["close", "open", "volume"]]
-    x,y,val,valy,test,testy = build_forecast_ts_training_dataset(dataframe, 
-                                                                  n_interval=2,
-                                                                  input_width=5,
-                                                                  target_width=3,
-                                                                  test_val_prop=0.1,
-                                                                  val_prop = 0.0,
-                                                                  window_step=1,
-                                                                  do_shuffle=False)
-
-    ts_dataset = Time_Series_Dataset(input_size=20, column_index="date", selected_columns=["close"])
-    ts_dataset.add_time_serie(pair_history, test_val_prop=0)
-    ts_dataset.add_time_serie(pair_history2, test_val_prop=0)
-    ts_dataset.add_time_serie(pair_history3, test_val_prop=1)
-    
-    print(pair_history3.iloc[0:20])
-    print(ts_dataset.x_test(0))
-if __name__ == "__main__":
-    main()
