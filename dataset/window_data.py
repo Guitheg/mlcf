@@ -4,7 +4,6 @@ import pandas as pd
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
 
-
 def window_data(dataframe : pd.DataFrame, 
                 window_size : int,
                 window_step : int = 1) -> List[pd.DataFrame]:
