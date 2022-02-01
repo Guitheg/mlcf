@@ -23,14 +23,12 @@ TENSORBOARD_LOGS_NAME = "boards"
 class SuperModule(Module):
     
     def __init__(self,
-                 input_shape : tuple,
                  name : str = None,
                  home_path : str = None, 
                  tensorboard : bool = False,
                  *args, **kwargs):
         super(SuperModule, self).__init__()
         
-        self.input_shape = input_shape
         self.name = name if not name is None else self.__class__.__name__
         
         if home_path:
@@ -97,26 +95,29 @@ class SuperModule(Module):
         if not self.initialize:
             raise Exception("The module has not been compiled")
         
-        # dataset.copy()
-        # dataset.transform_data("train", self.transform_x, self.transform_y)
-        # dataset.transform_data("validation", self.transform_x, self.transform_y)
-        # dataset.transform_data("test", self.transform_x, self.transform_y)
+        train_data = WTSeriesTensor(TRAIN, ts_data=dataset, 
+                                    transform_x=self.transform_x,
+                                    transform_y=self.transform_y)
+        validation_data = WTSeriesTensor(VALIDATION, ts_data=dataset, 
+                                    transform_x=self.transform_x,
+                                    transform_y=self.transform_y)
+        test_data = WTSeriesTensor(TEST, ts_data=dataset, 
+                                    transform_x=self.transform_x,
+                                    transform_y=self.transform_y)
+         
+        train_loader = train_data.get_dataloader(batch_size=batchsize, shuffle=shuffle)
+        validation_loader = validation_data.get_dataloader(batch_size=batchsize, shuffle=shuffle)
+        test_loader = test_data.get_dataloader(batch_size=batchsize, shuffle=shuffle)
         
-        train_loader = WTSeriesTensor(TRAIN, ts_data=dataset).get_dataloader(batchsize=batchsize,
-                                                                             shuffle=shuffle)
-        validation_loader = WTSeriesTensor(VALIDATION, ts_data=dataset).get_dataloader(batchsize=batchsize,
-                                                                             shuffle=shuffle)
-        test_loader = WTSeriesTensor(TEST, ts_data=dataset).get_dataloader(batchsize=batchsize,
-                                                                             shuffle=shuffle)
         logs = []
         for num_epoch in range(self.epoch, n_epochs):
             log = OrderedDict()
             pb = None
-            # if talkative:
-            #     print(f"Epoch {num_epoch+1} / {n_epochs} :")
+            if talkative:
+                print(f"Epoch {num_epoch+1} / {n_epochs} :")
             #     pb = ProgressBar(len(train_loader))  
                 
-            log = self.fit_one_epoch(train_loader, log, talkative, pb)
+            log = self.fit_one_epoch(train_loader, log, talkative)#, pb)
             log = self.validate(validation_loader, log)
             
             if self.board:
