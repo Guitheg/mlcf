@@ -1,17 +1,23 @@
 from typing import Dict, List, Tuple, Union
 import pandas as pd
-from dataset.datatools import build_forecast_ts_training_dataset, make_commmon_shuffle
-from dataset.window_data import Window_Data
+from datatools.utils import build_forecast_ts_training_dataset, make_commmon_shuffle
+from datatools.wtseries import WTSeries
 
-class Time_Series_Dataset(object):
+TRAIN : str = "train"
+VALIDATION : str = "validation"
+TEST : str = "test"
+INPUT : str = "input"
+TARGET : str = "target"
+
+class WTSeriesTraining(object):
     def __init__(self, 
                  input_size : int,
                  target_size : int = 1,
                  column_index : str = None,
                  columns : list[str] = None,
                  *args, **kwargs):
-        """Time_Series_Dataset allow to handle time series data in a machine learning training.
-        The component of the Time_Series_Dataset is the Window_Data which is a list of window
+        """WTSeriesTraining allow to handle time series data in a machine learning training.
+        The component of the WTSeriesTraining is the WTSeries which is a list of window
         extract from window sliding of a time series data. 
 
         Args:
@@ -21,13 +27,7 @@ class Time_Series_Dataset(object):
             column_index (str, optional): the name of the column we want to index the data. In
             general it's "Date". Defaults to None.
         """
-        super(Time_Series_Dataset, self).__init__(*args, **kwargs)
-        
-        self.TRAIN : str = "train"
-        self.VALIDATION : str = "validation"
-        self.TEST : str = "test"
-        self.INPUT : str = "input"
-        self.TARGET : str = "target"
+        super(WTSeriesTraining, self).__init__(*args, **kwargs)
         
         self.features_has_been_set = False
         self.raw_data : List[pd.DataFrame] = []
@@ -35,24 +35,24 @@ class Time_Series_Dataset(object):
         self.target_size : int = target_size
         self.column_index : str = column_index
         
-        self.train_data = {self.INPUT : Window_Data(self.input_size), 
-                           self.TARGET : Window_Data(self.target_size)}
+        self.train_data = {INPUT : WTSeries(self.input_size), 
+                           TARGET : WTSeries(self.target_size)}
         
-        self.val_data = {self.INPUT : Window_Data(self.input_size), 
-                         self.TARGET : Window_Data(self.target_size)}
+        self.val_data = {INPUT : WTSeries(self.input_size), 
+                         TARGET : WTSeries(self.target_size)}
         
-        self.test_data = {self.INPUT : Window_Data(self.input_size), 
-                          self.TARGET : Window_Data(self.target_size)}
+        self.test_data = {INPUT : WTSeries(self.input_size), 
+                          TARGET : WTSeries(self.target_size)}
         
-        self.ts_data : Dict = {self.TRAIN : self.train_data,
-                               self.VALIDATION : self.val_data,
-                               self.TEST : self.test_data}
+        self.ts_data : Dict = {TRAIN : self.train_data,
+                               VALIDATION : self.val_data,
+                               TEST : self.test_data}
         if not columns is None:
             self.set_features(columns)
 
     def _add_ts_data(self, 
-                     input_ts_data : Window_Data,
-                     target_ts_data : Window_Data,
+                     input_ts_data : WTSeries,
+                     target_ts_data : WTSeries,
                      partition : str,
                      do_shuffle : bool = False):
         """_add_ts_data add a Input ts data and a target ts data to the train, val or test part.
@@ -60,22 +60,22 @@ class Time_Series_Dataset(object):
         (train, validation or test)
 
         Args:
-            input_ts_data (Window_Data): A window data refferring to the input data
-            target_ts_data (Window_Data): A window data refferring to the target data
+            input_ts_data (WTSeries): A window data refferring to the input data
+            target_ts_data (WTSeries): A window data refferring to the target data
             partition (str): the name of the part : 'train', 'validation' or 'test'
             do_shuffle (bool, optional): perform a shuffle if True. Defaults to False.
         """
         
-        self.ts_data[partition][self.INPUT].merge_window_data(input_ts_data, 
+        self.ts_data[partition][INPUT].merge_window_data(input_ts_data, 
                                                               ignore_data_empty=True)
-        self.ts_data[partition][self.TARGET].merge_window_data(target_ts_data,
+        self.ts_data[partition][TARGET].merge_window_data(target_ts_data,
                                                                ignore_data_empty=True)
         if do_shuffle:
             (input_data_shuffle, target_data_shuffle) = make_commmon_shuffle(
-                self.ts_data[partition][self.INPUT],
-                self.ts_data[partition][self.TARGET]) 
-            self.ts_data[partition][self.INPUT] = input_data_shuffle
-            self.ts_data[partition][self.TARGET] = target_data_shuffle    
+                self.ts_data[partition][INPUT],
+                self.ts_data[partition][TARGET]) 
+            self.ts_data[partition][INPUT] = input_data_shuffle
+            self.ts_data[partition][TARGET] = target_data_shuffle
     
     def add_time_serie(self, 
                        dataframe : pd.DataFrame, 
@@ -119,22 +119,22 @@ class Time_Series_Dataset(object):
 
         self._add_ts_data(input_ts_data=training_dataset[0],
                           target_ts_data=training_dataset[1],
-                          partition=self.TRAIN,
+                          partition=TRAIN,
                           do_shuffle=do_shuffle)
         
         self._add_ts_data(input_ts_data=training_dataset[2],
                           target_ts_data=training_dataset[3],
-                          partition=self.VALIDATION,
+                          partition=VALIDATION,
                           do_shuffle=do_shuffle)
         
         self._add_ts_data(input_ts_data=training_dataset[4],
                           target_ts_data=training_dataset[5],
-                          partition=self.TEST,
+                          partition=TEST,
                           do_shuffle=do_shuffle)
     
     def __call__(self, part : str = None, field : str = None) -> Union[Dict[str, Dict], 
-                                                                       Dict[str, Window_Data], 
-                                                                       Window_Data]:
+                                                                       Dict[str, WTSeries], 
+                                                                       WTSeries]:
         """return the time series data (a dict format) if None arguments has been filled.
         If part is filled, return the partition (train, validation, or test) (with a dict format).
         If field is filled, return the field (input or target) window data
@@ -149,7 +149,7 @@ class Time_Series_Dataset(object):
             Exception: You should fill part if field is filled
 
         Returns:
-            Union[Dict, Dict[Window_Data], Window_Data]: 
+            Union[Dict, Dict[WTSeries], WTSeries]: 
             A dict of Dict of window data (all the time series data),
             or a dict of window data (a part 'train', 'validation' or 'test'),
             or a window data (a field 'input', 'target')
@@ -182,32 +182,32 @@ class Time_Series_Dataset(object):
     def get_target_size(self) -> int:
         return self.target_size
                    
-    def x_train(self, index : int = None) -> Union[Dict[str, Window_Data], Window_Data]:
+    def x_train(self, index : int = None) -> Union[Dict[str, WTSeries], WTSeries]:
         if index is None:
-            return self.train_data[self.INPUT]
-        return self.train_data[self.INPUT][index]
+            return self.train_data[INPUT]
+        return self.train_data[INPUT][index]
     
-    def y_train(self, index : int = None) -> Union[Dict[str, Window_Data], Window_Data]:
+    def y_train(self, index : int = None) -> Union[Dict[str, WTSeries], WTSeries]:
         if index is None:
-            return self.train_data[self.TARGET]
-        return self.train_data[self.TARGET][index]
+            return self.train_data[TARGET]
+        return self.train_data[TARGET][index]
     
-    def x_val(self, index : int = None) -> Union[Dict[str, Window_Data], Window_Data]:
+    def x_val(self, index : int = None) -> Union[Dict[str, WTSeries], WTSeries]:
         if index is None:
-            return self.val_data[self.INPUT]
-        return self.val_data[self.INPUT][index]
+            return self.val_data[INPUT]
+        return self.val_data[INPUT][index]
         
-    def y_val(self, index : int = None) -> Union[Dict[str, Window_Data], Window_Data]:
+    def y_val(self, index : int = None) -> Union[Dict[str, WTSeries], WTSeries]:
         if index is None:
-            return self.val_data[self.TARGET]
-        return self.val_data[self.TARGET][index]
+            return self.val_data[TARGET]
+        return self.val_data[TARGET][index]
     
-    def x_test(self, index : int = None) -> Union[Dict[str, Window_Data], Window_Data]:
+    def x_test(self, index : int = None) -> Union[Dict[str, WTSeries], WTSeries]:
         if index is None:
-            return self.test_data[self.INPUT]
-        return self.test_data[self.INPUT][index]
+            return self.test_data[INPUT]
+        return self.test_data[INPUT][index]
     
-    def y_test(self, index : int = None) -> Union[Dict[str, Window_Data], Window_Data]:
+    def y_test(self, index : int = None) -> Union[Dict[str, WTSeries], WTSeries]:
         if index is None:
-            return self.test_data[self.TARGET]
-        return self.test_data[self.TARGET][index]
+            return self.test_data[TARGET]
+        return self.test_data[TARGET][index]

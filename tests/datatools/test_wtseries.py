@@ -1,5 +1,5 @@
 import pytest
-from dataset.window_data import window_data, Window_Data
+from datatools.wtseries import window_data, WTSeries
 import pandas as pd
 
 def init_data():
@@ -25,16 +25,16 @@ def test_window_data():
         list_data = window_data(data.iloc[0:2], 10, 1)
         assert len(list_data[0]) == 0
         
-def test_Window_Data():
-    win = Window_Data(10)
+def test_WTSeries():
+    win = WTSeries(10)
     assert True == win.is_empty()
     assert 0 == win.n_features()
     assert (0, 10, 0) == win.shape()
-    win2 = Window_Data(data=data[["close", "open"]].iloc[0:100], window_size=10)
+    win2 = WTSeries(data=data[["close", "open"]].iloc[0:100], window_size=10)
     win.merge_window_data(win2)
     assert win.n_features() == 2
     assert len(win) == len(win2)
-    win3 = Window_Data(data=data.iloc[0:100], window_size=20)
+    win3 = WTSeries(data=data.iloc[0:100], window_size=20)
     with pytest.raises(Exception):
         win.merge_window_data(win3)
     win3.add_data(data[100:200], 5)
