@@ -75,7 +75,7 @@ class Time_Series(object):
                 self.ts_data[partition][INPUT],
                 self.ts_data[partition][TARGET]) 
             self.ts_data[partition][INPUT] = input_data_shuffle
-            self.ts_data[partition][TARGET] = target_data_shuffle    
+            self.ts_data[partition][TARGET] = target_data_shuffle
     
     def add_time_serie(self, 
                        dataframe : pd.DataFrame, 
