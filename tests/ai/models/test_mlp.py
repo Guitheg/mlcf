@@ -22,6 +22,10 @@ def test_mlp(mocker):
         "ai.super_module.create_path",
         side_effect=create_path_mock
     )
+    mocker.patch(
+        "ai.super_module.SuperModule.save",
+        return_value=None
+    )
     ts_data = WTSeriesTraining(20, column_index="date")
     ts_data.add_time_serie(data.iloc[0:3000])
     module = MLP(features=ts_data.n_features(),window_size=ts_data.input_size)
