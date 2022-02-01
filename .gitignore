@@ -15,6 +15,7 @@ user_data/logs
 user_data/notebooks
 user_data/plot
 user_data/strategies/examples
+user_data/Home
 
 config.json
 *.sqlite
