@@ -2,7 +2,7 @@
 from typing import List, Tuple
 import pandas as pd
 import random
-from dataset.window_data import Window_Data
+from datatools.wtseries import WTSeries
 
 def split_pandas(dataframe : pd.DataFrame, 
                  prop_snd_elem : float = 0.5) -> Tuple[pd.DataFrame, pd.DataFrame] :
@@ -73,9 +73,9 @@ def split_in_interval(dataframe : pd.DataFrame,
                                           for i in range(n_interval)]
     return list_interval
 
-def input_target_data_windows(data_windows : Window_Data,
+def input_target_data_windows(data_windows : WTSeries,
                             input_width : int,
-                            target_width : int) -> Tuple[Window_Data, Window_Data]:
+                            target_width : int) -> Tuple[WTSeries, WTSeries]:
     """Given a list of windows (of dataframe), return list of the input and the target parts 
     of these windows.
 
@@ -88,8 +88,8 @@ def input_target_data_windows(data_windows : Window_Data,
         Tuple[List[pd.DataFrame], List[pd.DataFrame]]: The list of inputpars, 
         and the list of target parts
     """
-    list_in : Window_Data = Window_Data(input_width)
-    list_tar : Window_Data = Window_Data(target_width)
+    list_in : WTSeries = WTSeries(input_width)
+    list_tar : WTSeries = WTSeries(target_width)
     for window in data_windows:
         inp, tar = input_target_data(window, input_width, target_width)
         list_in.add_one_window(inp)
@@ -207,29 +207,29 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
 
     # Generate windowed data and targets
     window_size : int = input_width + offset + target_width
-    train_input : Window_Data = Window_Data(window_size=input_width, window_step=window_step)
-    train_target : Window_Data = Window_Data(window_size=target_width, window_step=window_step)
-    val_input : Window_Data = Window_Data(window_size=input_width, window_step=window_step)
-    val_target : Window_Data = Window_Data(window_size=target_width, window_step=window_step)
-    test_input : Window_Data = Window_Data(window_size=input_width, window_step=window_step)
-    test_target : Window_Data = Window_Data(window_size=target_width, window_step=window_step)
+    train_input : WTSeries = WTSeries(window_size=input_width, window_step=window_step)
+    train_target : WTSeries = WTSeries(window_size=target_width, window_step=window_step)
+    val_input : WTSeries = WTSeries(window_size=input_width, window_step=window_step)
+    val_target : WTSeries = WTSeries(window_size=target_width, window_step=window_step)
+    test_input : WTSeries = WTSeries(window_size=input_width, window_step=window_step)
+    test_target : WTSeries = WTSeries(window_size=target_width, window_step=window_step)
     
     for train, val, test in zip(*splited_interval_data): # for each interval
-        train_data : Window_Data = Window_Data(data=train, 
+        train_data : WTSeries = WTSeries(data=train, 
                                                window_size=window_size, 
                                                window_step=window_step)
         train_input_tmp, train_target_tmp = input_target_data_windows(train_data, 
                                                                       input_width, 
                                                                       target_width)
         
-        val_data : Window_Data = Window_Data(data=val, 
+        val_data : WTSeries = WTSeries(data=val, 
                                              window_size=window_size, 
                                              window_step=window_step)
         val_input_tmp, val_target_tmp = input_target_data_windows(val_data, 
                                                                       input_width, 
                                                                       target_width)
         
-        test_data : Window_Data = Window_Data(data=test, 
+        test_data : WTSeries = WTSeries(data=test, 
                                               window_size=window_size, 
                                               window_step=window_step)
         test_input_tmp, test_target_tmp = input_target_data_windows(test_data, 

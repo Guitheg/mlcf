@@ -48,7 +48,7 @@ def window_data(dataframe : pd.DataFrame,
                 )
         return list_data
 
-class Window_Data(object):
+class WTSeries(object):
 
     def __init__(self, 
                  window_size : int, 
@@ -70,7 +70,7 @@ class Window_Data(object):
         Raises:
             Exception: [description]
         """
-        super(Window_Data, self).__init__(*args, **kwargs)
+        super(WTSeries, self).__init__(*args, **kwargs)
         
         self.raw_data : pd.DataFrame = data 
         self._window_size : int = window_size
@@ -242,12 +242,12 @@ class Window_Data(object):
                 raise Exception("Data is empty")
                 
     def merge_window_data(self,
-                          window_data : Window_Data, 
+                          window_data : WTSeries, 
                           ignore_data_empty : bool = False):
-        """merge the input Window_Data to the current Window_Data
+        """merge the input WTSeries to the current WTSeries
 
         Args:
-            window_data (Window_Data): the input Window_Data to merge into this one
+            window_data (WTSeries): the input WTSeries to merge into this one
             ignore_data_empty (bool, optional): ignore the empty exception if it's True.
             Defaults to False.
 

@@ -1,11 +1,11 @@
 import pytest
 import pandas as pd
 import numpy as np
-from dataset.datatools import split_pandas, to_train_val_test, \
+from datatools.utils import split_pandas, to_train_val_test, \
     split_in_interval, input_target_data_windows, input_target_data, \
     make_commmon_shuffle, build_forecast_ts_training_dataset
     
-from dataset.window_data import Window_Data, window_data
+from datatools.wtseries import WTSeries, window_data
 
 
 def init_data():
@@ -105,7 +105,7 @@ def test_build_forecast_ts_training_dataset():
         input_width = 9, 
         test_val_prop=0.2, 
         val_prop=0.2)
-    assert isinstance(ti, Window_Data)
+    assert isinstance(ti, WTSeries)
     assert ti.n_features() == 2 and ti.n_features() == vt.n_features()
     assert ti.shape() == (len(tt), 9, 2)
     assert len(ti) == 800 - 10 + 1
