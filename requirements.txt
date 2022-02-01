@@ -1,1 +1,42 @@
-ritl
+
+# ---Pytorch---
+# https://pytorch.org/
+--find-links https://download.pytorch.org/whl/cu113/torch_stable.html
+torch==1.10.2+cu113
+torchvision==0.11.3+cu113 
+torchaudio==0.10.2+cu113 
+# ---
+
+# https://scikit-learn.org/stable/
+scikit-learn
+
+# https://docs.pytest.org/en/6.2.x/
+pytest
+
+# https://pytest-cov.readthedocs.io/en/latest/
+pytest-cov
+
+# https://libraries.io/pypi/pytest-mock
+pytest-mock
+
+# https://plotly.com/
+plotly
+
+# https://psutil.readthedocs.io/en/latest/
+psutil
+
+# https://www.statsmodels.org/stable/gettingstarted.html
+# https://github.com/statsmodels/statsmodels
+statsmodels
+
+# https://github.com/bashtage/arch
+arch
+
+# https://matplotlib.org/
+matplotlib
+
+# https://github.com/rmsolgi/geneticalgorithm
+geneticalgorithm2
+
+# https://www.freqtrade.io/en/stable/te
+freqtrade
