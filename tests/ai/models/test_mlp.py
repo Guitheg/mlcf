@@ -9,7 +9,7 @@ from torch.optim import SGD
 from torch.nn import L1Loss
 
 def init_data():
-    data = np.arange(10000)
+    data = np.arange(1000)
     columns = ["value"]
     data = pd.DataFrame(data, columns=columns)
     return data

@@ -49,7 +49,7 @@ class WTSeriesTraining(object):
                                VALIDATION : self.val_data,
                                TEST : self.test_data}
         if not columns is None:
-            self.set_features(columns)
+            self._set_features(columns)
 
     def _add_ts_data(self, 
                      input_ts_data : WTSeries,
@@ -107,7 +107,7 @@ class WTSeriesTraining(object):
             selected_data = data[self.features]
         else:
             selected_data = data
-            self.set_features(data.columns)
+            self._set_features(data.columns)
         self.raw_data.append(data)
         training_dataset : Tuple = build_forecast_ts_training_dataset(selected_data, 
                                                               input_width=self.input_size,
@@ -166,11 +166,21 @@ class WTSeriesTraining(object):
         return self.ts_data 
             
     def __str__(self) -> str:
-        return f"Input size: {self.input_size}, Target size: {self.target_size},"+\
-               f"Index name: {self.column_index}.\nData : Length Train: {len(self.train_data)}, "+\
-               f"Length Validation: {len(self.val_data)}, Length Test: {len(self.test_data)}"
+        return f"Input size: {self.input_size}, Target size: {self.target_size}, "+\
+               f"Index name: '{self.column_index}'\nData :\n"+\
+               f"Length Train: {self.len(TRAIN)}, "+\
+               f"Length Validation: {self.len(VALIDATION)}, "+\
+               f"Length Test: {self.len(TEST)}"
     
-    def set_features(self, features : List[str]):
+    def len(self, part : str = None):
+        if not part is None:
+            return len(self(part, INPUT))
+        return len(self(TRAIN, INPUT)) + len(self(VALIDATION, INPUT)) + len(self(TEST, INPUT))
+    
+    def __len__(self):
+        return len()
+    
+    def _set_features(self, features : List[str]):
         self.features = features
         self.features_has_been_set = True
          

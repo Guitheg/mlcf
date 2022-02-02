@@ -79,7 +79,7 @@ class WTSeries(object):
             self.win_data : List[pd.DataFrame] = window_data(self.raw_data, 
                                                             self.window_size(), 
                                                             window_step)
-            self.set_features(self.raw_data.columns)
+            self._set_features(self.raw_data.columns)
         else:
             self.win_data : List = []
         if not self.is_empty() and len(self.win_data[0].index) != self.window_size():
@@ -94,7 +94,7 @@ class WTSeries(object):
         """
         return len(self.win_data)
     
-    def set_features(self, columns : List[str]) -> None:
+    def _set_features(self, columns : List[str]) -> None:
         """Set the features (the columns, the dimension) of the data.
 
         Args:
@@ -211,7 +211,7 @@ class WTSeries(object):
             data_to_add : List[pd.DataFrame] = window_data(data, self.window_size(), window_step)
             self.win_data.extend(data_to_add)
             if not self.features_has_been_set:
-                self.set_features(data.columns)
+                self._set_features(data.columns)
         else:
             if not ignore_data_empty:
                 raise Exception("")
@@ -239,7 +239,7 @@ class WTSeries(object):
             data = window.copy()
             self.win_data.append(data)
             if not self.features_has_been_set:
-                self.set_features(data.columns)
+                self._set_features(data.columns)
         else:
             if not ignore_data_empty:
                 raise Exception("Data is empty")
@@ -267,7 +267,7 @@ class WTSeries(object):
                 raise Exception ("The window size is supposed to be the same")
             self.win_data.extend(window_data())
             if not self.features_has_been_set:
-                self.set_features(window_data.get_features())
+                self._set_features(window_data.get_features())
         else:
             if not ignore_data_empty:
                 raise Exception("Data is empty")
