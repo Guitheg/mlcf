@@ -26,4 +26,4 @@ def test_WTSeriesTensor():
         inp, tar = dataset[i]
         assert np.all(np.array(inp) == np.array(ts_data(TRAIN, INPUT)[i].astype(np.float32)))
         assert np.all(np.array(tar) == np.array(ts_data(TRAIN, TARGET)[i].astype(np.float32)))
-    assert dataset.input_data.size() == ts_data(TRAIN, INPUT).size()
+    assert dataset.input_data.size() == ts_data(TRAIN, INPUT).shape()

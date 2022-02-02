@@ -28,13 +28,13 @@ def test_window_data():
 def test_WTSeries():
     win = WTSeries(10)
     assert True == win.is_empty()
-    assert 0 == win.ndim()
-    assert (0, 10, 0) == win.size()
-    win2 = WTSeries(data=data[["close", "open"]].iloc[0:100], window_width=10)
+    assert 0 == win.n_features()
+    assert (0, 10, 0) == win.shape()
+    win2 = WTSeries(data=data[["close", "open"]].iloc[0:100], window_size=10)
     win.merge_window_data(win2)
-    assert win.ndim() == 2
+    assert win.n_features() == 2
     assert len(win) == len(win2)
-    win3 = WTSeries(data=data.iloc[0:100], window_width=20)
+    win3 = WTSeries(data=data.iloc[0:100], window_size=20)
     with pytest.raises(Exception):
         win.merge_window_data(win3)
     win3.add_data(data[100:200], 5)
