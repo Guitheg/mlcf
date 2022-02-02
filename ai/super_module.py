@@ -9,7 +9,7 @@ from torch.utils.data import Dataset
 from torch.utils.tensorboard import SummaryWriter
 from datatools.wtseries_tensor import WTSeriesTensor
 from datatools.wtseries_training import WTSeriesTraining, TRAIN, VALIDATION, TEST
-# from ai_training.utils.utils import ProgressBar, add_metrics_to_log, log_to_message
+from ai.log import ProgressBar, add_metrics_to_log, log_to_message
 from datatools.utils import create_path
 from datetime import datetime
 
@@ -115,9 +115,9 @@ class SuperModule(Module):
             pb = None
             if talkative:
                 print(f"Epoch {num_epoch+1} / {n_epochs} :")
-            #     pb = ProgressBar(len(train_loader))  
+                pb = ProgressBar(len(train_loader))  
                 
-            log = self.fit_one_epoch(train_loader, log, talkative)#, pb)
+            log = self.fit_one_epoch(train_loader, log, talkative, pb)
             log = self.validate(validation_loader, log)
             
             if self.board:
@@ -127,8 +127,8 @@ class SuperModule(Module):
             
             logs.append(log)
             
-            # if talkative:
-            #     pb.close(log_to_message(log))
+            if talkative:
+                pb.close(log_to_message(log))
         
             self.checkpoint(logs, num_epoch)
                
@@ -141,12 +141,12 @@ class SuperModule(Module):
     def fit_one_epoch(self, 
                       dataloader : DataLoader, 
                       log : OrderedDict, 
-                      talkative : bool):
-                    #   pb : ProgressBar = None):
+                      talkative : bool,
+                      pb : ProgressBar = None):
         self.train()
         log, labels, predictions = self._run_model(dataloader, log, "train", talkative)#, pb) 
-        # if self.metrics:
-        #     add_metrics_to_log(log, self.metrics, labels, predictions)
+        if self.metrics:
+            add_metrics_to_log(log, self.metrics, labels, predictions)
         return log
     
     def validate(self,
@@ -165,8 +165,8 @@ class SuperModule(Module):
         with no_grad():
             log, labels, predictions = self._run_model(dataloader, log, validation_type, False)
             
-        # if self.metrics:    
-        #     add_metrics_to_log(log, self.metrics, labels, predictions, prefix=prefix)
+        if self.metrics:    
+            add_metrics_to_log(log, self.metrics, labels, predictions, prefix=prefix)
             
         return log
     
@@ -174,8 +174,8 @@ class SuperModule(Module):
                    dataloader : DataLoader, 
                    log : OrderedDict, 
                    type_batchrun : str, 
-                   talkative : bool = False):
-                   #pb : ProgressBar = None):
+                   talkative : bool = False,
+                   pb : ProgressBar = None):
         loss_name = "loss"
         prefix = ""
         if type_batchrun == "train":
@@ -209,8 +209,8 @@ class SuperModule(Module):
             
             if type_batchrun == 'train':
                 # message log
-                # if talkative and not pb is None:
-                #     pb.bar(batch_index, log_to_message(log))
+                if talkative and not pb is None:
+                    pb.bar(batch_index, log_to_message(log))
                     
                 # Propagation arrière
                 batch_loss.backward()
