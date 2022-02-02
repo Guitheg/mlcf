@@ -218,23 +218,23 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
         splited_interval_data[2].append(test)
 
     # Generate windowed data and targets
-    window_width : int = input_width + offset + target_width
-    train_input : WTSeries = WTSeries(window_width=input_width, window_step=window_step)
-    train_target : WTSeries = WTSeries(window_width=target_width, window_step=window_step)
-    val_input : WTSeries = WTSeries(window_width=input_width, window_step=window_step)
-    val_target : WTSeries = WTSeries(window_width=target_width, window_step=window_step)
-    test_input : WTSeries = WTSeries(window_width=input_width, window_step=window_step)
-    test_target : WTSeries = WTSeries(window_width=target_width, window_step=window_step)
+    window_size : int = input_width + offset + target_width
+    train_input : WTSeries = WTSeries(window_size=input_width, window_step=window_step)
+    train_target : WTSeries = WTSeries(window_size=target_width, window_step=window_step)
+    val_input : WTSeries = WTSeries(window_size=input_width, window_step=window_step)
+    val_target : WTSeries = WTSeries(window_size=target_width, window_step=window_step)
+    test_input : WTSeries = WTSeries(window_size=input_width, window_step=window_step)
+    test_target : WTSeries = WTSeries(window_size=target_width, window_step=window_step)
     
     for train, val, test in zip(*splited_interval_data): # for each interval
         train_prep = preprocess(WTSeries(data=train, 
-                                         window_width=window_width, 
+                                         window_size=window_size, 
                                          window_step=window_step))
         val_prep = preprocess(WTSeries(data=val, 
-                                       window_width=window_width, 
+                                       window_size=window_size, 
                                        window_step=window_step))
         test_prep = preprocess(WTSeries(data=test, 
-                                        window_width=window_width, 
+                                        window_size=window_size, 
                                         window_step=window_step))
         train_data = train_prep()
         val_data = val_prep()
