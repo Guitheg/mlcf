@@ -34,7 +34,7 @@ def test_mlp(mocker):
                 optimizer=SGD(module.parameters(), lr=0.1),
                 metrics=[L2])
     module.summary()
-    module.fit(ts_data, 20, 20)
+    module.fit(ts_data, 1, 20)
     tensor_data = WTSeriesTensor("test", ts_data=ts_data)
     i,l = tensor_data[0]
     y = module.predict(i.view(1,-1))

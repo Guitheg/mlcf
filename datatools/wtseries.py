@@ -160,6 +160,9 @@ class WTSeries(object):
                f"window's size : {self.window_size()}, " +\
                f"number of features : {self.n_features()}"
     
+    def __setitem__(self, index : int, value : pd.DataFrame):
+        self.win_data[index] = value
+    
     def __getitem__(self, index : int) -> pd.DataFrame:
         """return a window (a dataframe) given the index of the list of {win_data}
 
