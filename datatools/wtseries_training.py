@@ -1,5 +1,6 @@
-from typing import Dict, List, Tuple, Union
+from typing import Callable, Dict, List, Tuple, Union
 import pandas as pd
+from datatools.preprocessing import Identity, WTSeriesPreProcess
 from datatools.utils import build_forecast_ts_training_dataset, make_commmon_shuffle
 from datatools.wtseries import WTSeries
 
@@ -84,7 +85,8 @@ class WTSeriesTraining(object):
                        do_shuffle : bool = False,
                        n_interval : int = 1,
                        offset : int = 0,
-                       window_step : int = 1,):
+                       window_step : int = 1,
+                       preprocess : WTSeriesPreProcess = Identity):
         """extend the time series data by extracting the window data from a input dataframe
 
         Args:
@@ -115,7 +117,8 @@ class WTSeriesTraining(object):
                                                               n_interval=n_interval,
                                                               test_val_prop=test_val_prop,
                                                               val_prop=val_prop,
-                                                              do_shuffle=do_shuffle)
+                                                              do_shuffle=do_shuffle,
+                                                              preprocess=preprocess)
 
         self._add_ts_data(input_ts_data=training_dataset[0],
                           target_ts_data=training_dataset[1],
