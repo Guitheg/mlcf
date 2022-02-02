@@ -3,6 +3,15 @@ from typing import List, Tuple
 import pandas as pd
 import random
 from datatools.wtseries import WTSeries
+from os.path import join, isdir
+from os import makedirs
+
+
+def create_path(*paths : str):
+    new_path = join(*paths)
+    if not isdir(new_path):
+        makedirs(new_path, exist_ok=True)
+    return new_path
 
 def split_pandas(dataframe : pd.DataFrame, 
                  prop_snd_elem : float = 0.5) -> Tuple[pd.DataFrame, pd.DataFrame] :
