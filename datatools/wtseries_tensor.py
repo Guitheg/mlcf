@@ -37,8 +37,10 @@ class WTSeriesTensor(TensorDataset):
             if not dir_ts_data is None:
                 raise Warning("read a time serie data from a file is not implemented yet")
             self.ts_data : WTSeriesTraining = ts_data
-        
-        self.ts_data_to_tensor(partition, transform_x=transform_x, transform_y=transform_y)
+        self.partition = partition
+        self.transform_x = transform_x,
+        self.transform_y = transform_y
+        self.ts_data_to_tensor(self.partition, transform_x=transform_x, transform_y=transform_y)
         
         super(WTSeriesTensor, self).__init__(*[self.input_data, self.target_data], *args, **kwargs)
     
@@ -69,3 +71,10 @@ class WTSeriesTensor(TensorDataset):
             self.input_data = transform_x(self.input_data)
         if not transform_y is None:
             self.target_data = transform_y(self.target_data)
+            
+    def copy(self):
+        return WTSeriesTensor(self.partition, 
+                              ts_data=self.ts_data, 
+                              dir_ts_data=None, 
+                              transform_x=self.transform_x,
+                              transform_y=self.transform_y)
