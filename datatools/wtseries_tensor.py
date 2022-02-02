@@ -37,6 +37,8 @@ class WTSeriesTensor(TensorDataset):
             if not dir_ts_data is None:
                 raise Warning("read a time serie data from a file is not implemented yet")
             self.ts_data : WTSeriesTraining = ts_data
+        if self.ts_data.len(part=partition) == 0:
+            raise ValueError("WTSeriesTraining has a length of 0. It is empty")
         self.partition = partition
         self.transform_x = transform_x,
         self.transform_y = transform_y
