@@ -118,7 +118,7 @@ class WTSeriesTraining(object):
             selected_data = data[self.features]
         else:
             selected_data = data
-            self._set_features(data.features)
+            self._set_features(data.columns)
         self.raw_data.append(data)
         training_dataset : Tuple = build_forecast_ts_training_dataset(selected_data, 
                                                               input_width=self.input_size,
