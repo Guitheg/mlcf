@@ -29,7 +29,7 @@ def test_mlp(mocker):
     )
     ts_data = WTSeriesTraining(20)
     ts_data.add_time_serie(data)
-    module = MLP(features=ts_data.n_features(), window_size=ts_data.input_size)
+    module = MLP(features=ts_data.ndim(), window_width=ts_data.input_size)
     module.init(loss = L1Loss(), 
                 optimizer=SGD(module.parameters(), lr=0.1),
                 metrics=[L2])

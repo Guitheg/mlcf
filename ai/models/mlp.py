@@ -5,9 +5,9 @@ from ai.super_module import SuperModule
 from torchvision import transforms
 
 class MLP(SuperModule):
-    def __init__(self, features, window_size, *args, **kwargs):
+    def __init__(self, features, window_width, *args, **kwargs):
         super(MLP, self).__init__(*args, **kwargs)
-        self.n_features = features*window_size
+        self.n_features = features*window_width
         
         self.layer = nn.Linear(self.n_features, 1)
         
