@@ -1,5 +1,5 @@
 from ai.models.mlp import MLP
-from datatools.wtseries_training import WTSeriesTraining
+from datatools.wtseries_training import WTSeriesTraining, Partition as P
 from datatools.wtseries_tensor import WTSeriesTensor
 import pandas as pd
 import numpy as np
@@ -35,6 +35,6 @@ def test_mlp(mocker):
                 metrics=[L2])
     module.summary()
     module.fit(ts_data, 1, 20)
-    tensor_data = WTSeriesTensor("test", ts_data=ts_data)
+    tensor_data = WTSeriesTensor(P.TEST, ts_data=ts_data)
     i,l = tensor_data[0]
     y = module.predict(i.view(1,-1))
