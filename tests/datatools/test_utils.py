@@ -107,8 +107,8 @@ def test_build_forecast_ts_training_dataset():
         val_prop=0.2)
     assert np.all(ti[0] == data[["close","open"]].iloc[0:9])
     assert isinstance(ti, WTSeries)
-    assert ti.n_features() == 2 and ti.n_features() == vt.n_features()
-    assert ti.shape() == (len(tt), 9, 2)
+    assert ti.ndim() == 2 and ti.ndim() == vt.ndim()
+    assert ti.size() == (len(tt), 9, 2)
     assert len(ti) == 800 - 10 + 1
     
     

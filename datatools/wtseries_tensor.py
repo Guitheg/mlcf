@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Callable
 from torch.utils.data import TensorDataset
 from torch.utils.data.dataloader import DataLoader
-from torch import tensor
+from torch import Tensor, tensor
 from datatools.wtseries_training import WTSeriesTraining, INPUT, TARGET
 import numpy as np
 
@@ -28,6 +28,12 @@ class WTSeriesTensor(TensorDataset):
             NotImplementedError: read a time serie data from a file is not implemented yet
             Warning: read a time serie data from a file is not implemented yet
         """
+        self.input_data : Tensor = None
+        self.target_data : Tensor = None
+        self.partition = partition
+        self.transform_x = transform_x
+        self.transform_y = transform_y
+        
         if ts_data is None and dir_ts_data is None:
             raise ValueError("You should to have a WTSeriesTraining (ts_data) or "+\
                 "at least the dir to a TimeSeries (dir_ts_data).")
@@ -37,23 +43,23 @@ class WTSeriesTensor(TensorDataset):
             if not dir_ts_data is None:
                 raise Warning("read a time serie data from a file is not implemented yet")
             self.ts_data : WTSeriesTraining = ts_data
-        if self.ts_data.len(part=partition) == 0:
-            raise ValueError("WTSeriesTraining has a length of 0. It is empty")
-        self.partition = partition
-        self.transform_x = transform_x,
-        self.transform_y = transform_y
+        if len(self) == 0:
+            raise ValueError("WTSeriesTraining has a length of 0. It is empty") 
+
         self.ts_data_to_tensor(self.partition, transform_x=transform_x, transform_y=transform_y)
         
         super(WTSeriesTensor, self).__init__(*[self.input_data, self.target_data], *args, **kwargs)
     
-    def get_input_size(self):
-        return self.ts_data.get_input_size()
+    def x_size(self):
+        return self.input_data.size()
     
-    def get_target_size(self):
-        return self.ts_data.get_target_size()
+    def y_size(self):
+        return self.target_data.size()
     
-    def get_n_features(self):
-        return self.ts_data.n_features()
+    def __len__(self):
+        if not self.input_data is None:
+            return len(self.input_data)
+        return self.ts_data.len(part=self.partition)
     
     def ts_data_to_tensor(self, 
                            partition : str,
