@@ -80,7 +80,7 @@ packages-install: conda-env-create
 #---CONDITIONNAL INSTALLATION
 
 #---CONDA INSTALLATION
-
+	conda install -n $(ENV_NAME) -c conda-forge ta-lib -y
 
 #---PIP INSTALLATION
 	$(PIP) install -Ur requirements.txt
