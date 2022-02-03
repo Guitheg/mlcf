@@ -36,5 +36,5 @@ def test_mlp(mocker):
     module.summary()
     module.fit(ts_data, 1, 20)
     tensor_data = WTSeriesTensor(P.TEST, ts_data=ts_data)
-    i,l = tensor_data[0]
+    i,l = tensor_data[:20]
     y = module.predict(i.view(1,-1))
