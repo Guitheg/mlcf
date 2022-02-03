@@ -1,8 +1,17 @@
 
-from typing import List, Tuple
+from typing import Callable, List, Tuple
 import pandas as pd
 import random
 from datatools.wtseries import WTSeries
+from datatools.preprocessing import Identity, WTSeriesPreProcess
+from os.path import join, isdir
+from os import makedirs
+
+def create_path(*paths : str):
+    new_path = join(*paths)
+    if not isdir(new_path):
+        makedirs(new_path, exist_ok=True)
+    return new_path
 
 def split_pandas(dataframe : pd.DataFrame, 
                  prop_snd_elem : float = 0.5) -> Tuple[pd.DataFrame, pd.DataFrame] :
@@ -148,6 +157,7 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
                                        test_val_prop : float = 0.2,
                                        val_prop : float = 0.4,
                                        do_shuffle : bool = False,
+                                       preprocess : WTSeriesPreProcess = Identity,
                                        ) -> Tuple[List[pd.DataFrame],
                                                   List[pd.DataFrame],
                                                   List[pd.DataFrame],
@@ -176,7 +186,9 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
         Defaults to 0.2.
         val_prop (float, optional): the proportion of validation in the union of 
         [test and validation] part. Defaults to 0.4.
-        do_shuffle (bool, optional) : if True, do a shuffle on the data
+        do_shuffle (bool, optional) : if True, do a shuffle on the data. Default to False.
+        preprocess (PreProcess, optional) : is a preprocessing function taking a WTSeries in input.
+        default to Identity
 
     Returns:
         Tuple[
@@ -206,32 +218,34 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
         splited_interval_data[2].append(test)
 
     # Generate windowed data and targets
-    window_size : int = input_width + offset + target_width
-    train_input : WTSeries = WTSeries(window_size=input_width, window_step=window_step)
-    train_target : WTSeries = WTSeries(window_size=target_width, window_step=window_step)
-    val_input : WTSeries = WTSeries(window_size=input_width, window_step=window_step)
-    val_target : WTSeries = WTSeries(window_size=target_width, window_step=window_step)
-    test_input : WTSeries = WTSeries(window_size=input_width, window_step=window_step)
-    test_target : WTSeries = WTSeries(window_size=target_width, window_step=window_step)
+    window_width : int = input_width + offset + target_width
+    train_input : WTSeries = WTSeries(window_width=input_width, window_step=window_step)
+    train_target : WTSeries = WTSeries(window_width=target_width, window_step=window_step)
+    val_input : WTSeries = WTSeries(window_width=input_width, window_step=window_step)
+    val_target : WTSeries = WTSeries(window_width=target_width, window_step=window_step)
+    test_input : WTSeries = WTSeries(window_width=input_width, window_step=window_step)
+    test_target : WTSeries = WTSeries(window_width=target_width, window_step=window_step)
     
     for train, val, test in zip(*splited_interval_data): # for each interval
-        train_data : WTSeries = WTSeries(data=train, 
-                                               window_size=window_size, 
-                                               window_step=window_step)
+        train_prep = preprocess(WTSeries(data=train, 
+                                         window_width=window_width, 
+                                         window_step=window_step))
+        val_prep = preprocess(WTSeries(data=val, 
+                                       window_width=window_width, 
+                                       window_step=window_step))
+        test_prep = preprocess(WTSeries(data=test, 
+                                        window_width=window_width, 
+                                        window_step=window_step))
+        train_data = train_prep()
+        val_data = val_prep()
+        test_data = test_prep()
+        
         train_input_tmp, train_target_tmp = input_target_data_windows(train_data, 
                                                                       input_width, 
                                                                       target_width)
-        
-        val_data : WTSeries = WTSeries(data=val, 
-                                             window_size=window_size, 
-                                             window_step=window_step)
         val_input_tmp, val_target_tmp = input_target_data_windows(val_data, 
                                                                       input_width, 
                                                                       target_width)
-        
-        test_data : WTSeries = WTSeries(data=test, 
-                                              window_size=window_size, 
-                                              window_step=window_step)
         test_input_tmp, test_target_tmp = input_target_data_windows(test_data, 
                                                                       input_width, 
                                                                       target_width)
@@ -250,3 +264,5 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
         
     return (train_input, train_target, val_input, 
             val_target, test_input, test_target)
+
+

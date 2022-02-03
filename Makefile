@@ -73,47 +73,20 @@ endif
 ################### Check dependencies and update/install packages #################################
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||#
 
-#-------------- EDIT CONDITIONNAL INSTALLATION -----------
-ifeq (,$(shell lshw -C display | grep NVIDIA))
-TORCH_INSTALL:=$(PIP) install torch torchvision -f https://download.pytorch.org/whl/rocm4.2/torch_stable.html
-else
-TORCH_INSTALL:=conda install -n $(ENV_NAME) pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch -y
-endif
-#-------------- /EDIT CONDITIONNAL INSTALLATION ----------
-
 packages-install: conda-env-create
-	conda update -n base -c defaults conda -y
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~REQUIREMENTS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #---CONDITIONNAL INSTALLATION
-	$(TORCH_INSTALL)
 
 #---CONDA INSTALLATION
-	conda install -n $(ENV_NAME) -c conda-forge scikit-learn -y
-	conda install -n $(ENV_NAME) -c plotly plotly=5.5.0 -y
-	conda install -n $(ENV_NAME) -c conda-forge ta-lib -y
-	conda install -n $(ENV_NAME) -c anaconda pytest
+
 
 #---PIP INSTALLATION
-	$(PIP) install ritl
-	$(PIP) install psutil
-	$(PIP) install statsmodels
-	$(PIP) install arch
-	$(PIP) install matplotlib
-	$(PIP) install geneticalgorithm2
+	$(PIP) install -Ur requirements.txt
 
 #---GIT INSTALLATION
 
-# { freqtrade
-ifeq (,$(shell $(PIP) list | grep freqtrade))
-	git clone https://github.com/freqtrade/freqtrade
-	source freqtrade/setup.sh
-	$(PIP) install freqtrade
-	rm -rf freqtrade
-endif
-# }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 

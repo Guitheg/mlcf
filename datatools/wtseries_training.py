@@ -1,20 +1,31 @@
-from typing import Dict, List, Tuple, Union
+from typing import Callable, Dict, List, Tuple, Union
 import pandas as pd
+from datatools.preprocessing import Identity, WTSeriesPreProcess
 from datatools.utils import build_forecast_ts_training_dataset, make_commmon_shuffle
 from datatools.wtseries import WTSeries
+from enum import Enum
 
-TRAIN : str = "train"
-VALIDATION : str = "validation"
-TEST : str = "test"
-INPUT : str = "input"
-TARGET : str = "target"
+class Partition(Enum):
+    TRAIN : str = "train"
+    VALIDATION : str = "validation"
+    TEST : str = "test"
+    
+class Field(Enum):
+    INPUT : str = "input"
+    TARGET : str = "target"
+
+TRAIN = Partition.TRAIN
+VALIDATION = Partition.VALIDATION
+TEST = Partition.TEST
+INPUT = Field.INPUT
+TARGET = Field.TARGET
 
 class WTSeriesTraining(object):
     def __init__(self, 
                  input_size : int,
                  target_size : int = 1,
                  column_index : str = None,
-                 columns : list[str] = None,
+                 features : list[str] = None,
                  *args, **kwargs):
         """WTSeriesTraining allow to handle time series data in a machine learning training.
         The component of the WTSeriesTraining is the WTSeries which is a list of window
@@ -34,6 +45,7 @@ class WTSeriesTraining(object):
         self.input_size : int = input_size
         self.target_size : int = target_size
         self.column_index : str = column_index
+        self.features : List[str] = None
         
         self.train_data = {INPUT : WTSeries(self.input_size), 
                            TARGET : WTSeries(self.target_size)}
@@ -47,13 +59,13 @@ class WTSeriesTraining(object):
         self.ts_data : Dict = {TRAIN : self.train_data,
                                VALIDATION : self.val_data,
                                TEST : self.test_data}
-        if not columns is None:
-            self.set_features(columns)
+        if not features is None:
+            self._set_features(features)
 
     def _add_ts_data(self, 
                      input_ts_data : WTSeries,
                      target_ts_data : WTSeries,
-                     partition : str,
+                     partition : Partition,
                      do_shuffle : bool = False):
         """_add_ts_data add a Input ts data and a target ts data to the train, val or test part.
         In function of the {partition} parameter which is the name of the part 
@@ -62,7 +74,7 @@ class WTSeriesTraining(object):
         Args:
             input_ts_data (WTSeries): A window data refferring to the input data
             target_ts_data (WTSeries): A window data refferring to the target data
-            partition (str): the name of the part : 'train', 'validation' or 'test'
+            partition (Partition): the name of the part : 'train', 'validation' or 'test'
             do_shuffle (bool, optional): perform a shuffle if True. Defaults to False.
         """
         
@@ -84,7 +96,8 @@ class WTSeriesTraining(object):
                        do_shuffle : bool = False,
                        n_interval : int = 1,
                        offset : int = 0,
-                       window_step : int = 1,):
+                       window_step : int = 1,
+                       preprocess : WTSeriesPreProcess = Identity):
         """extend the time series data by extracting the window data from a input dataframe
 
         Args:
@@ -105,7 +118,7 @@ class WTSeriesTraining(object):
             selected_data = data[self.features]
         else:
             selected_data = data
-            self.set_features(data.columns)
+            self._set_features(data.columns)
         self.raw_data.append(data)
         training_dataset : Tuple = build_forecast_ts_training_dataset(selected_data, 
                                                               input_width=self.input_size,
@@ -115,7 +128,8 @@ class WTSeriesTraining(object):
                                                               n_interval=n_interval,
                                                               test_val_prop=test_val_prop,
                                                               val_prop=val_prop,
-                                                              do_shuffle=do_shuffle)
+                                                              do_shuffle=do_shuffle,
+                                                              preprocess=preprocess)
 
         self._add_ts_data(input_ts_data=training_dataset[0],
                           target_ts_data=training_dataset[1],
@@ -132,17 +146,17 @@ class WTSeriesTraining(object):
                           partition=TEST,
                           do_shuffle=do_shuffle)
     
-    def __call__(self, part : str = None, field : str = None) -> Union[Dict[str, Dict], 
-                                                                       Dict[str, WTSeries], 
-                                                                       WTSeries]:
+    def __call__(self, 
+                 part : Partition = None, 
+                 field : Field = None) -> Union[Dict[str, Dict], Dict[str, WTSeries], WTSeries]:
         """return the time series data (a dict format) if None arguments has been filled.
         If part is filled, return the partition (train, validation, or test) (with a dict format).
         If field is filled, return the field (input or target) window data
         
         Args:
-            part (str, optional): The partition ("train", "validation" or "test") we want to return. 
+            part (Partition, optional): The partition ("train", "validation" or "test") we want to return. 
             Defaults to None.
-            field (str, optional): The field ("input", or "target") we want to return.
+            field (Field, optional): The field ("input", or "target") we want to return.
             Defaults to None.
 
         Raises:
@@ -163,24 +177,59 @@ class WTSeriesTraining(object):
         return self.ts_data 
             
     def __str__(self) -> str:
-        return f"Input size: {self.input_size}, Target size: {self.target_size},"+\
-               f"Index name: {self.column_index}.\nData : Length Train: {len(self.train_data)}, "+\
-               f"Length Validation: {len(self.val_data)}, Length Test: {len(self.test_data)}"
+        return f"Input size: {self.input_size}, Target size: {self.target_size}, "+\
+               f"Index name: '{self.column_index}'\nData :\n"+\
+               f"Length Train: {self.len(TRAIN)}, "+\
+               f"Length Validation: {self.len(VALIDATION)}, "+\
+               f"Length Test: {self.len(TEST)}"
     
-    def set_features(self, features : List[str]):
-        self.features = features
-        self.features_has_been_set = True
-         
-    def n_features(self) -> int:
+    def len(self, part : Partition = None) -> int:
+        """Return the length of a partition 'train', 'val' or 'test'
+
+        Args:
+            part (Partition, optional): 'train', 'val' or 'test'. Defaults to None.
+
+        Returns:
+            int: The sum of the 3 parts length if is None. Else return the length of the part
+        """
+        if not part is None:
+            return len(self(part, INPUT))
+        return len(self(TRAIN, INPUT)) + len(self(VALIDATION, INPUT)) + len(self(TEST, INPUT))
+    
+    def width(self, field : Field = None) -> Union[int, Tuple[int, int]]:
+        """return the width of windows data given 'input' or 'target'
+
+        Args:
+            field (Field, optional): 'input' or 'target'. Defaults to None.
+
+        Raises:
+            ValueError: Only 'input' or 'target' are allowed
+
+        Returns:
+            Union[int, Tuple[int, int]]: (input or target width)
+            or respectively both if field is None
+        """
+        if not field is None:
+            if field == INPUT:
+                return self.input_size
+            elif field == TARGET:
+                return self.target_size
+            else:
+                raise ValueError("Only 'input' or 'target' are allowed")
+        else:
+            return self.input_size, self.target_size
+    
+    def ndim(self) -> int:
         if self.features_has_been_set:
             return len(self.features)
         return 0
     
-    def get_input_size(self) -> int:
-        return self.input_size
+    def __len__(self):
+        return len()
     
-    def get_target_size(self) -> int:
-        return self.target_size
+    def _set_features(self, features : List[str]):
+        self.features = features
+        self.features_has_been_set = True
                    
     def x_train(self, index : int = None) -> Union[Dict[str, WTSeries], WTSeries]:
         if index is None:

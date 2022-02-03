@@ -5,37 +5,37 @@ import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
 
 def window_data(dataframe : pd.DataFrame, 
-                window_size : int,
+                window_width : int,
                 window_step : int = 1) -> List[pd.DataFrame]:
-        """Window the data given a {window_size} and a {window_step}.
+        """Window the data given a {window_width} and a {window_step}.
 
         Args:
             dataframe (pd.DataFrame): The dataframe we want to window
-            window_size (int): the windows size
+            window_width (int): the windows size
             window_step (int, optional): the window_step between each window. Defaults to 1.
 
         Returns:
-            List[pd.DataFrame]: The list of asscreated windows of size {window_size} and 
+            List[pd.DataFrame]: The list of asscreated windows of size {window_width} and 
             selected every window_step {window_step}
         """
         data = dataframe.copy()
         if len(data) == 0:
             return [pd.DataFrame(columns=data.columns)]
-        if len(data) < window_size:
+        if len(data) < window_width:
             raise Warning("The length of data is smaller than the window size (return Empty DataFrame)")
             return [pd.DataFrame(columns=data.columns)]
-        n_windows = ((len(data.index)-window_size) // window_step) + 1
+        n_windows = ((len(data.index)-window_width) // window_step) + 1
         n_columns = len(data.columns)
         
         # Slid window on all data
         windowed_data : np.ndarray = sliding_window_view(data, 
-                                            window_shape=(window_size, len(data.columns)))
+                                            window_shape=(window_width, len(data.columns)))
 
         # Take data every window_step
         windowed_data = windowed_data[::window_step]
         
         # Reshape windowed data
-        windowed_data_shape : Tuple[int, int, int]= (n_windows, window_size, n_columns)
+        windowed_data_shape : Tuple[int, int, int]= (n_windows, window_width, n_columns)
         windowed_data = np.reshape(windowed_data, newshape = windowed_data_shape)
         
         # Make list of dataframe
@@ -43,7 +43,7 @@ def window_data(dataframe : pd.DataFrame,
         for idx in range(n_windows):
             list_data.append(
                 pd.DataFrame(windowed_data[idx], 
-                            index = data.index[idx*window_step : (idx*window_step)+window_size],
+                            index = data.index[idx*window_step : (idx*window_step)+window_width],
                             columns = data.columns)
                 )
         return list_data
@@ -51,7 +51,7 @@ def window_data(dataframe : pd.DataFrame,
 class WTSeries(object):
 
     def __init__(self, 
-                 window_size : int, 
+                 window_width : int, 
                  data : pd.DataFrame = None, 
                  window_step : int = 1,
                  *args, **kwargs):
@@ -61,7 +61,7 @@ class WTSeries(object):
         Window Data propose simple ways to add more window, merge data, access data and etc.
 
         Args:
-            window_size (int): it is the size of the window apply on the DataFrame and therefore
+            window_width (int): it is the size of the window apply on the DataFrame and therefore
             the size of every window dataframe
             data (pd.DataFrame, optional): The raw DataFrame to apply the sliding window and 
             extract the data. Defaults to None.
@@ -73,16 +73,18 @@ class WTSeries(object):
         super(WTSeries, self).__init__(*args, **kwargs)
         
         self.raw_data : pd.DataFrame = data 
-        self._window_size : int = window_size
+        self._window_width : int = window_width
         self.features_has_been_set = False
+        self.features : List[str] = None
+        
         if not data is None:
-            self.win_data : List[pd.DataFrame] = window_data(self.raw_data, 
-                                                            self.window_size(), 
+            self.data : List[pd.DataFrame] = window_data(self.raw_data, 
+                                                            self.width(), 
                                                             window_step)
-            self.set_features(self.raw_data.columns)
+            self._set_features(self.raw_data.columns)
         else:
-            self.win_data : List = []
-        if not self.is_empty() and len(self.win_data[0].index) != self.window_size():
+            self.data : List = []
+        if not self.is_empty() and len(self.data[0].index) != self.width():
             raise Exception("The window size is suppose to be equal "+\
                             "to the number of row if it is not empty")
             
@@ -92,15 +94,15 @@ class WTSeries(object):
         Returns:
             [int]: The number of window
         """
-        return len(self.win_data)
+        return len(self.data)
     
-    def set_features(self, columns : List[str]) -> None:
+    def _set_features(self, features : List[str]) -> None:
         """Set the features (the columns, the dimension) of the data.
 
         Args:
             columns (List[str]): the list of columns names
         """
-        self.features = columns
+        self.features = features
         self.features_has_been_set = True
         
     def get_features(self) -> List[str]:
@@ -111,15 +113,15 @@ class WTSeries(object):
         """
         return self.features
     
-    def window_size(self) -> int:
+    def width(self) -> int:
         """Return the size of a window
 
         Returns:
             int: the width/size of a window
         """
-        return self._window_size
+        return self._window_width
     
-    def n_features(self) -> int:
+    def ndim(self) -> int:
         """Return the number of columns / features
 
         Returns:
@@ -129,8 +131,16 @@ class WTSeries(object):
             return len(self.features)
         return 0
     
-    def shape(self) -> Tuple[int, int, int]:
-        """Return the shape of Window Data
+    def shape(self) -> Tuple[int, int]:
+        """Return the shape of a Window
+
+        Returns:
+            Tuple[int, int]: ({_window_width}, {n_features})
+        """
+        return self.width(), self.ndim()
+    
+    def size(self) -> Tuple[int, int, int]:
+        """Return the size of Window Data
         
         Returns:
             Tuple[int,int,int]: Respectively : 
@@ -138,7 +148,7 @@ class WTSeries(object):
             the size of window, 
             the number of features
         """
-        return (len(self), self.window_size(), self.n_features())
+        return (len(self), self.width(), self.ndim())
     
     def is_empty(self) -> bool:
         """check if this window data is empty
@@ -146,7 +156,7 @@ class WTSeries(object):
         Returns:
             bool: True if it's empty
         """
-        return len(self) == 0 or len(self.win_data[0].index) == 0
+        return len(self) == 0 or len(self.data[0].index) == 0
     
     def __str__(self) -> str:
         """str() function
@@ -157,8 +167,11 @@ class WTSeries(object):
         return f"window n°1:\n{str(self[0])}\n" +\
                f"window n°2:\n{str(self[1])}\n" +\
                f"Number of windows : {len(self)}, " +\
-               f"window's size : {self.window_size()}, " +\
-               f"number of features : {self.n_features()}"
+               f"window's size : {self.width()}, " +\
+               f"number of features : {self.ndim()}"
+    
+    def __setitem__(self, index : int, value : pd.DataFrame):
+        self.data[index] = value
     
     def __getitem__(self, index : int) -> pd.DataFrame:
         """return a window (a dataframe) given the index of the list of {win_data}
@@ -169,7 +182,7 @@ class WTSeries(object):
         Returns:
             pd.DataFrame: the window
         """
-        return self.win_data[index]
+        return self.data[index]
     
     def __call__(self, index : int = None) -> Union[List[pd.DataFrame], pd.DataFrame]:
         """return the list of {win_data} or a window if an index is given
@@ -183,7 +196,7 @@ class WTSeries(object):
         """
         if not index is None:
             return self[index]
-        return self.win_data
+        return self.data
     
     def add_data(self, data : pd.DataFrame, 
                  window_step : int = 1, 
@@ -203,18 +216,18 @@ class WTSeries(object):
         """
         if len(data) != 0:
             if self.features_has_been_set:
-                if len(data.columns) != self.n_features():
+                if len(data.columns) != self.ndim():
                     raise Exception("The number of features is supposed to be the same")
-            data_to_add : List[pd.DataFrame] = window_data(data, self.window_size(), window_step)
-            self.win_data.extend(data_to_add)
+            data_to_add : List[pd.DataFrame] = window_data(data, self.width(), window_step)
+            self.data.extend(data_to_add)
             if not self.features_has_been_set:
-                self.set_features(data.columns)
+                self._set_features(data.columns)
         else:
             if not ignore_data_empty:
                 raise Exception("")
             
     def add_one_window(self, window : pd.DataFrame, ignore_data_empty : bool = False):
-        """Add a dataframe (a window) (its length = to the {window_size}) to the list of window : 
+        """Add a dataframe (a window) (its length = to the {window_width}) to the list of window : 
         {win_data}
 
         Args:
@@ -229,14 +242,14 @@ class WTSeries(object):
         """
         if len(window) != 0:
             if self.features_has_been_set:
-                if len(window.columns) != self.n_features():
+                if len(window.columns) != self.ndim():
                     raise Exception ("The number of features is supposed to be the same")
-            if len(window.index) != self.window_size():
+            if len(window.index) != self.width():
                 raise Exception ("The window size is supposed to be the same")
             data = window.copy()
-            self.win_data.append(data)
+            self.data.append(data)
             if not self.features_has_been_set:
-                self.set_features(data.columns)
+                self._set_features(data.columns)
         else:
             if not ignore_data_empty:
                 raise Exception("Data is empty")
@@ -258,13 +271,13 @@ class WTSeries(object):
         """
         if not window_data.is_empty():
             if self.features_has_been_set:
-                if window_data.n_features() != self.n_features():
+                if window_data.ndim() != self.ndim():
                     raise Exception ("The number of features is supposed to be the same")
-            if window_data.window_size() != self.window_size():
+            if window_data.width() != self.width():
                 raise Exception ("The window size is supposed to be the same")
-            self.win_data.extend(window_data())
+            self.data.extend(window_data())
             if not self.features_has_been_set:
-                self.set_features(window_data.get_features())
+                self._set_features(window_data.get_features())
         else:
             if not ignore_data_empty:
                 raise Exception("Data is empty")
