@@ -83,7 +83,7 @@ packages-install: conda-env-create
 
 
 #---PIP INSTALLATION
-	$(PIP) install -r requirements.txt
+	$(PIP) install -Ur requirements.txt
 
 #---GIT INSTALLATION
 
