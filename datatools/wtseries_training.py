@@ -25,7 +25,7 @@ class WTSeriesTraining(object):
                  input_size : int,
                  target_size : int = 1,
                  column_index : str = None,
-                 features : list[str] = None,
+                 features : List[str] = None,
                  *args, **kwargs):
         """WTSeriesTraining allow to handle time series data in a machine learning training.
         The component of the WTSeriesTraining is the WTSeries which is a list of window
