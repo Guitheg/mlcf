@@ -9,7 +9,7 @@ from torch.utils.tensorboard import SummaryWriter
 from datatools.wtseries_tensor import WTSeriesTensor
 from datatools.wtseries_training import WTSeriesTraining, TRAIN, VALIDATION, TEST
 from ai.log import ProgressBar, add_metrics_to_log, log_to_message
-from datatools.utils import create_path
+from envtools.path import create_path
 from datetime import datetime
 
 from envtools.project import Project
