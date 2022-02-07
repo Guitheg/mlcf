@@ -14,11 +14,11 @@ class Field(Enum):
     INPUT : str = "input"
     TARGET : str = "target"
 
-TRAIN = Partition.TRAIN
-VALIDATION = Partition.VALIDATION
-TEST = Partition.TEST
-INPUT = Field.INPUT
-TARGET = Field.TARGET
+TRAIN : str = Partition.TRAIN.value
+VALIDATION : str = Partition.VALIDATION.value
+TEST : str = Partition.TEST.value
+INPUT : str = Field.INPUT.value
+TARGET : str = Field.TARGET.value
 
 class WTSeriesTraining(object):
     def __init__(self, 
@@ -178,7 +178,7 @@ class WTSeriesTraining(object):
             
     def __str__(self) -> str:
         return f"Input size: {self.input_size}, Target size: {self.target_size}, "+\
-               f"Index name: '{self.column_index}'\nData :\n"+\
+               f"Index name: '{self.column_index}' - Data : "+\
                f"Length Train: {self.len(TRAIN)}, "+\
                f"Length Validation: {self.len(VALIDATION)}, "+\
                f"Length Test: {self.len(TEST)}"

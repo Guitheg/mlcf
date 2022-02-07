@@ -20,7 +20,7 @@ def test_WTSeriesTensor():
     ts_data.add_time_serie(data.iloc[0:3000])
     dataset = WTSeriesTensor(TRAIN, ts_data=ts_data)
     assert "Input size: 9, Target size: 1, "+\
-        "Index name: 'date'\nData :\nLength Train: 2391, "+\
+        "Index name: 'date' - Data : Length Train: 2391, "+\
             "Length Validation: 171, Length Test: 411" == ts_data.__str__()
     for i in range(len(dataset)):
         inp, tar = dataset[i]
