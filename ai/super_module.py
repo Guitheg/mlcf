@@ -90,7 +90,8 @@ class SuperModule(Module):
             batchsize : int, 
             shuffle : bool = True, 
             talkative : bool = True,
-            evaluate : bool = False):
+            evaluate : bool = False,
+            save : bool = False):
         
         if not self.initialize:
             raise Exception("The module has not been compiled")
@@ -129,8 +130,9 @@ class SuperModule(Module):
             
             if talkative:
                 pb.close(log_to_message(log))
-        
-            self.checkpoint(logs, num_epoch)
+
+            if save:
+                self.checkpoint(logs, num_epoch)
                
         log_eval = None     
         if evaluate:
