@@ -12,6 +12,8 @@ from ai.log import ProgressBar, add_metrics_to_log, log_to_message
 from datatools.utils import create_path
 from datetime import datetime
 
+from envtools.project import Project
+
 TRAINING_HOME = "Training"
 TRAINING_DATA = "data"
 TRAINING_LOGS = "logs"
@@ -23,16 +25,17 @@ class SuperModule(Module):
     
     def __init__(self,
                  name : str = None,
-                 home_path : str = None, 
-                 tensorboard : bool = False,
+                 project : Project = None,
+                 use_tensorboard : bool = False,
                  use_checkpoint : bool = False,
                  *args, **kwargs):
         super(SuperModule, self).__init__()
         
         self.name = name if not name is None else self.__class__.__name__
         self.use_checkpoint = use_checkpoint
-        if home_path:
-            self.home_path = home_path
+        self.use_tensorboard = use_tensorboard
+        if not project is None:
+            self.home_path = self.project.get_dir()
             self.training_home = join(self.home_path, TRAINING_HOME)
         else:
             self.training_home = TRAINING_HOME
@@ -46,7 +49,7 @@ class SuperModule(Module):
         self.now = str(now.strftime("%Y-%d-%b_%Hh_%Mm_%S"))
         
         self.board = None
-        if tensorboard:
+        if self.use_tensorboard:
             self.board_name = f"board_{self.now}_{self.name}"
             self.board = SummaryWriter(join(self.board_path, self.board_name))
         
@@ -120,7 +123,7 @@ class SuperModule(Module):
             log = self.fit_one_epoch(train_loader, log, talkative, pb)
             log = self.validate(validation_loader, log)
             
-            if self.board:
+            if self.use_tensorboard:
                 for l in log:
                     self.board.add_scalar(l, log[l], num_epoch)
                 self.board.close()
@@ -129,8 +132,9 @@ class SuperModule(Module):
             
             if talkative:
                 pb.close(log_to_message(log))
-        
-            self.checkpoint(logs, num_epoch)
+
+            if self.use_checkpoint:
+                self.checkpoint(logs, num_epoch)
                
         log_eval = None     
         if evaluate:

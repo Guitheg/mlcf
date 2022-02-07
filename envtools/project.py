@@ -16,7 +16,9 @@ class Project():
         self.dir = project_directory
         self.log, self.cfg, self.id = init_project(project_name=project_name, 
                                                       project_directory=project_directory)
-        
+    def get_dir(self):
+        return self.dir
+    
     def exit(self):
         close_project(self.log, self.id)
 
