@@ -14,14 +14,7 @@ def init_data():
     return data
 data = init_data()
 
-def create_path_mock(*paths):
-    return os.path.join(*paths)
-
 def test_super_module(mocker):
-    mocker.patch(
-        "ai.super_module.create_path",
-        side_effect=create_path_mock
-    )
     ts_data = WTSeriesTraining(20, column_index="date")
     module = SuperModule(ts_data.input_size)
      
