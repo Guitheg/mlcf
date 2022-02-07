@@ -5,7 +5,6 @@ from torch.nn import Module
 from torch import no_grad, device, cuda, zeros
 from collections import OrderedDict
 
-from torch.utils.data import Dataset
 from torch.utils.tensorboard import SummaryWriter
 from datatools.wtseries_tensor import WTSeriesTensor
 from datatools.wtseries_training import WTSeriesTraining, TRAIN, VALIDATION, TEST
@@ -26,11 +25,12 @@ class SuperModule(Module):
                  name : str = None,
                  home_path : str = None, 
                  tensorboard : bool = False,
+                 use_checkpoint : bool = False,
                  *args, **kwargs):
         super(SuperModule, self).__init__()
         
         self.name = name if not name is None else self.__class__.__name__
-        
+        self.use_checkpoint = use_checkpoint
         if home_path:
             self.home_path = home_path
             self.training_home = join(self.home_path, TRAINING_HOME)

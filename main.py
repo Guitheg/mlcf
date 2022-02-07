@@ -1,6 +1,15 @@
+import os
+import sys
+from envtools.project import Project, get_dir_prgm
+
 
 def main():
-    print("Hello World")    
+    project_dir = os.path.join(get_dir_prgm(), "user_data", "Home")
+    cgrbi = Project("CGrbi", project_directory=project_dir)
+    ### CGrbi ###
+
+    #############
+    cgrbi.exit()
 
 if __name__ == "__main__":
     main()
