@@ -370,5 +370,6 @@ class SuperModule(Module):
         Returns:
             Tensor: the output batch tensor prediction
         """
-        batch_inputs = batch_inputs.to(self.device)
-        return self(batch_inputs).data
+        x = self.transform_x(batch_inputs)
+        x = x.to(self.device)
+        return self(x).data
