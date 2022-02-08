@@ -12,7 +12,7 @@ from datatools.wtseries_training import WTSeriesTraining, TRAIN, VALIDATION, TES
 from ai.log import ProgressBar, add_metrics_to_log, log_to_message
 from envtools.project import Project
 from ai.training_manager import TrainingManager
-
+from time import time, time_ns
 
 class SuperModule(Module):    
     def __init__(self, *args, **kwargs):
@@ -295,11 +295,13 @@ class SuperModule(Module):
         
         loss_name = prefix+loss_name
         loss = 0.0
+        time_step = 0.0
         predictions = []
         labels = []
         N = len(dataloader.dataset)
         
         for batch_index, (batch_inputs, batch_labels) in enumerate(dataloader):
+            t0 = time_ns()
             if type_batchrun == 'train':
                 self.optimizer.zero_grad()
             
@@ -309,18 +311,21 @@ class SuperModule(Module):
             # Propagation avant
             batch_outputs = self(batch_inputs)
             batch_loss = self.loss(batch_outputs, batch_labels)
-            
-            loss += batch_loss.item()
-            log[loss_name] = float(loss) / (batch_index + 1)
-            
+              
             if type_batchrun == 'train':
-                # message log
-                if talkative and not pb is None:
-                    pb.bar(batch_index, log_to_message(log))
-                    
                 # Propagation arrière
                 batch_loss.backward()
                 self.optimizer.step()
+            t1 = time_ns()
+            loss += batch_loss.item()
+            time_step += t1 - t0
+            time_step_in_sec = time_step / 1_000_000_000 # nanosec : 10^-9
+            log["sec/step"] = time_step_in_sec / (batch_index + 1)
+            log[loss_name] = float(loss) / (batch_index + 1)
+            
+            # message log
+            if type_batchrun == 'train' and talkative and not pb is None:
+                pb.bar(batch_index, log_to_message(log))
             
             if self.metrics:
                 if batch_index == 0:
