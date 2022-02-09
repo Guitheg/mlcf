@@ -42,3 +42,12 @@ def test_WTSeries():
     win3.add_one_window(data[200:220])
     assert len(win3) == (((100-20) // 1) + 1) + (((100-20) // 5) + 1) + 1
     
+def test_WTSeries_make_common_shuffle():
+    wts = WTSeries(data=data[["close", "open"]].iloc[0:100], window_width=20)
+    wts2 = WTSeries(data=data[["close", "open"]].iloc[100:200], window_width=20)
+    assert wts()[0].index[0] == 0
+    assert wts2()[0].index[0] == 100
+    wts.make_common_shuffle(wts2)
+    assert wts()[0].index[0] != 0
+    assert wts2()[0].index[0] != 100
+    assert wts()[0].index[0] == wts2()[0].index[0]-100

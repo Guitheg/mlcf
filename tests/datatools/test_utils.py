@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from CGrbi.datatools.utils import split_pandas, to_train_val_test, \
     split_in_interval, input_target_data_windows, input_target_data, \
-    make_commmon_shuffle, build_forecast_ts_training_dataset
+        build_forecast_ts_training_dataset
     
 from CGrbi.datatools.wtseries import WTSeries, window_data
 
@@ -91,13 +91,6 @@ def test_input_target_data():
         input, target = input_target_data(data.iloc[0:100], 90, 11)
         
     assert isinstance(input, pd.DataFrame) and isinstance(target, pd.DataFrame)
-
-def test_make_common_shuffle():
-    i = [1,2,3,4,5,6,7]
-    c = [7,6,5,4,3,2,1]
-    a, b = make_commmon_shuffle(i,c)
-    for i in range(7):
-        assert a[i] == 8-b[i]
         
 def test_build_forecast_ts_training_dataset():
     ti, tt, vi, vt, tei, tet = build_forecast_ts_training_dataset(
