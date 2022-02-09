@@ -1,12 +1,15 @@
-from os.path import isdir, isfile, join
-from pathlib import Path
 from typing import Dict, List, Tuple, Union
 import pandas as pd
-from datatools.preprocessing import Identity, WTSeriesPreProcess
-from datatools.utils import build_forecast_ts_training_dataset, make_commmon_shuffle
-from datatools.wtseries import WTSeries
 from enum import Enum
+
+from os.path import isdir, isfile, join
+from pathlib import Path
 import pickle
+
+### CG-RBI modules ###
+from CGrbi.datatools.preprocessing import Identity, WTSeriesPreProcess
+from CGrbi.datatools.utils import build_forecast_ts_training_dataset, make_commmon_shuffle
+from CGrbi.datatools.wtseries import WTSeries
 
 
 class Partition(Enum):

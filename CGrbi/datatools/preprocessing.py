@@ -1,6 +1,6 @@
-import abc
-from datatools.wtseries import WTSeries
-import numpy as np
+
+### CG-RBI modules ###
+from CGrbi.datatools.wtseries import WTSeries
 
 class WTSeriesPreProcess():
     """Preprocessing class for WTSeries objects

@@ -1,18 +1,23 @@
 from __future__ import annotations
-from os.path import join
 from pathlib import Path
-from typing import Callable, Dict, List, Tuple
+from typing import Callable, List, Tuple
+
 import torch
 from torch.utils.data import DataLoader
 from torch.nn import Module
 from torch import Tensor, no_grad, device, cuda, zeros
+
 from collections import OrderedDict
-from datatools.wtseries_tensor import WTSeriesTensor
-from datatools.wtseries_training import WTSeriesTraining, TRAIN, VALIDATION, TEST
-from ai.log import ProgressBar, add_metrics_to_log, log_to_message
-from envtools.project import Project
-from ai.training_manager import TrainingManager
-from time import time, time_ns
+
+from time import time_ns
+
+### CG-RBI modules ###
+from CGrbi.datatools.wtseries_tensor import WTSeriesTensor
+from CGrbi.datatools.wtseries_training import WTSeriesTraining, TRAIN, VALIDATION, TEST
+from CGrbi.ai.log import ProgressBar, add_metrics_to_log, log_to_message
+from CGrbi.envtools.project import Project
+from CGrbi.ai.training_manager import TrainingManager
+
 
 class SuperModule(Module):    
     def __init__(self, *args, **kwargs):

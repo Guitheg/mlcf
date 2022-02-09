@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
-from datatools.wtseries_training import TARGET, WTSeriesTraining, TRAIN, INPUT
-from datatools.wtseries_tensor import WTSeriesTensor
+from CGrbi.datatools.wtseries_training import TARGET, WTSeriesTraining, TRAIN, INPUT
+from CGrbi.datatools.wtseries_tensor import WTSeriesTensor
 from torch import tensor
 import numpy as np
 

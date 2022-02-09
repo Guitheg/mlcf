@@ -1,9 +1,10 @@
-
-from typing import Callable, List, Tuple
+from typing import List, Tuple
 import pandas as pd
 import random
-from datatools.wtseries import WTSeries
-from datatools.preprocessing import Identity, WTSeriesPreProcess
+
+### CG-RBI modules ###
+from CGrbi.datatools.wtseries import WTSeries
+from CGrbi.datatools.preprocessing import Identity, WTSeriesPreProcess
 
 def split_pandas(dataframe : pd.DataFrame, 
                  prop_snd_elem : float = 0.5) -> Tuple[pd.DataFrame, pd.DataFrame] :

@@ -1,6 +1,5 @@
 import os
-import sys
-from envtools.project import Project, get_dir_prgm
+from CGrbi.envtools.project import Project, get_dir_prgm
 
 
 def main():
