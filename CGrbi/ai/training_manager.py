@@ -1,14 +1,17 @@
+import pandas as pd
+from os.path import join, isfile
 
 from pathlib import Path
 from typing import Dict, List, OrderedDict
-import pandas as pd
-from os.path import join, isfile
 from enum import Enum
 from datetime import datetime
+
 import torch
 from torch.utils.tensorboard import SummaryWriter
-from envtools.project import Project
-from envtools.path import create_path
+
+### CG-RBI modules ###
+from CGrbi.envtools.project import Project
+from CGrbi.envtools.path import create_path
 
 class InfofileColumns(Enum):
     TRAINING : str = "Training name"

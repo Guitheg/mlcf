@@ -1,8 +1,8 @@
 
-from torch import nn, relu, tensor, sigmoid, sum
-from ai.super_module import SuperModule
+from torch import nn, tensor, sigmoid
 
-from torchvision import transforms
+### CG-RBI modules ###
+from CGrbi.ai.super_module import SuperModule
 
 class MLP(SuperModule):
     def __init__(self, features, window_width, *args, **kwargs):
