@@ -125,22 +125,6 @@ def input_target_data(dataframe : pd.DataFrame,
     target_data = data.iloc[-target_width:]
     return input_data, target_data
 
-def make_commmon_shuffle(data_1 : pd.DataFrame, 
-                         data_2 : pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    """perform a common shuffle on two dataframe
-
-    Args:
-        data_1 (pd.DataFrame): A DataFrame
-        data_2 (pd.DataFrame): A DataFrame
-
-    Returns:
-        Tuple[pd.DataFrame, pd.DataFrame]: The two given dataframes shuffled in parallel
-    """
-    data_1_2 = list(zip(data_1.copy(), data_2.copy()))
-    random.shuffle(data_1_2)
-    data_1_shuffled, data_2_shuffled = zip(*data_1_2)
-    return data_1_shuffled, data_2_shuffled
-
 def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
                                        input_width : int,
                                        target_width : int = 1,
@@ -251,9 +235,9 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
         test_target.merge_window_data(test_target_tmp)
 
     if do_shuffle:
-        train_input, train_target = make_commmon_shuffle(train_input(), train_target())
-        val_input, val_target = make_commmon_shuffle(val_input(), val_target())
-        test_input, test_target = make_commmon_shuffle(test_input(), test_target())
+        train_input.make_common_shuffle(train_target)
+        val_input.make_common_shuffle(val_target)
+        test_input.make_common_shuffle(test_target)
         
     return (train_input, train_target, val_input, 
             val_target, test_input, test_target)

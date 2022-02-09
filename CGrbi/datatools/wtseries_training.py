@@ -8,7 +8,7 @@ import pickle
 
 ### CG-RBI modules ###
 from CGrbi.datatools.preprocessing import Identity, WTSeriesPreProcess
-from CGrbi.datatools.utils import build_forecast_ts_training_dataset, make_commmon_shuffle
+from CGrbi.datatools.utils import build_forecast_ts_training_dataset
 from CGrbi.datatools.wtseries import WTSeries
 
 
@@ -105,12 +105,8 @@ class WTSeriesTraining(object):
         self.ts_data[partition][TARGET].merge_window_data(target_ts_data,
                                                                ignore_data_empty=True)
         if do_shuffle:
-            (input_data_shuffle, target_data_shuffle) = make_commmon_shuffle(
-                self.ts_data[partition][INPUT],
-                self.ts_data[partition][TARGET]) 
-            self.ts_data[partition][INPUT] = input_data_shuffle
-            self.ts_data[partition][TARGET] = target_data_shuffle
-    
+            self.ts_data[partition][INPUT].make_commmon_shuffle(self.ts_data[partition][TARGET])
+            
     def add_time_serie(self, 
                        dataframe : pd.DataFrame, 
                        test_val_prop : float = 0.2,
