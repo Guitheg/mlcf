@@ -1,9 +1,13 @@
-from typing import Callable, Dict, List, Tuple, Union
+from os.path import isdir, isfile, join
+from pathlib import Path
+from typing import Dict, List, Tuple, Union
 import pandas as pd
 from datatools.preprocessing import Identity, WTSeriesPreProcess
 from datatools.utils import build_forecast_ts_training_dataset, make_commmon_shuffle
 from datatools.wtseries import WTSeries
 from enum import Enum
+import pickle
+
 
 class Partition(Enum):
     TRAIN : str = "train"
@@ -19,6 +23,14 @@ VALIDATION : str = Partition.VALIDATION.value
 TEST : str = Partition.TEST.value
 INPUT : str = Field.INPUT.value
 TARGET : str = Field.TARGET.value
+EXTENSION_FILE = ".wts"
+
+def read_wtseries_training(path : Path):
+    if not isfile(path):
+        raise Exception("The given file path is unknown")
+    with open(path, "rb") as read_file:
+        wtseries_training : WTSeriesTraining = pickle.load(read_file)
+    return wtseries_training
 
 class WTSeriesTraining(object):
     def __init__(self, 
@@ -61,6 +73,13 @@ class WTSeriesTraining(object):
                                TEST : self.test_data}
         if not features is None:
             self._set_features(features)
+    
+    def write(self, dir : Path, name : str):
+        if not isdir(dir):
+            raise Exception("The given directory is unknown")
+        path = join(dir, name+EXTENSION_FILE)
+        with open(path, "wb") as write_file:
+            pickle.dump(self, write_file, pickle.HIGHEST_PROTOCOL)
 
     def _add_ts_data(self, 
                      input_ts_data : WTSeries,
