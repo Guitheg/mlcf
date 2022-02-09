@@ -1,10 +1,7 @@
-from ai.super_module import SuperModule
-import ai
-from datatools.wtseries_training import WTSeriesTraining
-from datatools import utils
+
+from CGrbi.ai.super_module import SuperModule
+from CGrbi.datatools.wtseries_training import WTSeriesTraining
 import pandas as pd
-import pytest
-import os
 
 def init_data():
     data = pd.read_json("tests/testdata/BTC_BUSD-1h.json")

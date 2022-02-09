@@ -1,5 +1,5 @@
 import pytest
-from datatools.wtseries import window_data, WTSeries
+from CGrbi.datatools.wtseries import window_data, WTSeries
 import pandas as pd
 
 def init_data():

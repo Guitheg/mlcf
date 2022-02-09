@@ -1,11 +1,11 @@
 import pytest
 import pandas as pd
 import numpy as np
-from datatools.utils import split_pandas, to_train_val_test, \
+from CGrbi.datatools.utils import split_pandas, to_train_val_test, \
     split_in_interval, input_target_data_windows, input_target_data, \
     make_commmon_shuffle, build_forecast_ts_training_dataset
     
-from datatools.wtseries import WTSeries, window_data
+from CGrbi.datatools.wtseries import WTSeries, window_data
 
 
 def init_data():

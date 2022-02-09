@@ -1,12 +1,12 @@
-from ai.models.mlp import MLP
-from datatools.wtseries_training import WTSeriesTraining, TEST
-from datatools.wtseries_tensor import WTSeriesTensor
 import pandas as pd
 import numpy as np
-import os
-from ai.metrics import L2
 from torch.optim import SGD
 from torch.nn import L1Loss
+
+from CGrbi.ai.metrics import L2
+from CGrbi.ai.models.mlp import MLP
+from CGrbi.datatools.wtseries_training import WTSeriesTraining, TEST
+from CGrbi.datatools.wtseries_tensor import WTSeriesTensor
 
 def init_data():
     data = np.arange(1000)

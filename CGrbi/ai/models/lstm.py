@@ -1,7 +1,8 @@
 
-from torch import nn, relu, tensor, sigmoid, sum
-from ai.super_module import SuperModule
-from torchvision import transforms
+from torch import nn, relu, tensor
+
+### CG-RBI modules ###
+from CGrbi.ai.super_module import SuperModule
 
 class LSTM(SuperModule):
     def __init__(self, features, window_width, *args, **kwargs):

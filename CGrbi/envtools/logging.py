@@ -1,11 +1,12 @@
 
 import os
+from pathlib import Path
 import logging
 from logging.handlers import RotatingFileHandler
-from pathlib import Path
 from configparser import RawConfigParser
 
-from envtools.path import create_path
+### CG-RBI modules ###
+from CGrbi.envtools.path import create_path
 
 def init_logging(project_name : str, dir_pref : Path, config : RawConfigParser) -> logging.Logger:
     

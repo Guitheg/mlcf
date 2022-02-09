@@ -1,10 +1,14 @@
+import numpy as np
 from pathlib import Path
 from typing import Callable
+
 from torch.utils.data import TensorDataset
 from torch.utils.data.dataloader import DataLoader
 from torch import Tensor, tensor
-from datatools.wtseries_training import WTSeriesTraining, INPUT, TARGET
-import numpy as np
+
+### CG-RBI modules ###
+from CGrbi.datatools.wtseries_training import WTSeriesTraining, INPUT, TARGET
+
 
 class WTSeriesTensor(TensorDataset):
     def __init__(self, 

@@ -3,9 +3,11 @@ import platform, os, sys, shutil
 from pathlib import Path
 from typing import Tuple
 from logging import Logger, shutdown
-from envtools.logging import init_logging
-from envtools.parameters import get_config, Parameters, FILE_PARAMETER_NAME
-from envtools.path import get_dir_prgm, create_path
+
+### CG-RBI modules ###
+from CGrbi.envtools.logging import init_logging
+from CGrbi.envtools.parameters import get_config, Parameters, FILE_PARAMETER_NAME
+from CGrbi.envtools.path import get_dir_prgm, create_path
 
 
 class Project():
