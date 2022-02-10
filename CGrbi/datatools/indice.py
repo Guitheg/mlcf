@@ -1,6 +1,6 @@
 from typing import List
 import pandas as pd
-import enum
+from enum import Enum, unique
 from functools import partial
 
 import numpy as np
@@ -8,14 +8,15 @@ import talib.abstract as ta
 import pandas_ta as pta
 import freqtrade.vendor.qtpylib.indicators as qtpylib
 
-class Indice(enum.Enum):
+@unique
+class Indice(Enum):
     ADX = "ADX"
     
     # Plus Directional Indicator / Movement
-    P_DIDM = "Plus_DI/DM"
+    P_DIDM = "P_DIDM"
     
     # Minus Directional Indicator / Movement
-    M_DIDM = "Minus_DI/DM"
+    M_DIDM = "M_DIDM"
     
     # Aroon, Aroon Oscillator
     AROON = "AROON"
@@ -76,7 +77,7 @@ class Indice(enum.Enum):
     HAMM = "HAMM"
     
     # Inverted Hammer: values [0, 100]
-    IHAMM = "HAMM"
+    IHAMM = "IHAMM"
     
     # Dragonfly Doji: values [0, 100]
     DRAGDOJI = "DRAGDOJI"
@@ -134,6 +135,10 @@ class Indice(enum.Enum):
     
     # Ichimoku Kinkō Hyō (ichimoku)
     ICHIMOKU = "ICHIMOKU"
+    
+    @classmethod
+    def list_value(self):
+        return [item.value for item in list(self)]
 
 def switch_indice(match : Indice, value : Indice):
     return match.value == value.value

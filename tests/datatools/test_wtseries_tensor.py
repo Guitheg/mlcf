@@ -14,7 +14,7 @@ def init_data():
 data = init_data()
 
 def test_WTSeriesTensor():
-    ts_data = WTSeriesTraining(9, column_index="date")
+    ts_data = WTSeriesTraining(9, index_column="date")
     with pytest.raises(ValueError):
         dataset = WTSeriesTensor(TRAIN, ts_data=ts_data)
     ts_data.add_time_serie(data.iloc[0:3000])

@@ -36,8 +36,8 @@ def split_pandas(dataframe : pd.DataFrame,
         return first_data, second_data
 
 def to_train_val_test(dataframe : pd.DataFrame, 
-                      test_val_prop : float = 0.2,
-                      val_prop : float = 0.5) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame] :
+                      prop_tv : float = 0.2,
+                      prop_v : float = 0.5) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame] :
     """Divide a dataframe into 3 parts : train part, validation part and test part.
 
     Args:
@@ -51,8 +51,8 @@ def to_train_val_test(dataframe : pd.DataFrame,
         Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: Respectively the train, val and test part
     """
     data = dataframe.copy()
-    train_data, test_val_data = split_pandas(data, prop_snd_elem = test_val_prop)
-    test_data, val_data = split_pandas(test_val_data, prop_snd_elem = val_prop)
+    train_data, test_val_data = split_pandas(data, prop_snd_elem = prop_tv)
+    test_data, val_data = split_pandas(test_val_data, prop_snd_elem = prop_v)
     return train_data, val_data, test_data
 
 def split_in_interval(dataframe : pd.DataFrame, 
@@ -131,8 +131,8 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
                                        offset : int = 0,
                                        window_step : int = 1,
                                        n_interval : int = 1,
-                                       test_val_prop : float = 0.2,
-                                       val_prop : float = 0.4,
+                                       prop_tv : float = 0.2,
+                                       prop_v : float = 0.4,
                                        do_shuffle : bool = False,
                                        preprocess : WTSeriesPreProcess = Identity,
                                        ) -> Tuple[List[pd.DataFrame],
@@ -159,9 +159,9 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
         Defaults to 0.
         window_step (int, optional): to select a window every window_step. Defaults to 1.
         n_interval (int, optional): the number of splited intervals. Defaults to 1.
-        test_val_prop (float, optional): the proportion of the union of [test and validation] part.
+        prop_tv (float, optional): the proportion of the union of [test and validation] part.
         Defaults to 0.2.
-        val_prop (float, optional): the proportion of validation in the union of 
+        prop_v (float, optional): the proportion of validation in the union of 
         [test and validation] part. Defaults to 0.4.
         do_shuffle (bool, optional) : if True, do a shuffle on the data. Default to False.
         preprocess (PreProcess, optional) : is a preprocessing function taking a WTSeries in input.
@@ -188,8 +188,8 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
                                      List[pd.DataFrame]] = ([],[],[])
     for interval_data_df in list_interval_data_df:
         train, val, test  = to_train_val_test(interval_data_df, 
-                                              test_val_prop=test_val_prop, 
-                                              val_prop=val_prop)
+                                              prop_tv=prop_tv, 
+                                              prop_v=prop_v)
         splited_interval_data[0].append(train)
         splited_interval_data[1].append(val)
         splited_interval_data[2].append(test)
