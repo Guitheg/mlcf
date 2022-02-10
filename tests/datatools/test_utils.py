@@ -40,7 +40,7 @@ def test_split_pandas():
 
 
 def test_to_train_val_test():
-    train, val, test = to_train_val_test(data.iloc[0:1000], test_val_prop = 0.2, val_prop = 0.2)
+    train, val, test = to_train_val_test(data.iloc[0:1000], prop_tv = 0.2, prop_v = 0.2)
     assert len(train) == 800 and len(val) == 40 and len(test) == 160
     assert train.index[790] == 790 and test.index[0] == 800 and test.index[150] == 950 
     assert val.index[0] == 960
@@ -103,8 +103,8 @@ def test_build_forecast_ts_training_dataset():
     ti, tt, vi, vt, tei, tet = build_forecast_ts_training_dataset(
         data[["close","open"]].iloc[0:1000], 
         input_width = 9, 
-        test_val_prop=0.2, 
-        val_prop=0.2)
+        prop_tv=0.2, 
+        prop_v=0.2)
     assert np.all(ti[0] == data[["close","open"]].iloc[0:9])
     assert isinstance(ti, WTSeries)
     assert ti.ndim() == 2 and ti.ndim() == vt.ndim()
