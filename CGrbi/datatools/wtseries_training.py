@@ -1,8 +1,8 @@
 from typing import Dict, List, Tuple, Union
 import pandas as pd
-from enum import Enum
+from enum import Enum, unique
 
-from os.path import isdir, isfile, join
+from os.path import isdir, join
 from pathlib import Path
 import pickle
 
@@ -11,12 +11,13 @@ from CGrbi.datatools.preprocessing import Identity, WTSeriesPreProcess
 from CGrbi.datatools.utils import build_forecast_ts_training_dataset, make_commmon_shuffle
 from CGrbi.datatools.wtseries import WTSeries
 
-
+@unique
 class Partition(Enum):
     TRAIN : str = "train"
     VALIDATION : str = "validation"
     TEST : str = "test"
-    
+
+@unique  
 class Field(Enum):
     INPUT : str = "input"
     TARGET : str = "target"
@@ -26,11 +27,18 @@ VALIDATION : str = Partition.VALIDATION.value
 TEST : str = Partition.TEST.value
 INPUT : str = Field.INPUT.value
 TARGET : str = Field.TARGET.value
-EXTENSION_FILE = ".wts"
+EXTENSION_FILE = ".wtst"
 
 def read_wtseries_training(path : Path):
-    if not isfile(path):
+    if not isinstance(path, Path):
+        if isinstance(path, str):
+            dir = Path(path)
+        else:
+            raise Exception(f"path instance is not attempted : {type(path)}")
+    if not path.is_file():
         raise Exception("The given file path is unknown")
+    if path.suffix != EXTENSION_FILE:
+        raise Exception("The given file is not a WTST FILE (.wtst)")
     with open(path, "rb") as read_file:
         wtseries_training : WTSeriesTraining = pickle.load(read_file)
     return wtseries_training
@@ -39,7 +47,7 @@ class WTSeriesTraining(object):
     def __init__(self, 
                  input_size : int,
                  target_size : int = 1,
-                 column_index : str = None,
+                 index_column : str = None,
                  features : List[str] = None,
                  *args, **kwargs):
         """WTSeriesTraining allow to handle time series data in a machine learning training.
@@ -50,7 +58,7 @@ class WTSeriesTraining(object):
             input_size (int): The number of available time / the input width for a ml model
             target_size (int, optional): the size of the target / 
             the size of the output for a ml model. Defaults to 1.
-            column_index (str, optional): the name of the column we want to index the data. In
+            index_column (str, optional): the name of the column we want to index the data. In
             general it's "Date". Defaults to None.
         """
         super(WTSeriesTraining, self).__init__(*args, **kwargs)
@@ -59,7 +67,7 @@ class WTSeriesTraining(object):
         self.raw_data : List[pd.DataFrame] = []
         self.input_size : int = input_size
         self.target_size : int = target_size
-        self.column_index : str = column_index
+        self.index_column : str = index_column
         self.features : List[str] = None
         
         self.train_data = {INPUT : WTSeries(self.input_size), 
@@ -78,9 +86,14 @@ class WTSeriesTraining(object):
             self._set_features(features)
     
     def write(self, dir : Path, name : str):
-        if not isdir(dir):
+        if not isinstance(dir, Path):
+            if isinstance(dir, str):
+                dir = Path(dir)
+            else:
+                raise Exception(f"dir instance is not attempted : {type(dir)}")
+        if not dir.is_dir():
             raise Exception("The given directory is unknown")
-        path = join(dir, name+EXTENSION_FILE)
+        path : Path = dir.joinpath(name).with_suffix(EXTENSION_FILE)
         with open(path, "wb") as write_file:
             pickle.dump(self, write_file, pickle.HIGHEST_PROTOCOL)
 
@@ -113,8 +126,8 @@ class WTSeriesTraining(object):
     
     def add_time_serie(self, 
                        dataframe : pd.DataFrame, 
-                       test_val_prop : float = 0.2,
-                       val_prop : float = 0.3,
+                       prop_tv : float = 0.2,
+                       prop_v : float = 0.3,
                        do_shuffle : bool = False,
                        n_interval : int = 1,
                        offset : int = 0,
@@ -124,8 +137,8 @@ class WTSeriesTraining(object):
 
         Args:
             dataframe (pd.DataFrame): A input raw dataframe
-            test_val_prop (float, optional): The percentage of test and val part. Defaults to 0.2.
-            val_prop (float, optional): The percentage of val part in 
+            prop_tv (float, optional): The percentage of test and val part. Defaults to 0.2.
+            prop_v (float, optional): The percentage of val part in 
             the union of test and val part. Defaults to 0.3.
             do_shuffle (bool, optional): do a shuffle if True. Defaults to False.
             n_interval (int, optional): A number of interval to divide the raw data 
@@ -134,8 +147,8 @@ class WTSeriesTraining(object):
             window_step (int, optional): the step of each window. Defaults to 1.
         """
         data = dataframe.copy()
-        if not self.column_index is None:
-            data.set_index(self.column_index, inplace=True)
+        if not self.index_column is None:
+            data.set_index(self.index_column, inplace=True)
         if self.features_has_been_set:
             selected_data = data[self.features]
         else:
@@ -148,8 +161,8 @@ class WTSeriesTraining(object):
                                                               offset=offset,
                                                               window_step=window_step,
                                                               n_interval=n_interval,
-                                                              test_val_prop=test_val_prop,
-                                                              val_prop=val_prop,
+                                                              prop_tv=prop_tv,
+                                                              prop_v=prop_v,
                                                               do_shuffle=do_shuffle,
                                                               preprocess=preprocess)
 
@@ -200,7 +213,7 @@ class WTSeriesTraining(object):
             
     def __str__(self) -> str:
         return f"Input size: {self.input_size}, Target size: {self.target_size}, "+\
-               f"Index name: '{self.column_index}' - Data : "+\
+               f"Index name: '{self.index_column}' - Data : "+\
                f"Length Train: {self.len(TRAIN)}, "+\
                f"Length Validation: {self.len(VALIDATION)}, "+\
                f"Length Test: {self.len(TEST)}"

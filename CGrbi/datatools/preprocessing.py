@@ -1,4 +1,6 @@
 
+from enum import Enum, unique
+
 ### CG-RBI modules ###
 from CGrbi.datatools.wtseries import WTSeries
 
@@ -19,3 +21,11 @@ class AutoNormalize(WTSeriesPreProcess):
         for i in range(len(self.data)):
             self.data[i] = ((self.data[i] - self.data[i].mean()) / self.data[i].std()).round(6)
         return self.data
+
+PreProcessDict = {
+    "Identity" : Identity,
+    "AutoNormalize" : AutoNormalize,
+    None : Identity
+}
+    
+  
