@@ -372,4 +372,3 @@ def add_indicators(data : pd.DataFrame, list_indice : List[Indice], dropna : boo
     
     dataframe.dropna(inplace=dropna)
     return dataframe
-

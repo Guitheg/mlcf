@@ -15,7 +15,7 @@ class Project():
                  project_directory):
         
         self.dir_prgm = get_dir_prgm()
-        self.dir = project_directory
+        self.dir = create_path(project_directory, project_name+"Home")
         self.log, self.cfg, self.id = init_project(project_name=project_name, 
                                                       project_directory=project_directory)
     def get_dir(self):

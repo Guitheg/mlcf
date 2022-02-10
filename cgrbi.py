@@ -161,8 +161,7 @@ def main():
     ####################################### PROJECT ENV ############################################
     ################################################################################################
     userdir : Path = args.userdir
-    projectdir : Path = userdir.joinpath("Home")
-    cgrbi = Project("CGrbi", project_directory=projectdir)
+    cgrbi = Project("CGrbi", project_directory=userdir)
     cgrbi.log.info(f"Arguments passé : {args}")
     
     
