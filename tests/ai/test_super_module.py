@@ -1,5 +1,5 @@
 
-from CGrbi.ai.super_module import SuperModule
+from CGrbi.aitools.super_module import SuperModule
 from CGrbi.datatools.wtseries_training import WTSeriesTraining
 import pandas as pd
 

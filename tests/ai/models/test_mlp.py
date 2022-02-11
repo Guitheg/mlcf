@@ -3,7 +3,7 @@ import numpy as np
 from torch.optim import SGD
 from torch.nn import L1Loss
 
-from CGrbi.ai.metrics import L2
+from CGrbi.aitools.metrics import L2
 from CGrbi.datatools.wtseries_training import WTSeriesTraining, TEST
 from CGrbi.datatools.wtseries_tensor import WTSeriesTensor
 
@@ -11,7 +11,7 @@ from CGrbi.datatools.wtseries_tensor import WTSeriesTensor
 from torch import nn, tensor, sigmoid
 
 ### CG-RBI modules ###
-from CGrbi.ai.super_module import SuperModule
+from CGrbi.aitools.super_module import SuperModule
 
 class MLP(SuperModule):
     def __init__(self, features, window_width, *args, **kwargs):

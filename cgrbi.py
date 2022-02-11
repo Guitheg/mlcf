@@ -4,7 +4,7 @@ from enum import Enum, unique
 from pathlib import Path
 from typing import List
 
-from scripts import build_dataset, launch_machine_learning
+from CGrbi.commands import build_dataset, launch_machine_learning
 
 ### CG-RBI modules ###
 from CGrbi.datatools.indice import Indice

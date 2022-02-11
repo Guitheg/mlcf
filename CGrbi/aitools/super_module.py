@@ -14,9 +14,9 @@ from time import time_ns
 ### CG-RBI modules ###
 from CGrbi.datatools.wtseries_tensor import WTSeriesTensor
 from CGrbi.datatools.wtseries_training import WTSeriesTraining, TRAIN, VALIDATION, TEST
-from CGrbi.ai.log import ProgressBar, add_metrics_to_log, log_to_message
+from CGrbi.aitools.log import ProgressBar, add_metrics_to_log, log_to_message
 from CGrbi.envtools.project import Project
-from CGrbi.ai.training_manager import TrainingManager
+from CGrbi.aitools.training_manager import TrainingManager
 
 
 class SuperModule(Module):    
