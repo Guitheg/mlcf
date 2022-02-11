@@ -55,7 +55,7 @@ class CGrbi(Project):
     def check_file(self, file_path : Path, dir : Path):
         if not file_path.is_file(): 
             list_file = [x.stem for x in dir.iterdir() if x.is_file()]
-            raise Exception(f"{file_path} doesn't exist. Here the list of file detected by CGrbi :"+
+            raise Exception(f"{file_path} doesn't exist. Here the list of file detected by CGrbi: "+
                         f"{list_file}. All this file are in : {dir}")
 
 def init_project(project_name : str, 

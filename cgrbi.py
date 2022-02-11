@@ -10,7 +10,7 @@ from CGrbi.commands import build_dataset, launch_machine_learning
 from CGrbi.datatools.indice import Indice
 from CGrbi.datatools.preprocessing import PreProcessDict
 from CGrbi.envtools.project import CGrbi, get_dir_prgm
-from CGrbi.datatools.wtseries_training import read_wtseries_training
+from CGrbi.datatools.wtseries_training import EXTENSION_FILE, read_wtseries_training
 
 
 
@@ -167,12 +167,13 @@ def main():
                                "The list must be in the form : key1=value1 key2=value2"+\
                                " key3=elem1,elem2,elem3",
                                nargs="+", type=str)
+    
     ##### Visualize arguments #####
     command_visualize = subcommands.add_parser(Command.VISUALIZE.value, 
                                            help="Dataset visualization command")
-    command_visualize.add_argument("-path", "--relative-data-path", dest="datapath",
-                                   help="The relative (from userdir) path to the data to visualize",
-                                   type=Path, metavar="PATH", required=True)
+    command_visualize.add_argument("--dataset-name",
+                                   help="The dataset name to visualize",
+                                   type=str, metavar="PATH", required=True)
     command_visualize.add_argument("--type-visu", help="The type of visualization",
                                    choices=["console"], default="console", type=str)
 
@@ -202,14 +203,11 @@ def main():
     
     ###############################  CGrbi Visualize Dataset #######################################
     elif args.command == Command.VISUALIZE.value:
+        dataset_filepath = cgrbi.data_dir.joinpath(args.dataset_name).with_suffix(EXTENSION_FILE)
+        cgrbi.check_file(dataset_filepath, cgrbi.data_dir)
+        dataset = read_wtseries_training(dataset_filepath)
+        print(dataset("train", "input")[5])
 
-        if kwargs["datapath"].suffix == ".wtst":
-            dataset = read_wtseries_training(userdir.joinpath(kwargs["datapath"]))
-            print(dataset("train", "input")[5])
-            
-        else:
-            raise NotImplementedError("Can only visualize WTST FILE for now")
-        
     ###############################  CGrbi Train Neural Network ####################################  
     elif args.command == Command.TRAIN.value:
         if args.training_name is None:
