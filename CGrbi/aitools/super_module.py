@@ -313,7 +313,8 @@ class SuperModule(Module):
         N = len(dataloader.dataset)
         
         for batch_index, (batch_inputs, batch_labels) in enumerate(dataloader):
-            t0 = time_ns()
+            
+            t0 = time_ns() ### start evaluation duration step
             if type_batchrun == 'train':
                 self.optimizer.zero_grad()
             
@@ -321,14 +322,14 @@ class SuperModule(Module):
             batch_labels = batch_labels.to(self.device)
             
             # Propagation avant
-            batch_outputs = self(batch_inputs)
-            batch_loss = self.loss(batch_outputs, batch_labels)
+            batch_outputs, batch_loss = self.feedforward(batch_inputs=batch_inputs,
+                                                         batch_labels=batch_labels)
               
             if type_batchrun == 'train':
                 # Propagation arrière
-                batch_loss.backward()
-                self.optimizer.step()
-            t1 = time_ns()
+                self.feedbackward(batch_loss)
+                
+            t1 = time_ns() ### end evaluation duration step
             loss += batch_loss.item()
             time_step += t1 - t0
             time_step_in_sec = time_step / 1_000_000_000 # nanosec : 10^-9
@@ -340,7 +341,7 @@ class SuperModule(Module):
                 pb.bar(batch_index, log_to_message(log))
             
             if self.metrics:
-                if batch_index == 0:
+                if batch_index == 0: # init if batch_index = 0
                     predictions = zeros((N,) + batch_outputs.shape[1:])
                     labels = zeros((N,) + batch_labels.shape[1:])
                 index = batch_index*dataloader.batch_size
@@ -348,6 +349,15 @@ class SuperModule(Module):
                 labels[index : min(N, index + dataloader.batch_size)] = batch_labels
                 
         return log, labels, predictions
+
+    def feedforward(self, batch_inputs, batch_labels):
+        batch_outputs = self(batch_inputs)
+        batch_loss = self.loss(batch_outputs, batch_labels)
+        return batch_outputs, batch_loss
+    
+    def feedbackward(self, batch_loss):
+        batch_loss.backward()
+        self.optimizer.step()
 
     def transform_x(self, x : Tensor) -> Tensor:
         """Transform function of input data
