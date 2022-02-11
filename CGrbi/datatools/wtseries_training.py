@@ -10,6 +10,7 @@ import pickle
 from CGrbi.datatools.preprocessing import Identity, WTSeriesPreProcess
 from CGrbi.datatools.utils import build_forecast_ts_training_dataset
 from CGrbi.datatools.wtseries import WTSeries
+from CGrbi.envtools.project import Project
 
 @unique
 class Partition(Enum):
@@ -29,7 +30,7 @@ INPUT : str = Field.INPUT.value
 TARGET : str = Field.TARGET.value
 EXTENSION_FILE = ".wtst"
 
-def read_wtseries_training(path : Path):
+def read_wtseries_training(path : Path, project : Project = None):
     if not isinstance(path, Path):
         if isinstance(path, str):
             path = Path(path)
@@ -42,6 +43,9 @@ def read_wtseries_training(path : Path):
         raise Exception("The given file is not a WTST FILE (.wtst)")
     with open(path, "rb") as read_file:
         wtseries_training : WTSeriesTraining = pickle.load(read_file)
+    if project:
+        project.log.info(f"[WTST]- WTST dataset load from {path}")
+        project.log.info(f"[WTST]- WTST dataset : {wtseries_training}")
     return wtseries_training
 
 class WTSeriesTraining(object):
@@ -50,6 +54,7 @@ class WTSeriesTraining(object):
                  target_size : int = 1,
                  index_column : str = None,
                  features : List[str] = None,
+                 project : Project = None,
                  *args, **kwargs):
         """WTSeriesTraining allow to handle time series data in a machine learning training.
         The component of the WTSeriesTraining is the WTSeries which is a list of window
@@ -70,6 +75,7 @@ class WTSeriesTraining(object):
         self.target_size : int = target_size
         self.index_column : str = index_column
         self.features : List[str] = None
+        self.project : Project = project
         
         self.train_data = {INPUT : WTSeries(self.input_size), 
                            TARGET : WTSeries(self.target_size)}
@@ -92,11 +98,13 @@ class WTSeriesTraining(object):
                 dir = Path(dir)
             else:
                 raise Exception(f"dir instance is not attempted : {type(dir)}")
-        if not dir.is_dir():
-            raise Exception("The given directory is unknown")
         path : Path = dir.joinpath(name).with_suffix(EXTENSION_FILE)
+        if not dir.is_dir():
+            raise Exception(f"The given directory is unknown : {dir}")
         with open(path, "wb") as write_file:
             pickle.dump(self, write_file, pickle.HIGHEST_PROTOCOL)
+        if self.project:
+            self.project.log.info(f"[WTST]- The dataset has been saved : {path}")
 
     def _add_ts_data(self, 
                      input_ts_data : WTSeries,
@@ -152,6 +160,8 @@ class WTSeriesTraining(object):
             selected_data = data
             self._set_features(data.columns)
         self.raw_data.append(data)
+        if self.project:
+            self.project.log.debug(f"[WTST]- Data length {len(data)} will be add to the WTST data.")
         training_dataset : Tuple = build_forecast_ts_training_dataset(selected_data, 
                                                               input_width=self.input_size,
                                                               target_width=self.target_size,
@@ -177,7 +187,9 @@ class WTSeriesTraining(object):
                           target_ts_data=training_dataset[5],
                           partition=TEST,
                           do_shuffle=do_shuffle)
-    
+        if self.project:
+            self.project.log.debug(f"[WTST]- New WTST data : {self}")
+        
     def __call__(self, 
                  part : Partition = None, 
                  field : Field = None) -> Union[Dict[str, Dict], Dict[str, WTSeries], WTSeries]:

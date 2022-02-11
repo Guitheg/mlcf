@@ -8,6 +8,7 @@ from freqtrade.data.history.history_utils import load_pair_history
 from CGrbi.datatools.wtseries_training import WTSeriesTraining
 from CGrbi.datatools.preprocessing import WTSeriesPreProcess
 from CGrbi.datatools.indice import Indice, add_indicators
+from CGrbi.envtools.project import CGrbi
 
 def run_download_freqtrade(pairs : List[str], 
                            timeframes : List[str], 
@@ -32,7 +33,7 @@ def run_download_freqtrade(pairs : List[str],
     sys.argv = old_sysargv
     
 
-def write_wtstdataset_from_raw_data(wtstdataset_dir : Path,
+def write_wtstdataset_from_raw_data(project : CGrbi,
                                     rawdata_dir : Path,
                                     pairs : List[str],
                                     timeframes : List[str],
@@ -50,13 +51,16 @@ def write_wtstdataset_from_raw_data(wtstdataset_dir : Path,
     
     dataset = WTSeriesTraining(input_size,
                                target_size,
-                               index_column)
+                               index_column,
+                               project=project)
     for pair in pairs:
         for tf in timeframes:
+                project.log.info(f"Loading data ({pair}-{tf}) in {rawdata_dir}")
                 pair_history = load_pair_history(pair, 
                                                  tf, 
                                                  rawdata_dir)
                 if indices:
+                    project.log.info(f"Adding indicators : {[i.value for i in indices]}")
                     pair_history = add_indicators(pair_history, indices)
                     
                 dataset.add_time_serie(pair_history, 
@@ -68,4 +72,4 @@ def write_wtstdataset_from_raw_data(wtstdataset_dir : Path,
                                        window_step=window_step,
                                        preprocess=preprocess)
                 
-    dataset.write(wtstdataset_dir, dataset_name)
+    dataset.write(project.data_dir, dataset_name)

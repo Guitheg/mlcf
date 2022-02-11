@@ -67,7 +67,7 @@ def init_project(project_name : str,
     dir_prgm = get_dir_prgm()
     dir_pref = get_path(project_directory)
     if talkative == True:
-        print("Répertoire log du programme : "+dir_pref)
+        print("Directory log of the program : "+dir_pref)
     config = get_config(dir_prgm, dir_pref)
     
     logger = init_logging(project_name=project_name, dir_pref=dir_pref, config=config)
@@ -79,7 +79,7 @@ def init_project(project_name : str,
                 " - Python : " + platform.python_version()
 
     logger.info("#####################################")
-    logger.info("-DEBUT- de %s", id_prog)
+    logger.info("-START- de %s", id_prog)
     logger.info(syst_info)
     
     """
@@ -88,21 +88,22 @@ def init_project(project_name : str,
     try:
         with open(os.path.join(dir_pref, FILE_PARAMETER_NAME), "w") as configFile:
             config.write(configFile)
-        logger.info("Préférences utilisateur sauvées dans : %s", dir_pref)
+        logger.info("User preferences saved in : %s", os.path.join(dir_pref, FILE_PARAMETER_NAME))
 
     except EnvironmentError as exc:
         try:
             shutil.copy(os.path.join(dir_pref, FILE_PARAMETER_NAME), dir_pref)
-            logger.info("(Essai 2) Préférences utilisateur sauvées dans : %s", dir_pref)
+            logger.info("(Attempt 2) User preferences saved in : %s", 
+                        os.path.join(dir_pref, FILE_PARAMETER_NAME))
         except EnvironmentError as exc:             
-            logger.warning("Impossible de sauver les préférences utilisateur : %s", str(exc))
+            logger.warning("Impossible to save user preferences : %s", str(exc))
             
     return (logger,
             Parameters(config, os.path.join(dir_pref, FILE_PARAMETER_NAME)),
             id_prog)
     
 def close_project(logger : Logger, id_prog : str) :
-    logger.info("- FIN - de %s", id_prog)
+    logger.info("- END - de %s", id_prog)
     logger.info("#####################################")
     shutdown()
     sys.exit(0)
