@@ -188,7 +188,7 @@ def main():
     except:
         raise Exception(f"userdir : {userdir} doesn't exist yet. Add '--create-userdir' to create"+
                         " userdir repository or find a correct path.")
-    cgrbi.log.info(f"Arguments passé : {args}")
+    cgrbi.log.info(f"Arguments : {args}")
     
     kwargs = vars(args).copy()
     kwargs.pop("command")
@@ -199,7 +199,7 @@ def main():
         kwargs["preprocess"] = PreProcessDict[args.preprocess]
         if args.indices:
             kwargs["indices"] = [Indice(indice) for indice in args.indices]
-        build_dataset(datadir=cgrbi.data_dir, **kwargs)
+        build_dataset(project=cgrbi, **kwargs)
     
     ###############################  CGrbi Visualize Dataset #######################################
     elif args.command == Command.VISUALIZE.value:

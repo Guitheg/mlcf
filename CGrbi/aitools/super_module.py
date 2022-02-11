@@ -148,9 +148,9 @@ class SuperModule(Module):
         Returns:
             Tuple[List[OrderedDict], OrderedDict]: the list of loss, and the loss of the evaluation
         """
-        self.manager.info(f"Fit : Nombre d'epoch : {n_epochs}, Taille des batchs : {batchsize}, "+\
-                    f"Mélange : {shuffle}, Evaluation : {evaluate}")
-        self.manager.info(f"Dataset utilisée : {dataset}")
+        self.manager.info(f"Fit : Number of epochs: {n_epochs}, Batchsize : {batchsize}, "+\
+                    f"Shuffle : {shuffle}, Evaluation : {evaluate}")
+        self.manager.info(f"Dataset : {dataset}")
         
         if not self.initialize:
             raise Exception("The module has not been compiled")
@@ -208,7 +208,7 @@ class SuperModule(Module):
         log_eval = None     
         if evaluate:
             log_eval = self.validate(test_loader, OrderedDict(), validation_type = "test")
-            self.manager.info(f"Log évaluation : {log_to_message(log_eval)}")
+            self.manager.info(f"Evaluation loss results : {log_to_message(log_eval)}")
           
         return logs, log_eval
         

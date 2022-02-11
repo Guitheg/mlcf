@@ -125,13 +125,13 @@ class TrainingManager(object):
             self.model.optimizer.load_state_dict(self.checkpoint_dict[OPTI_STATE])
             self.model.epoch = self.checkpoint_dict[EPOCH]
             self.model.logs = self.checkpoint_dict[LOSS]
-            self.info(f"Chargement du checkpoint à l'epoch [{self.model.epoch}]:{checkpoint_path}")
+            self.info(f"Loading of the checkpoint [epoch:{self.model.epoch}]:{checkpoint_path}")
             if resume_training:
-                self.debug("Reprise de l'entrainement...")
+                self.debug("Resuming training...")
                 self.model.train()
             else:
                 if self.use_project:
-                    self.debug("Evaluation en cours...")
+                    self.debug("Evaluation...")
                 self.model.eval()
         else:
             if not self.disable_warning:
@@ -160,7 +160,7 @@ class TrainingManager(object):
                                     OPTI_STATE : optimizer_state,
                                     LOSS : logs}
             torch.save(self.checkpoint_dict, checkpoint_path)
-            self.info(f"Checkpoint sauvé à l'epoch [{epoch}]: {checkpoint_path}")
+            self.info(f"Saving ckeckpoint [epoch:{epoch}]: {checkpoint_path}")
             self._update_infofile(str(epoch), str(logs[-1]["loss"]))
         else:
             if not self.disable_warning:
