@@ -8,8 +8,8 @@ from scripts import build_dataset
 
 ### CG-RBI modules ###
 from CGrbi.datatools.indice import Indice
-from CGrbi.datatools.preprocessing import PreProcessDict, WTSeriesPreProcess
-from CGrbi.envtools.project import Project, get_dir_prgm
+from CGrbi.datatools.preprocessing import PreProcessDict
+from CGrbi.envtools.project import CGrbi, get_dir_prgm
 from CGrbi.datatools.wtseries_training import read_wtseries_training
 
 
@@ -37,6 +37,12 @@ def main():
                                          help="The user directory commonly called 'user_data'",
                                          type=Path,
                                          default=Path(get_dir_prgm().joinpath("user_data")))
+    general_arguments_group.add_argument("--create-userdir",
+                                         help="If it is given then create the userdir" +\
+                                             " repositories (if userdir doesn't exist)."+\
+                                            " If userdir doesn't exist and if it's not given then"+\
+                                            " it raises an error.",
+                                         action="store_true")
     
     subcommands = parser.add_subparsers(
         dest="command",
@@ -161,22 +167,27 @@ def main():
     ####################################### PROJECT ENV ############################################
     ################################################################################################
     userdir : Path = args.userdir
-    cgrbi = Project("CGrbi", project_directory=userdir)
+    try:
+        cgrbi = CGrbi(project_directory=userdir, create_userdir=args.create_userdir)
+    except:
+        raise Exception(f"userdir : {userdir} doesn't exist yet. Add '--create-userdir' to create"+
+                        " userdir repository or find a correct path.")
     cgrbi.log.info(f"Arguments passé : {args}")
     
-    
+    kwargs = vars(args)
+    kwargs.pop("command")
+    kwargs.pop("create_userdir")
     ###################################  CGrbi Build Dataset #######################################
     if args.command == Command.BUILD.value:
-        kwargs = vars(args)
-        kwargs.pop("command")
+        
         kwargs["preprocess"] = PreProcessDict[args.preprocess]
-        kwargs["indices"] = [Indice(indice) for indice in args.indices]
-        build_dataset(**kwargs)
+        if args.indices:
+            kwargs["indices"] = [Indice(indice) for indice in args.indices]
+        build_dataset(datadir=cgrbi.data_dir, **kwargs)
     
     ###############################  CGrbi Visualize Dataset #######################################
     elif args.command == Command.VISUALIZE.value:
-        kwargs = vars(args)
-        kwargs.pop("command")
+
         if kwargs["datapath"].suffix == ".wtst":
             dataset = read_wtseries_training(userdir.joinpath(kwargs["datapath"]))
             print(dataset("train", "input")[5])
@@ -186,8 +197,7 @@ def main():
         
     ###############################  CGrbi Train Neural Network ####################################  
     elif args.command == Command.TRAIN.value:
-        kwargs = vars(args)
-        kwargs.pop("command")
+
         raise NotImplementedError
     
     ########################################## EXIT ################################################
