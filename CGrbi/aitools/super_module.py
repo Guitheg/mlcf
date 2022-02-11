@@ -82,7 +82,14 @@ class SuperModule(Module):
             self.device = device("cuda:0" if cuda.is_available() else "cpu")
         self.to(self.device)
         self.manager.info(f"  -Processeur utilisé : {self.device}") 
-        
+    
+    def init_load_checkpoint(self, training_name : str, 
+                             project : Project,
+                             resume_training : bool = False):
+        self.manager = TrainingManager(model = self, project = project)
+        self.manager.load_checkpoint(resume_trainin=resume_training)
+        self.initialize = True
+
     def init(self, 
              loss : Callable, 
              optimizer : torch.optim.Optimizer, 
@@ -116,7 +123,7 @@ class SuperModule(Module):
             dataset : WTSeriesTraining,
             n_epochs : int, 
             batchsize : int, 
-            shuffle : bool = True, 
+            shuffle : bool = False, 
             talkative : bool = True,
             evaluate : bool = False,
             tensorboard : bool = False,
