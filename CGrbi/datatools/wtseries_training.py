@@ -32,9 +32,10 @@ EXTENSION_FILE = ".wtst"
 def read_wtseries_training(path : Path):
     if not isinstance(path, Path):
         if isinstance(path, str):
-            dir = Path(path)
+            path = Path(path)
         else:
-            raise Exception(f"path instance is not attempted : {type(path)}")
+            raise Exception(f"path type should be Path or str : {type(path)}")
+    path : Path = path.with_suffix(EXTENSION_FILE)
     if not path.is_file():
         raise Exception("The given file path is unknown")
     if path.suffix != EXTENSION_FILE:

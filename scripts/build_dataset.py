@@ -10,6 +10,7 @@ from CGrbi.datatools.preprocessing import WTSeriesPreProcess
 
 
 def build_dataset(userdir : Path,
+                  datadir : Path,
                   pairs : List[str],
                   timeframes : List[str],
                   days : int,
@@ -24,7 +25,9 @@ def build_dataset(userdir : Path,
                   prop_tv : float,
                   prop_v : float,
                   indices : List[Indice],
-                  preprocess : WTSeriesPreProcess):
+                  preprocess : WTSeriesPreProcess,
+                  *args,
+                  **kwargs):
     
     run_download_freqtrade(pairs=pairs, 
                            timeframes=timeframes, 
@@ -32,10 +35,9 @@ def build_dataset(userdir : Path,
                            exchange=exchange, 
                            userdir=userdir)
     
-    wtstdataset_dir : Path = userdir.joinpath("data")
     rawdata_dir : Path = userdir.joinpath("data", exchange)
     
-    write_wtstdataset_from_raw_data(wtstdataset_dir=wtstdataset_dir,
+    write_wtstdataset_from_raw_data(wtstdataset_dir=datadir,
                                     rawdata_dir=rawdata_dir,
                                     dataset_name=dataset_name,
                                     pairs=pairs,

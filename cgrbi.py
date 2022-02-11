@@ -4,12 +4,12 @@ from enum import Enum, unique
 from pathlib import Path
 from typing import List
 
-from scripts import build_dataset
+from scripts import build_dataset, launch_machine_learning
 
 ### CG-RBI modules ###
 from CGrbi.datatools.indice import Indice
-from CGrbi.datatools.preprocessing import PreProcessDict, WTSeriesPreProcess
-from CGrbi.envtools.project import Project, get_dir_prgm
+from CGrbi.datatools.preprocessing import PreProcessDict
+from CGrbi.envtools.project import CGrbi, get_dir_prgm
 from CGrbi.datatools.wtseries_training import read_wtseries_training
 
 
@@ -37,6 +37,12 @@ def main():
                                          help="The user directory commonly called 'user_data'",
                                          type=Path,
                                          default=Path(get_dir_prgm().joinpath("user_data")))
+    general_arguments_group.add_argument("--create-userdir",
+                                         help="If it is given then create the userdir" +\
+                                             " repositories (if userdir doesn't exist)."+\
+                                            " If userdir doesn't exist and if it's not given then"+\
+                                            " it raises an error.",
+                                         action="store_true")
     
     subcommands = parser.add_subparsers(
         dest="command",
@@ -145,7 +151,22 @@ def main():
     ##### Train arguments #####
     command_train = subcommands.add_parser(Command.TRAIN.value, 
                                            help="Neural Network training command")
+    command_train.add_argument("--trainer-name",
+                                help="The name of the trainer file. IMPORTANT : the command call "+\
+                                "the method : train() inside the file given by the trainer "+\
+                                "file name.",
+                                type=str, metavar="NAME", required=True)
+    command_train.add_argument("--training-name",
+                                  help="The name of the training name, useful for logging, "+
+                                  "checkpoint etc.", type = str, metavar="NAME")
     
+    command_train.add_argument("--dataset-name", help="The dataset name use for the training",
+                               metavar="NAME", type=str, required=True)
+    
+    command_train.add_argument("--param", help="The list of arguments for the trainer. IMPORTANT:"+\
+                               "The list must be in the form : key1=value1 key2=value2"+\
+                               " key3=elem1,elem2,elem3",
+                               nargs="+", type=str)
     ##### Visualize arguments #####
     command_visualize = subcommands.add_parser(Command.VISUALIZE.value, 
                                            help="Dataset visualization command")
@@ -160,24 +181,28 @@ def main():
     ################################################################################################
     ####################################### PROJECT ENV ############################################
     ################################################################################################
-    userdir : Path = args.userdir
-    projectdir : Path = userdir.joinpath("Home")
-    cgrbi = Project("CGrbi", project_directory=projectdir)
+    userdir : Path = Path(args.userdir)
+    try:
+        cgrbi = CGrbi(project_directory=userdir, create_userdir=args.create_userdir)
+    except:
+        raise Exception(f"userdir : {userdir} doesn't exist yet. Add '--create-userdir' to create"+
+                        " userdir repository or find a correct path.")
     cgrbi.log.info(f"Arguments passé : {args}")
     
-    
+    kwargs = vars(args).copy()
+    kwargs.pop("command")
+    kwargs.pop("create_userdir")
     ###################################  CGrbi Build Dataset #######################################
     if args.command == Command.BUILD.value:
-        kwargs = vars(args)
-        kwargs.pop("command")
+        
         kwargs["preprocess"] = PreProcessDict[args.preprocess]
-        kwargs["indices"] = [Indice(indice) for indice in args.indices]
-        build_dataset(**kwargs)
+        if args.indices:
+            kwargs["indices"] = [Indice(indice) for indice in args.indices]
+        build_dataset(datadir=cgrbi.data_dir, **kwargs)
     
     ###############################  CGrbi Visualize Dataset #######################################
     elif args.command == Command.VISUALIZE.value:
-        kwargs = vars(args)
-        kwargs.pop("command")
+
         if kwargs["datapath"].suffix == ".wtst":
             dataset = read_wtseries_training(userdir.joinpath(kwargs["datapath"]))
             print(dataset("train", "input")[5])
@@ -187,9 +212,10 @@ def main():
         
     ###############################  CGrbi Train Neural Network ####################################  
     elif args.command == Command.TRAIN.value:
-        kwargs = vars(args)
-        kwargs.pop("command")
-        raise NotImplementedError
+        if args.training_name is None:
+            kwargs["training_name"] = args.trainer_name
+        
+        launch_machine_learning(project=cgrbi, **kwargs)
     
     ########################################## EXIT ################################################
     cgrbi.exit()

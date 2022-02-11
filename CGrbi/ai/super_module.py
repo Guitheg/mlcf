@@ -89,7 +89,8 @@ class SuperModule(Module):
              device_str : str = "cuda", 
              metrics : List[Callable] = None,
              training_name : str = None,
-             project : Project = None):
+             project : Project = None,
+             *args, **kwargs):
         """Initialize the model given a loss function, an optimizer, 
         the device and a list of metrics
 
@@ -111,8 +112,6 @@ class SuperModule(Module):
         self.set_device(device_str)
         self.initialize = True
         
-   
-    
     def fit(self,
             dataset : WTSeriesTraining,
             n_epochs : int, 
@@ -121,7 +120,8 @@ class SuperModule(Module):
             talkative : bool = True,
             evaluate : bool = False,
             tensorboard : bool = False,
-            checkpoint : bool = False) -> Tuple[List[OrderedDict], OrderedDict]:
+            checkpoint : bool = False,
+            *args, **kwargs) -> Tuple[List[OrderedDict], OrderedDict]:
         """Fit/train the model (need to be initialized first)
 
         Args:
