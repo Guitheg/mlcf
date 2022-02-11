@@ -1,8 +1,7 @@
-from curses import meta
+
 import argparse
 from enum import Enum, unique
 from pathlib import Path
-from typing import List
 
 from CGrbi.commands import build_dataset, launch_machine_learning
 
@@ -11,8 +10,6 @@ from CGrbi.datatools.indice import Indice
 from CGrbi.datatools.preprocessing import PreProcessDict
 from CGrbi.envtools.project import CGrbi, get_dir_prgm
 from CGrbi.datatools.wtseries_training import EXTENSION_FILE, read_wtseries_training
-
-
 
 @unique
 class Command(Enum):
