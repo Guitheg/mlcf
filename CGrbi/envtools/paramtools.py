@@ -3,7 +3,18 @@ from pathlib import Path
 import os.path
 import configparser
 
+from typing import List
+
 FILE_PARAMETER_NAME = "parameters.ini"
+
+def get_param_dict_from_str(list_param : List[str]):
+    param_dict = {}
+    for param in list_param:
+        name_value = param.split("=")
+        name = name_value[0]
+        value = [elem for elem in name_value[1].split(",") if elem != ""]
+        param_dict[name] = value[0] if len(value) == 1 else value
+    return param_dict
 
 class Parameters():
     def __init__(self, config : configparser.RawConfigParser, 

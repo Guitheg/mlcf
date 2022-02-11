@@ -6,8 +6,8 @@ from typing import Tuple
 from logging import Logger, shutdown
 
 ### CG-RBI modules ###
-from CGrbi.envtools.logging import init_logging
-from CGrbi.envtools.parameters import get_config, Parameters, FILE_PARAMETER_NAME
+from CGrbi.envtools.logtools import init_logging
+from CGrbi.envtools.paramtools import get_config, Parameters, FILE_PARAMETER_NAME
 from CGrbi.envtools.path import get_dir_prgm, create_path, get_path
 
 
@@ -51,6 +51,12 @@ class CGrbi(Project):
         self.ml_dir : Path = get_path(self.dir, ML, create_dir=create_userdir)
         self.trainer_dir : Path = get_path(self.ml_dir, TRAINERS, create_dir=create_userdir)
         self.models_dir : Path = get_path(self.ml_dir, MODELS, create_dir=create_userdir)
+
+    def check_file(self, file_path : Path, dir : Path):
+        if not file_path.is_file(): 
+            list_file = [x.stem for x in dir.iterdir() if x.is_file()]
+            raise Exception(f"{file_path} doesn't exist. Here the list of file detected by CGrbi :"+
+                        f"{list_file}. All this file are in : {dir}")
 
 def init_project(project_name : str, 
                  project_directory : Path,

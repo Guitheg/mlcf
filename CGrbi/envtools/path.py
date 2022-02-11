@@ -18,7 +18,7 @@ def get_path(*paths : str, create_dir : bool = False) -> Path:
     my_path = join(*paths)
     if not isdir(my_path):
         raise PathNotExistsError(f"The directory : '{my_path}' is not a directory")
-    return my_path
+    return Path(my_path)
   
 def get_dir_prgm() -> Path:
     """

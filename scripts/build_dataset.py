@@ -25,7 +25,9 @@ def build_dataset(userdir : Path,
                   prop_tv : float,
                   prop_v : float,
                   indices : List[Indice],
-                  preprocess : WTSeriesPreProcess):
+                  preprocess : WTSeriesPreProcess,
+                  *args,
+                  **kwargs):
     
     run_download_freqtrade(pairs=pairs, 
                            timeframes=timeframes, 
