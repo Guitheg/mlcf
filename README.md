@@ -1,2 +1,1 @@
-# CG-RBI
-COSTE-GOBIN Random Bot Investor
+# CTBT - Cryptocurrency Trading roBot Toolkit
