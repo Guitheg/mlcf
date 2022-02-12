@@ -1,6 +1,6 @@
 SHELL:=/bin/bash
 UNAME:=$(shell uname)
-ENV_NAME = cgrbi
+ENV_NAME = ctbt
 PYTHON_VERSION:=3.9
 
 CONDA_HOME = $(HOME)/miniconda3

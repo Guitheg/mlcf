@@ -1,8 +1,8 @@
 
 from enum import Enum, unique
 
-### CG-RBI modules ###
-from CGrbi.datatools.wtseries import WTSeries
+### CTBT modules ###
+from ctbt.datatools.wtseries import WTSeries
 
 class WTSeriesPreProcess():
     """Preprocessing class for WTSeries objects

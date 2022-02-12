@@ -3,14 +3,14 @@ import argparse
 from pathlib import Path
 from typing import List
 
-### CG-RBI modules ###
-from CGrbi.datatools.indice import Indice
-from CGrbi.datatools.datasetools import write_wtstdataset_from_raw_data, run_download_freqtrade
-from CGrbi.datatools.preprocessing import WTSeriesPreProcess
-from CGrbi.envtools.project import CGrbi
+### CTBT modules ###
+from ctbt.datatools.indice import Indice
+from ctbt.datatools.datasetools import write_wtstdataset_from_raw_data, run_download_freqtrade
+from ctbt.datatools.preprocessing import WTSeriesPreProcess
+from ctbt.envtools.hometools import CtbtHome
 
 
-def build_dataset(project : CGrbi,
+def build_dataset(project : CtbtHome,
                   userdir : Path,
                   pairs : List[str],
                   timeframes : List[str],
@@ -30,13 +30,13 @@ def build_dataset(project : CGrbi,
                   *args,
                   **kwargs):
     rawdata_dir : Path = userdir.joinpath("data", exchange)
-    project.log.info(f"Download data with freqtrade. Pairs : {pairs}, Timeframes : {timeframes}, "+
-                     f"Days of historic : {days}, Market : {exchange}. Save here : {rawdata_dir} ")
     run_download_freqtrade(pairs=pairs, 
                            timeframes=timeframes, 
                            days=days, 
                            exchange=exchange, 
                            userdir=userdir)
+    project.log.info(f"Download data with freqtrade. Pairs : {pairs}, Timeframes : {timeframes}, "+
+                     f"Days of historic : {days}, Market : {exchange}. Saved here : {rawdata_dir} ")
     write_wtstdataset_from_raw_data(project=project,
                                     rawdata_dir=rawdata_dir,
                                     dataset_name=dataset_name,

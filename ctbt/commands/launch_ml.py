@@ -1,13 +1,13 @@
 
 from pathlib import Path
 from typing import List
-from CGrbi.envtools.importools import train_method_import
+from ctbt.envtools.importools import train_method_import
 
-### CG-RBI modules ###
-from CGrbi.datatools.wtseries_training import read_wtseries_training
-from CGrbi.envtools.project import CGrbi
+### CTBT modules ###
+from ctbt.datatools.wtseries_training import read_wtseries_training
+from ctbt.envtools.hometools import CtbtHome
 
-def launch_machine_learning(project : CGrbi, trainer_name : str, training_name : str,
+def launch_machine_learning(project : CtbtHome, trainer_name : str, training_name : str,
                             dataset_name : str, *args, **kwargs):
 
     data_path = project.data_dir.joinpath(dataset_name)
