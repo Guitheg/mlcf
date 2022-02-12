@@ -6,11 +6,11 @@ from os.path import isdir, join
 from pathlib import Path
 import pickle
 
-### CG-RBI modules ###
-from CGrbi.datatools.preprocessing import Identity, WTSeriesPreProcess
-from CGrbi.datatools.utils import build_forecast_ts_training_dataset
-from CGrbi.datatools.wtseries import WTSeries
-from CGrbi.envtools.project import Project
+### CTBT modules ###
+from ctbt.datatools.preprocessing import Identity, WTSeriesPreProcess
+from ctbt.datatools.utils import build_forecast_ts_training_dataset
+from ctbt.datatools.wtseries import WTSeries
+from ctbt.envtools.hometools import ProjectHome
 
 @unique
 class Partition(Enum):
@@ -30,7 +30,7 @@ INPUT : str = Field.INPUT.value
 TARGET : str = Field.TARGET.value
 EXTENSION_FILE = ".wtst"
 
-def read_wtseries_training(path : Path, project : Project = None):
+def read_wtseries_training(path : Path, project : ProjectHome = None):
     if not isinstance(path, Path):
         if isinstance(path, str):
             path = Path(path)
@@ -54,7 +54,7 @@ class WTSeriesTraining(object):
                  target_size : int = 1,
                  index_column : str = None,
                  features : List[str] = None,
-                 project : Project = None,
+                 project : ProjectHome = None,
                  *args, **kwargs):
         """WTSeriesTraining allow to handle time series data in a machine learning training.
         The component of the WTSeriesTraining is the WTSeries which is a list of window
@@ -75,7 +75,7 @@ class WTSeriesTraining(object):
         self.target_size : int = target_size
         self.index_column : str = index_column
         self.features : List[str] = None
-        self.project : Project = project
+        self.project : ProjectHome = project
         
         self.train_data = {INPUT : WTSeries(self.input_size), 
                            TARGET : WTSeries(self.target_size)}

@@ -1,6 +1,6 @@
 
-from CGrbi.aitools.super_module import SuperModule
-from CGrbi.datatools.wtseries_training import WTSeriesTraining
+from ctbt.aitools.super_module import SuperModule
+from ctbt.datatools.wtseries_training import WTSeriesTraining
 import pandas as pd
 
 def init_data():

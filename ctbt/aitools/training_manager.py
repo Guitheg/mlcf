@@ -9,9 +9,9 @@ from datetime import datetime
 import torch
 from torch.utils.tensorboard import SummaryWriter
 
-### CG-RBI modules ###
-from CGrbi.envtools.project import Project
-from CGrbi.envtools.path import create_path
+### CTBT modules ###
+from ctbt.envtools.hometools import ProjectHome
+from ctbt.envtools.pathtools import create_path
 
 class InfofileColumns(Enum):
     TRAINING : str = "Training name"
@@ -70,7 +70,7 @@ def get_empty_infofile() -> pd.DataFrame:
 class TrainingManager(object):
     def __init__(self, 
                  model, 
-                 project : Project = None,
+                 project : ProjectHome = None,
                  disable_warning : bool = True):
         self.has_training_manager = False
         self.disable_warning = disable_warning
@@ -135,7 +135,7 @@ class TrainingManager(object):
                 self.model.eval()
         else:
             if not self.disable_warning:
-                raise Warning("Trying to load a checkpoint but TrainingManager has no Project")
+                raise Warning("Trying to load a checkpoint but TrainingManager has no ProjectHome")
 
     def checkpoint(self, 
                    logs : List[OrderedDict], 
@@ -164,7 +164,7 @@ class TrainingManager(object):
             self._update_infofile(str(epoch), str(logs[-1]["loss"]))
         else:
             if not self.disable_warning:
-                raise Warning("Trying to save checkpoint but TrainingManager has no Project")
+                raise Warning("Trying to save checkpoint but TrainingManager has no ProjectHome")
             
     def _update_infofile(self, n_epoch : str, 
                         last_score : str):
@@ -190,21 +190,21 @@ class TrainingManager(object):
             self.board.close()
         else:
             if not self.disable_warning:
-                raise Warning("Trying to save stream a tensorboard but TrainingManager has no Project")
+                raise Warning("Trying to save stream a tensorboard but TrainingManager has no ProjectHome")
         
     def info(self, msg : str) -> None:
         if self.exist():
             self.project.log.info(self._prefix_msg_log(msg))
         else:
             if not self.disable_warning:
-                raise Warning("Trying to save stream log info but TrainingManager has no Project")
+                raise Warning("Trying to save stream log info but TrainingManager has no ProjectHome")
     
     def debug(self, msg : str) -> None:
         if self.exist():
             self.project.log.debug(self._prefix_msg_log(msg))
         else:
             if not self.disable_warning:
-                raise Warning("Trying to save stream log debug but TrainingManager has no Project")
+                raise Warning("Trying to save stream log debug but TrainingManager has no ProjectHome")
     
     def _prefix_msg_log(self, msg : str) -> str:
         """Just add a prefix to log messages

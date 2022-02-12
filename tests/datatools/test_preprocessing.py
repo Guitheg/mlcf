@@ -1,5 +1,5 @@
-from CGrbi.datatools.preprocessing import Identity, AutoNormalize
-from CGrbi.datatools.wtseries import WTSeries
+from ctbt.datatools.preprocessing import Identity, AutoNormalize
+from ctbt.datatools.wtseries import WTSeries
 import numpy as np
 import pandas as pd
 

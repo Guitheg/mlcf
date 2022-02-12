@@ -11,12 +11,12 @@ from collections import OrderedDict
 
 from time import time_ns
 
-### CG-RBI modules ###
-from CGrbi.datatools.wtseries_tensor import WTSeriesTensor
-from CGrbi.datatools.wtseries_training import WTSeriesTraining, TRAIN, VALIDATION, TEST
-from CGrbi.aitools.log import ProgressBar, add_metrics_to_log, log_to_message
-from CGrbi.envtools.project import Project
-from CGrbi.aitools.training_manager import TrainingManager
+### CTBT modules ###
+from ctbt.datatools.wtseries_tensor import WTSeriesTensor
+from ctbt.datatools.wtseries_training import WTSeriesTraining, TRAIN, VALIDATION, TEST
+from ctbt.aitools.log import ProgressBar, add_metrics_to_log, log_to_message
+from ctbt.envtools.hometools import ProjectHome
+from ctbt.aitools.training_manager import TrainingManager
 
 
 class SuperModule(Module):    
@@ -27,7 +27,7 @@ class SuperModule(Module):
 
         Args:
             name (str, optional): The name of the modele. Defaults to None.
-            project (Project, optional): A Project object which provide logging and config. 
+            project (ProjectHome, optional): A ProjectHome object which provide logging and config. 
             Defaults to None.
         """
         super(SuperModule, self).__init__()
@@ -84,7 +84,7 @@ class SuperModule(Module):
         self.manager.info(f"  -Processeur utilisé : {self.device}") 
     
     def init_load_checkpoint(self, training_name : str, 
-                             project : Project,
+                             project : ProjectHome,
                              resume_training : bool = False):
         self.manager = TrainingManager(model = self, project = project)
         self.manager.load_checkpoint(resume_trainin=resume_training)
@@ -96,7 +96,7 @@ class SuperModule(Module):
              device_str : str = "cuda", 
              metrics : List[Callable] = None,
              training_name : str = None,
-             project : Project = None,
+             project : ProjectHome = None,
              *args, **kwargs):
         """Initialize the model given a loss function, an optimizer, 
         the device and a list of metrics

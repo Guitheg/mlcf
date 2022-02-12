@@ -3,13 +3,15 @@ import argparse
 from enum import Enum, unique
 from pathlib import Path
 
-from CGrbi.commands import build_dataset, launch_machine_learning
+from ctbt.commands import build_dataset, launch_machine_learning
 
-### CG-RBI modules ###
-from CGrbi.datatools.indice import Indice
-from CGrbi.datatools.preprocessing import PreProcessDict
-from CGrbi.envtools.project import CGrbi, get_dir_prgm
-from CGrbi.datatools.wtseries_training import EXTENSION_FILE, read_wtseries_training
+### CTBT modules ###
+from ctbt.datatools.indice import Indice
+from ctbt.datatools.preprocessing import PreProcessDict
+from ctbt.envtools.hometools import CtbtHome, get_dir_prgm
+from ctbt.datatools.wtseries_training import EXTENSION_FILE, read_wtseries_training
+
+PRGM_NAME = CtbtHome.HOME_NAME
 
 @unique
 class Command(Enum):
@@ -25,7 +27,7 @@ def main():
     ################################################################################################
     ####################################### ARGUMENT PARSER ########################################
     ################################################################################################
-    parser = argparse.ArgumentParser(prog="CG-RBI")
+    parser = argparse.ArgumentParser(prog=PRGM_NAME)
     ##### Generals arguments #####
     general_arguments_group = parser.add_argument_group(
         "Common arguments",
@@ -180,40 +182,41 @@ def main():
     ####################################### PROJECT ENV ############################################
     ################################################################################################
     userdir : Path = Path(args.userdir)
-    try:
-        cgrbi = CGrbi(project_directory=userdir, create_userdir=args.create_userdir)
-    except:
-        raise Exception(f"userdir : {userdir} doesn't exist yet. Add '--create-userdir' to create"+
-                        " userdir repository or find a correct path.")
-    cgrbi.log.info(f"Arguments : {args}")
+    # try:
+    ctbt = CtbtHome(home_directory=userdir, create_userdir=args.create_userdir)
+    # except:
+    #     raise Exception(f"userdir : {userdir} doesn't exist yet. Add '--create-userdir' to create"+
+    #                     " userdir repository or find a correct path.")
+    ctbt.log.info(f"Arguments : {args}")
     
     kwargs = vars(args).copy()
-    kwargs.pop("command")
     kwargs.pop("create_userdir")
-    ###################################  CGrbi Build Dataset #######################################
-    if args.command == Command.BUILD.value:
+    if args.command:
+        kwargs.pop("command")
+        ###################################  CtbtHome Build Dataset ################################
+        if args.command == Command.BUILD.value:
+            
+            kwargs["preprocess"] = PreProcessDict[args.preprocess]
+            if args.indices:
+                kwargs["indices"] = [Indice(indice) for indice in args.indices]
+            build_dataset(project=ctbt, **kwargs)
         
-        kwargs["preprocess"] = PreProcessDict[args.preprocess]
-        if args.indices:
-            kwargs["indices"] = [Indice(indice) for indice in args.indices]
-        build_dataset(project=cgrbi, **kwargs)
-    
-    ###############################  CGrbi Visualize Dataset #######################################
-    elif args.command == Command.VISUALIZE.value:
-        dataset_filepath = cgrbi.data_dir.joinpath(args.dataset_name).with_suffix(EXTENSION_FILE)
-        cgrbi.check_file(dataset_filepath, cgrbi.data_dir)
-        dataset = read_wtseries_training(dataset_filepath)
-        print(dataset("train", "input")[5])
+        ###############################  CtbtHome Visualize Dataset ################################
+        elif args.command == Command.VISUALIZE.value:
+            dataset_filepath = ctbt.data_dir.joinpath(args.dataset_name).with_suffix(EXTENSION_FILE)
+            ctbt.check_file(dataset_filepath, ctbt.data_dir)
+            dataset = read_wtseries_training(dataset_filepath)
+            print(dataset("train", "input")[5])
 
-    ###############################  CGrbi Train Neural Network ####################################  
-    elif args.command == Command.TRAIN.value:
-        if args.training_name is None:
-            kwargs["training_name"] = args.trainer_name
+        ###############################  CtbtHome Train Neural Network #############################
+        elif args.command == Command.TRAIN.value:
+            if args.training_name is None:
+                kwargs["training_name"] = args.trainer_name
+            
+            launch_machine_learning(project=ctbt, **kwargs)
         
-        launch_machine_learning(project=cgrbi, **kwargs)
-    
-    ########################################## EXIT ################################################
-    cgrbi.exit()
+        ########################################## EXIT ############################################
+    ctbt.exit()
     
 if __name__ == "__main__":
     main()
