@@ -1,3 +1,18 @@
+#all main script to try some things...
+maintest_*.py
+
+#vscode
+.vscode/
+
+#ctbt
+commands.sh
+
+#freqtrade
+user_data/
+
+config.json
+*.sqlite
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
