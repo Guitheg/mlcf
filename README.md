@@ -1,1 +1,1 @@
-# CTBT - Cryptocurrency Trading roBot Toolkit
+MLCF - Machine Learning Toolkit for Cryptocurrency Forecasting
