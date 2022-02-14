@@ -8,6 +8,5 @@ setup(
                       "torch==1.10.2+cu113",
                       "tensorboard",
                       "torch-tb-profiler"],
-    setup_requires=['pytest-runner'],
     setup_requires=['flake8']
 )
