@@ -18,11 +18,16 @@ jobs:
     - name : Auto-increment version
       run : |
         VERSION=$(echo $GITHUB_REF | sed 's#.*/v##')
-        PLACEHOLDER='__version__ = "develop"'
+        PLACEHOLDER=$(echo $(grep "__version__" "$VERSION_FILE"))
         VERSION_FILE='mlcf/__init__.py'
         grep "$PLACEHOLDER" "$VERSION_FILE"
         sed -i "s/$PLACEHOLDER/__version__ = \"${VERSION}\"/g" "$VERSION_FILE"
       shell: bash
+    - name: Commit Auto-increment
+      uses: EndBug/add-and-commit@v8.0.2
+      with:
+        committer_name: "Github Action"
+        message: "Auto-increment version to ${{ github.ref }}"
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
