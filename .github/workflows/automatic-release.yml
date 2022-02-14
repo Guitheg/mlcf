@@ -21,10 +21,7 @@ jobs:
         python-version: '3.9.x'
     - name : Get Release Version
       id: get_version
-      run : |
-        VERSION_FILE='mlcf/__init__.py'
-        PLACEHOLDER=$(echo $(grep "__version__" "$VERSION_FILE"))
-        echo ::set-output name=VERSION::$(echo "$PLACEHOLDER" | cut -d'=' -f2)
+      run : echo ::set-output name=VERSION::$(echo $(echo $(grep "__version__" mlcf/__init__.py)) | cut -d'=' -f2)
     - uses: rickstaa/action-create-tag@v1
       with:
         tag: ${{ steps.get_version.outputs.VERSION }}
