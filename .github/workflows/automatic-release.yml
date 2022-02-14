@@ -26,9 +26,9 @@ jobs:
         PLACEHOLDER=$(echo $(grep "__version__" "$VERSION_FILE"))
         echo ::set-output name=VERSION::$(echo "$PLACEHOLDER" | cut -d'=' -f2)
     - uses: rickstaa/action-create-tag@v1
-        with:
-          tag: ${{ steps.get_version.outputs.VERSION }}
-          message: ${{ steps.get_version.outputs.VERSION }} release
+      with:
+        tag: ${{ steps.get_version.outputs.VERSION }}
+        message: ${{ steps.get_version.outputs.VERSION }} release
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
