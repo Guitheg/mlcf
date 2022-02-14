@@ -1,6 +1,8 @@
-import abc
-from datatools.wtseries import WTSeries
-import numpy as np
+
+from enum import Enum, unique
+
+### MLCF modules ###
+from mlcf.datatools.wtseries import WTSeries
 
 class WTSeriesPreProcess():
     """Preprocessing class for WTSeries objects
@@ -19,3 +21,11 @@ class AutoNormalize(WTSeriesPreProcess):
         for i in range(len(self.data)):
             self.data[i] = ((self.data[i] - self.data[i].mean()) / self.data[i].std()).round(6)
         return self.data
+
+PreProcessDict = {
+    "Identity" : Identity,
+    "AutoNormalize" : AutoNormalize,
+    None : Identity
+}
+    
+  

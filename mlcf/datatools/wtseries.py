@@ -3,6 +3,7 @@ from typing import List, Tuple, Union
 import pandas as pd
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
+from random import shuffle
 
 def window_data(dataframe : pd.DataFrame, 
                 window_width : int,
@@ -104,7 +105,24 @@ class WTSeries(object):
         """
         self.features = features
         self.features_has_been_set = True
+    
+    def make_common_shuffle(self, other : WTSeries):
+        """perform a common shuffle on two dataframe
+
+        Args:
+            data_1 (pd.DataFrame): A DataFrame
+            data_2 (pd.DataFrame): A DataFrame
+
+        Returns:
+            Tuple[pd.DataFrame, pd.DataFrame]: The two given dataframes shuffled in parallel
+        """
         
+        data_1_2 = list(zip(self.data.copy(), other.data.copy()))
+        shuffle(data_1_2)
+        data_1_shuffled, data_2_shuffled = zip(*data_1_2)
+        self.data = data_1_shuffled
+        other.data = data_2_shuffled
+    
     def get_features(self) -> List[str]:
         """Return the list of columns names
 

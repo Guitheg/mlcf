@@ -4,18 +4,11 @@ maintest_*.py
 #vscode
 .vscode/
 
-#cgrbi
+#mlcf
 commands.sh
 
 #freqtrade
-user_data/backtest_results
-user_data/data
-user_data/hyperopt_results
-user_data/logs
-user_data/notebooks
-user_data/plot
-user_data/strategies/examples
-user_data/Home
+user_data/
 
 config.json
 *.sqlite

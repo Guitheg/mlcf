@@ -1,5 +1,5 @@
-from datatools.preprocessing import Identity, AutoNormalize
-from datatools.wtseries import WTSeries
+from mlcf.datatools.preprocessing import Identity, AutoNormalize
+from mlcf.datatools.wtseries import WTSeries
 import numpy as np
 import pandas as pd
 

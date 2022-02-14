@@ -1,17 +1,10 @@
-
-from typing import Callable, List, Tuple
+from typing import List, Tuple
 import pandas as pd
 import random
-from datatools.wtseries import WTSeries
-from datatools.preprocessing import Identity, WTSeriesPreProcess
-from os.path import join, isdir
-from os import makedirs
 
-def create_path(*paths : str):
-    new_path = join(*paths)
-    if not isdir(new_path):
-        makedirs(new_path, exist_ok=True)
-    return new_path
+### MLCF modules ###
+from mlcf.datatools.wtseries import WTSeries
+from mlcf.datatools.preprocessing import Identity, WTSeriesPreProcess
 
 def split_pandas(dataframe : pd.DataFrame, 
                  prop_snd_elem : float = 0.5) -> Tuple[pd.DataFrame, pd.DataFrame] :
@@ -43,8 +36,8 @@ def split_pandas(dataframe : pd.DataFrame,
         return first_data, second_data
 
 def to_train_val_test(dataframe : pd.DataFrame, 
-                      test_val_prop : float = 0.2,
-                      val_prop : float = 0.5) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame] :
+                      prop_tv : float = 0.2,
+                      prop_v : float = 0.5) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame] :
     """Divide a dataframe into 3 parts : train part, validation part and test part.
 
     Args:
@@ -58,8 +51,8 @@ def to_train_val_test(dataframe : pd.DataFrame,
         Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: Respectively the train, val and test part
     """
     data = dataframe.copy()
-    train_data, test_val_data = split_pandas(data, prop_snd_elem = test_val_prop)
-    test_data, val_data = split_pandas(test_val_data, prop_snd_elem = val_prop)
+    train_data, test_val_data = split_pandas(data, prop_snd_elem = prop_tv)
+    test_data, val_data = split_pandas(test_val_data, prop_snd_elem = prop_v)
     return train_data, val_data, test_data
 
 def split_in_interval(dataframe : pd.DataFrame, 
@@ -132,30 +125,14 @@ def input_target_data(dataframe : pd.DataFrame,
     target_data = data.iloc[-target_width:]
     return input_data, target_data
 
-def make_commmon_shuffle(data_1 : pd.DataFrame, 
-                         data_2 : pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    """perform a common shuffle on two dataframe
-
-    Args:
-        data_1 (pd.DataFrame): A DataFrame
-        data_2 (pd.DataFrame): A DataFrame
-
-    Returns:
-        Tuple[pd.DataFrame, pd.DataFrame]: The two given dataframes shuffled in parallel
-    """
-    data_1_2 = list(zip(data_1.copy(), data_2.copy()))
-    random.shuffle(data_1_2)
-    data_1_shuffled, data_2_shuffled = zip(*data_1_2)
-    return data_1_shuffled, data_2_shuffled
-
 def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
                                        input_width : int,
                                        target_width : int = 1,
                                        offset : int = 0,
                                        window_step : int = 1,
                                        n_interval : int = 1,
-                                       test_val_prop : float = 0.2,
-                                       val_prop : float = 0.4,
+                                       prop_tv : float = 0.2,
+                                       prop_v : float = 0.4,
                                        do_shuffle : bool = False,
                                        preprocess : WTSeriesPreProcess = Identity,
                                        ) -> Tuple[List[pd.DataFrame],
@@ -182,9 +159,9 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
         Defaults to 0.
         window_step (int, optional): to select a window every window_step. Defaults to 1.
         n_interval (int, optional): the number of splited intervals. Defaults to 1.
-        test_val_prop (float, optional): the proportion of the union of [test and validation] part.
+        prop_tv (float, optional): the proportion of the union of [test and validation] part.
         Defaults to 0.2.
-        val_prop (float, optional): the proportion of validation in the union of 
+        prop_v (float, optional): the proportion of validation in the union of 
         [test and validation] part. Defaults to 0.4.
         do_shuffle (bool, optional) : if True, do a shuffle on the data. Default to False.
         preprocess (PreProcess, optional) : is a preprocessing function taking a WTSeries in input.
@@ -211,8 +188,8 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
                                      List[pd.DataFrame]] = ([],[],[])
     for interval_data_df in list_interval_data_df:
         train, val, test  = to_train_val_test(interval_data_df, 
-                                              test_val_prop=test_val_prop, 
-                                              val_prop=val_prop)
+                                              prop_tv=prop_tv, 
+                                              prop_v=prop_v)
         splited_interval_data[0].append(train)
         splited_interval_data[1].append(val)
         splited_interval_data[2].append(test)
@@ -258,9 +235,9 @@ def build_forecast_ts_training_dataset(dataframe : pd.DataFrame,
         test_target.merge_window_data(test_target_tmp)
 
     if do_shuffle:
-        train_input, train_target = make_commmon_shuffle(train_input(), train_target())
-        val_input, val_target = make_commmon_shuffle(val_input(), val_target())
-        test_input, test_target = make_commmon_shuffle(test_input(), test_target())
+        train_input.make_common_shuffle(train_target)
+        val_input.make_common_shuffle(val_target)
+        test_input.make_common_shuffle(test_target)
         
     return (train_input, train_target, val_input, 
             val_target, test_input, test_target)

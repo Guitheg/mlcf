@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
-from datatools.wtseries_training import TARGET, WTSeriesTraining, TRAIN, INPUT
-from datatools.wtseries_tensor import WTSeriesTensor
+from mlcf.datatools.wtseries_training import TARGET, WTSeriesTraining, TRAIN, INPUT
+from mlcf.datatools.wtseries_tensor import WTSeriesTensor
 from torch import tensor
 import numpy as np
 
@@ -14,13 +14,13 @@ def init_data():
 data = init_data()
 
 def test_WTSeriesTensor():
-    ts_data = WTSeriesTraining(9, column_index="date")
+    ts_data = WTSeriesTraining(9, index_column="date")
     with pytest.raises(ValueError):
         dataset = WTSeriesTensor(TRAIN, ts_data=ts_data)
     ts_data.add_time_serie(data.iloc[0:3000])
     dataset = WTSeriesTensor(TRAIN, ts_data=ts_data)
     assert "Input size: 9, Target size: 1, "+\
-        "Index name: 'date'\nData :\nLength Train: 2391, "+\
+        "Index name: 'date' - Data : Length Train: 2391, "+\
             "Length Validation: 171, Length Test: 411" == ts_data.__str__()
     for i in range(len(dataset)):
         inp, tar = dataset[i]

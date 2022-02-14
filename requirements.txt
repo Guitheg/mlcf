@@ -6,7 +6,11 @@ torch==1.10.2+cu113
 torchvision==0.11.3+cu113 
 torchaudio==0.10.2+cu113
 tensorboard
+torch-tb-profiler
 # ---
+
+# https://github.com/Guitheg/ritl
+ritl
 
 # https://scikit-learn.org/stable/
 scikit-learn
