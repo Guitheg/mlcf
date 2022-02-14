@@ -5,10 +5,10 @@ from pathlib import Path
 from typing import Tuple
 from logging import Logger, shutdown
 
-### CTBT modules ###
-from ctbt.envtools.logtools import init_logging
-from ctbt.envtools.paramtools import get_config, Parameters, FILE_PARAMETER_NAME
-from ctbt.envtools.pathtools import get_dir_prgm, create_path, get_path
+### MLCF modules ###
+from mlcf.envtools.logtools import init_logging
+from mlcf.envtools.paramtools import get_config, Parameters, FILE_PARAMETER_NAME
+from mlcf.envtools.pathtools import get_dir_prgm, create_path, get_path
 
 
 class ProjectHome():
@@ -28,15 +28,15 @@ class ProjectHome():
     def exit(self):
         close_project(self.log, self.id)
           
-class CtbtHome(ProjectHome):
-    HOME_NAME = "ctbt"
+class MlcfHome(ProjectHome):
+    HOME_NAME = "mlcf"
     DATA = "data"
     ML = "ml"
     TRAINERS = "trainers"
     MODELS = "models"
     def __init__(self, home_directory : Path, 
                  create_userdir : bool = False, *args, **kwargs):
-        super(CtbtHome, self).__init__(home_name=self.HOME_NAME, 
+        super(MlcfHome, self).__init__(home_name=self.HOME_NAME, 
                                     home_directory=home_directory, 
                                     create_userdir=create_userdir,
                                     *args, **kwargs)
@@ -48,7 +48,7 @@ class CtbtHome(ProjectHome):
     def check_file(self, file_path : Path, dir : Path):
         if not file_path.is_file(): 
             list_file = [x.stem for x in dir.iterdir() if x.is_file()]
-            raise Exception(f"{file_path} doesn't exist. Here the list of file detected by CtbtHome: "+
+            raise Exception(f"{file_path} doesn't exist. Here the list of file detected by MlcfHome: "+
                         f"{list_file}. All this file are in : {dir}")
 
 def init_project(home_name : str, 

@@ -11,12 +11,12 @@ from collections import OrderedDict
 
 from time import time_ns
 
-### CTBT modules ###
-from ctbt.datatools.wtseries_tensor import WTSeriesTensor
-from ctbt.datatools.wtseries_training import WTSeriesTraining, TRAIN, VALIDATION, TEST
-from ctbt.aitools.log import ProgressBar, add_metrics_to_log, log_to_message
-from ctbt.envtools.hometools import ProjectHome
-from ctbt.aitools.training_manager import TrainingManager
+### MLCF modules ###
+from mlcf.datatools.wtseries_tensor import WTSeriesTensor
+from mlcf.datatools.wtseries_training import WTSeriesTraining, TRAIN, VALIDATION, TEST
+from mlcf.aitools.log import ProgressBar, add_metrics_to_log, log_to_message
+from mlcf.envtools.hometools import ProjectHome
+from mlcf.aitools.training_manager import TrainingManager
 
 
 class SuperModule(Module):    

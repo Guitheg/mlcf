@@ -1,9 +1,8 @@
-
 from os.path import isdir, isfile, join
 from pathlib import Path
 import pickle   
 import pandas as pd
-from ctbt.datatools.wtseries_training import WTSeriesTraining, EXTENSION_FILE, read_wtseries_training
+from mlcf.datatools.wtseries_training import WTSeriesTraining, EXTENSION_FILE, read_wtseries_training
 
 def init_data():
     data = pd.read_json("tests/testdata/BTC_BUSD-1h.json")

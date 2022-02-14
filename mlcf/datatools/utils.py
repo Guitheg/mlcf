@@ -2,9 +2,9 @@ from typing import List, Tuple
 import pandas as pd
 import random
 
-### CTBT modules ###
-from ctbt.datatools.wtseries import WTSeries
-from ctbt.datatools.preprocessing import Identity, WTSeriesPreProcess
+### MLCF modules ###
+from mlcf.datatools.wtseries import WTSeries
+from mlcf.datatools.preprocessing import Identity, WTSeriesPreProcess
 
 def split_pandas(dataframe : pd.DataFrame, 
                  prop_snd_elem : float = 0.5) -> Tuple[pd.DataFrame, pd.DataFrame] :

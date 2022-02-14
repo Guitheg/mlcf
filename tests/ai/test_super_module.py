@@ -1,6 +1,6 @@
 
-from ctbt.aitools.super_module import SuperModule
-from ctbt.datatools.wtseries_training import WTSeriesTraining
+from mlcf.aitools.super_module import SuperModule
+from mlcf.datatools.wtseries_training import WTSeriesTraining
 import pandas as pd
 
 def init_data():

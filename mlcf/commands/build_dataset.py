@@ -3,14 +3,14 @@ import argparse
 from pathlib import Path
 from typing import List
 
-### CTBT modules ###
-from ctbt.datatools.indice import Indice
-from ctbt.datatools.datasetools import write_wtstdataset_from_raw_data, run_download_freqtrade
-from ctbt.datatools.preprocessing import WTSeriesPreProcess
-from ctbt.envtools.hometools import CtbtHome
+### MLCF modules ###
+from mlcf.datatools.indice import Indice
+from mlcf.datatools.datasetools import write_wtstdataset_from_raw_data, run_download_freqtrade
+from mlcf.datatools.preprocessing import WTSeriesPreProcess
+from mlcf.envtools.hometools import MlcfHome
 
 
-def build_dataset(project : CtbtHome,
+def build_dataset(project : MlcfHome,
                   userdir : Path,
                   pairs : List[str],
                   timeframes : List[str],

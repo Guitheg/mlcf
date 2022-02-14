@@ -6,8 +6,8 @@ from torch.utils.data import TensorDataset
 from torch.utils.data.dataloader import DataLoader
 from torch import Tensor, tensor
 
-### CTBT modules ###
-from ctbt.datatools.wtseries_training import WTSeriesTraining, INPUT, TARGET
+### MLCF modules ###
+from mlcf.datatools.wtseries_training import WTSeriesTraining, INPUT, TARGET
 
 
 class WTSeriesTensor(TensorDataset):

@@ -5,8 +5,8 @@ import logging
 from logging.handlers import RotatingFileHandler
 from configparser import RawConfigParser
 
-### CTBT modules ###
-from ctbt.envtools.pathtools import create_path
+### MLCF modules ###
+from mlcf.envtools.pathtools import create_path
 
 def init_logging(home_name : str, dir_pref : Path, config : RawConfigParser) -> logging.Logger:
     

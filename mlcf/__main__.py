@@ -3,15 +3,15 @@ import argparse
 from enum import Enum, unique
 from pathlib import Path
 
-from ctbt.commands import build_dataset, launch_machine_learning
+from mlcf.commands import build_dataset, launch_machine_learning
 
-### CTBT modules ###
-from ctbt.datatools.indice import Indice
-from ctbt.datatools.preprocessing import PreProcessDict
-from ctbt.envtools.hometools import CtbtHome, get_dir_prgm
-from ctbt.datatools.wtseries_training import EXTENSION_FILE, read_wtseries_training
+### MLCF modules ###
+from mlcf.datatools.indice import Indice
+from mlcf.datatools.preprocessing import PreProcessDict
+from mlcf.envtools.hometools import MlcfHome, get_dir_prgm
+from mlcf.datatools.wtseries_training import EXTENSION_FILE, read_wtseries_training
 
-PRGM_NAME = CtbtHome.HOME_NAME
+PRGM_NAME = MlcfHome.HOME_NAME
 
 @unique
 class Command(Enum):
@@ -183,40 +183,40 @@ def main():
     ################################################################################################
     userdir : Path = Path(args.userdir)
     # try:
-    ctbt = CtbtHome(home_directory=userdir, create_userdir=args.create_userdir)
+    mlcf = MlcfHome(home_directory=userdir, create_userdir=args.create_userdir)
     # except:
     #     raise Exception(f"userdir : {userdir} doesn't exist yet. Add '--create-userdir' to create"+
     #                     " userdir repository or find a correct path.")
-    ctbt.log.info(f"Arguments : {args}")
+    mlcf.log.info(f"Arguments : {args}")
     
     kwargs = vars(args).copy()
     kwargs.pop("create_userdir")
     if args.command:
         kwargs.pop("command")
-        ###################################  CtbtHome Build Dataset ################################
+        ###################################  MlcfHome Build Dataset ################################
         if args.command == Command.BUILD.value:
             
             kwargs["preprocess"] = PreProcessDict[args.preprocess]
             if args.indices:
                 kwargs["indices"] = [Indice(indice) for indice in args.indices]
-            build_dataset(project=ctbt, **kwargs)
+            build_dataset(project=mlcf, **kwargs)
         
-        ###############################  CtbtHome Visualize Dataset ################################
+        ###############################  MlcfHome Visualize Dataset ################################
         elif args.command == Command.VISUALIZE.value:
-            dataset_filepath = ctbt.data_dir.joinpath(args.dataset_name).with_suffix(EXTENSION_FILE)
-            ctbt.check_file(dataset_filepath, ctbt.data_dir)
+            dataset_filepath = mlcf.data_dir.joinpath(args.dataset_name).with_suffix(EXTENSION_FILE)
+            mlcf.check_file(dataset_filepath, mlcf.data_dir)
             dataset = read_wtseries_training(dataset_filepath)
             print(dataset("train", "input")[5])
 
-        ###############################  CtbtHome Train Neural Network #############################
+        ###############################  MlcfHome Train Neural Network #############################
         elif args.command == Command.TRAIN.value:
             if args.training_name is None:
                 kwargs["training_name"] = args.trainer_name
             
-            launch_machine_learning(project=ctbt, **kwargs)
+            launch_machine_learning(project=mlcf, **kwargs)
         
         ########################################## EXIT ############################################
-    ctbt.exit()
+    mlcf.exit()
     
 if __name__ == "__main__":
     main()

@@ -6,11 +6,11 @@ from os.path import isdir, join
 from pathlib import Path
 import pickle
 
-### CTBT modules ###
-from ctbt.datatools.preprocessing import Identity, WTSeriesPreProcess
-from ctbt.datatools.utils import build_forecast_ts_training_dataset
-from ctbt.datatools.wtseries import WTSeries
-from ctbt.envtools.hometools import ProjectHome
+### MLCF modules ###
+from mlcf.datatools.preprocessing import Identity, WTSeriesPreProcess
+from mlcf.datatools.utils import build_forecast_ts_training_dataset
+from mlcf.datatools.wtseries import WTSeries
+from mlcf.envtools.hometools import ProjectHome
 
 @unique
 class Partition(Enum):

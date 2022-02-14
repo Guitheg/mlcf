@@ -3,15 +3,15 @@ import numpy as np
 from torch.optim import SGD
 from torch.nn import L1Loss
 
-from ctbt.aitools.metrics import L2
-from ctbt.datatools.wtseries_training import WTSeriesTraining, TEST
-from ctbt.datatools.wtseries_tensor import WTSeriesTensor
+from mlcf.aitools.metrics import L2
+from mlcf.datatools.wtseries_training import WTSeriesTraining, TEST
+from mlcf.datatools.wtseries_tensor import WTSeriesTensor
 
 
 from torch import nn, tensor, sigmoid
 
-### CTBT modules ###
-from ctbt.aitools.super_module import SuperModule
+### MLCF modules ###
+from mlcf.aitools.super_module import SuperModule
 
 class MLP(SuperModule):
     def __init__(self, features, window_width, *args, **kwargs):

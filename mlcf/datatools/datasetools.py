@@ -4,11 +4,11 @@ from typing import List
 
 from freqtrade.data.history.history_utils import load_pair_history
 
-### CTBT modules ###
-from ctbt.datatools.wtseries_training import WTSeriesTraining
-from ctbt.datatools.preprocessing import WTSeriesPreProcess
-from ctbt.datatools.indice import Indice, add_indicators
-from ctbt.envtools.hometools import CtbtHome
+### MLCF modules ###
+from mlcf.datatools.wtseries_training import WTSeriesTraining
+from mlcf.datatools.preprocessing import WTSeriesPreProcess
+from mlcf.datatools.indice import Indice, add_indicators
+from mlcf.envtools.hometools import MlcfHome
 
 def run_download_freqtrade(pairs : List[str], 
                            timeframes : List[str], 
@@ -33,7 +33,7 @@ def run_download_freqtrade(pairs : List[str],
     sys.argv = old_sysargv
     
 
-def write_wtstdataset_from_raw_data(project : CtbtHome,
+def write_wtstdataset_from_raw_data(project : MlcfHome,
                                     rawdata_dir : Path,
                                     pairs : List[str],
                                     timeframes : List[str],

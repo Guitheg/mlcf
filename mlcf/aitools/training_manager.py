@@ -9,9 +9,9 @@ from datetime import datetime
 import torch
 from torch.utils.tensorboard import SummaryWriter
 
-### CTBT modules ###
-from ctbt.envtools.hometools import ProjectHome
-from ctbt.envtools.pathtools import create_path
+### MLCF modules ###
+from mlcf.envtools.hometools import ProjectHome
+from mlcf.envtools.pathtools import create_path
 
 class InfofileColumns(Enum):
     TRAINING : str = "Training name"

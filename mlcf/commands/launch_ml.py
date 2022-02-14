@@ -1,13 +1,13 @@
 
 from pathlib import Path
 from typing import List
-from ctbt.envtools.importools import train_method_import
+from mlcf.envtools.importools import train_method_import
 
-### CTBT modules ###
-from ctbt.datatools.wtseries_training import read_wtseries_training
-from ctbt.envtools.hometools import CtbtHome
+### MLCF modules ###
+from mlcf.datatools.wtseries_training import read_wtseries_training
+from mlcf.envtools.hometools import MlcfHome
 
-def launch_machine_learning(project : CtbtHome, trainer_name : str, training_name : str,
+def launch_machine_learning(project : MlcfHome, trainer_name : str, training_name : str,
                             dataset_name : str, *args, **kwargs):
 
     data_path = project.data_dir.joinpath(dataset_name)

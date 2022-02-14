@@ -1,8 +1,8 @@
 
 from enum import Enum, unique
 
-### CTBT modules ###
-from ctbt.datatools.wtseries import WTSeries
+### MLCF modules ###
+from mlcf.datatools.wtseries import WTSeries
 
 class WTSeriesPreProcess():
     """Preprocessing class for WTSeries objects

@@ -1,4 +1,4 @@
-from ctbt.datatools.indice import add_indicators, add_indicator, Indice
+from mlcf.datatools.indice import add_indicators, add_indicator, Indice
 import pandas as pd
 
 def init_data():
