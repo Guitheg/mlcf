@@ -3,6 +3,10 @@ maintest_*.py
 
 #vscode
 .vscode/
+.trunk/
+.isort.cfg
+.flake8
+.markdownlint.yaml
 
 #mlcf
 commands.sh
