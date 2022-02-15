@@ -279,7 +279,7 @@ def main():
             )
             mlcf.check_file(dataset_filepath, mlcf.data_dir)
             dataset = read_wtseries_training(dataset_filepath)
-            print(dataset("train", "input")[5])
+            print(dataset("train", "input")[0])
 
         # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@  MlcfHome Train Neural Network @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         elif args.command == Command.TRAIN.value:
