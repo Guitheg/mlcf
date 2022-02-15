@@ -1,15 +1,18 @@
 import importlib
 from importlib.machinery import ModuleSpec
-from pathlib import Path
-from pydantic import PathNotExistsError
 from os.path import basename
+from pathlib import Path
+
+from pydantic import PathNotExistsError
 
 
 def model_class_import(pyfile_path: Path):
     if not pyfile_path.is_file():
         raise PathNotExistsError(f"The file: {pyfile_path} doesn't exist")
     trainer_name = basename(str(pyfile_path.with_suffix("")))
-    module_spec: ModuleSpec = importlib.util.spec_from_file_location(trainer_name, pyfile_path)
+    module_spec: ModuleSpec = importlib.util.spec_from_file_location(
+        trainer_name, pyfile_path
+    )
     if module_spec is not None:
         module = importlib.util.module_from_spec(module_spec)
         if module is None:
@@ -25,7 +28,9 @@ def train_method_import(pyfile_path: Path):
     if not pyfile_path.is_file():
         raise PathNotExistsError(f"The file: {pyfile_path} doesn't exist")
     trainer_name = basename(str(pyfile_path.with_suffix("")))
-    module_spec: ModuleSpec = importlib.util.spec_from_file_location(trainer_name, pyfile_path)
+    module_spec: ModuleSpec = importlib.util.spec_from_file_location(
+        trainer_name, pyfile_path
+    )
     if module_spec is not None:
         module = importlib.util.module_from_spec(module_spec)
         if module is None:
