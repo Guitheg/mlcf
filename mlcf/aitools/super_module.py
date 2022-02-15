@@ -113,7 +113,7 @@ class SuperModule(Module):
         self.optimizer = optimizer
         if metrics:
             self.metrics = metrics
-        self.manager.info(f"Initialisation du modèle:")
+        self.manager.info("Initialisation du modèle:")
         self.manager.info(f"  -Loss: {self.loss.__class__.__name__}")
         self.manager.info(f"  -Optimizer: {self.optimizer.__class__.__name__}")
         self.manager.info(f"  -Metrics: {[f.__name__ for f in self.metrics]}")
