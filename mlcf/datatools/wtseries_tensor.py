@@ -7,12 +7,12 @@ from torch.utils.data.dataloader import DataLoader
 from torch import Tensor, tensor
 
 # MLCF modules
-from mlcf.datatools.wtseries_training import WTSeriesTraining, INPUT, TARGET
+from mlcf.datatools.wtseries_training import Partition, Field, WTSeriesTraining
 
 
 class WTSeriesTensor(TensorDataset):
     def __init__(self,
-                 partition: str,
+                 partition: Partition,
                  ts_data: WTSeriesTraining = None,
                  dir_ts_data: Path = None,
                  transform_x: Callable = None,
@@ -32,8 +32,8 @@ class WTSeriesTensor(TensorDataset):
             NotImplementedError: read a time serie data from a file is not implemented yet
             Warning: read a time serie data from a file is not implemented yet
         """
-        self.input_data: Tensor = None
-        self.target_data: Tensor = None
+        self.input_data: Tensor
+        self.target_data: Tensor
         self.partition = partition
         self.transform_x = transform_x
         self.transform_y = transform_y
@@ -47,12 +47,12 @@ class WTSeriesTensor(TensorDataset):
             if dir_ts_data is not None:
                 raise Warning("read a time serie data from a file is not implemented yet")
             self.ts_data: WTSeriesTraining = ts_data
-        if len(self) == 0:
+        if len(self.ts_data) == 0:
             raise ValueError("WTSeriesTraining has a length of 0. It is empty")
 
         self.ts_data_to_tensor(self.partition, transform_x=transform_x, transform_y=transform_y)
 
-        super(WTSeriesTensor, self).__init__(*[self.input_data, self.target_data], *args, **kwargs)
+        super(WTSeriesTensor, self).__init__(*[self.input_data, self.target_data])
 
     def x_size(self):
         return self.input_data.size()
@@ -66,11 +66,13 @@ class WTSeriesTensor(TensorDataset):
         return self.ts_data.len(part=self.partition)
 
     def ts_data_to_tensor(self,
-                          partition: str,
+                          partition: Partition,
                           transform_x: Callable = None,
                           transform_y: Callable = None):
-        self.input_data = tensor(np.array(self.ts_data(partition, INPUT)).astype(np.float32))
-        self.target_data = tensor(np.array(self.ts_data(partition, TARGET)).astype(np.float32))
+        self.input_data = tensor(np.array(self.ts_data(partition,
+                                                       Field.INPUT)).astype(np.float32))
+        self.target_data = tensor(np.array(self.ts_data(partition,
+                                                        Field.TARGET)).astype(np.float32))
         self.transform_data(transform_x, transform_y)
 
     def get_dataloader(self, *args, **kwargs):

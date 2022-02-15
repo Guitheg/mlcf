@@ -2,7 +2,7 @@ from typing import List, Tuple
 import pandas as pd
 # MLCF modules
 from mlcf.datatools.wtseries import WTSeries
-from mlcf.datatools.preprocessing import Identity, WTSeriesPreProcess
+from mlcf.datatools.preprocessing import Identity
 
 
 def split_pandas(dataframe: pd.DataFrame,
@@ -94,7 +94,7 @@ def input_target_data_windows(data_windows: WTSeries,
     """
     list_in: WTSeries = WTSeries(input_width)
     list_tar: WTSeries = WTSeries(target_width)
-    for window in data_windows:
+    for window in data_windows():
         inp, tar = input_target_data(window, input_width, target_width)
         list_in.add_one_window(inp)
         list_tar.add_one_window(tar)
@@ -138,13 +138,13 @@ def build_forecast_ts_training_dataset(dataframe: pd.DataFrame,
                                        prop_tv: float = 0.2,
                                        prop_v: float = 0.4,
                                        do_shuffle: bool = False,
-                                       preprocess: WTSeriesPreProcess = Identity,
-                                       ) -> Tuple[List[pd.DataFrame],
-                                                  List[pd.DataFrame],
-                                                  List[pd.DataFrame],
-                                                  List[pd.DataFrame],
-                                                  List[pd.DataFrame],
-                                                  List[pd.DataFrame]]:
+                                       preprocess=Identity,
+                                       ) -> Tuple[WTSeries,
+                                                  WTSeries,
+                                                  WTSeries,
+                                                  WTSeries,
+                                                  WTSeries,
+                                                  WTSeries]:
     """ From a time serie dataframe, build a forecast training dataset:
     -> ({n_interval} > 1): divide the dataframe in {n_interval} intervals
     -> split the dataframe in train, validation and test part
@@ -172,13 +172,12 @@ def build_forecast_ts_training_dataset(dataframe: pd.DataFrame,
         default to Identity
 
     Returns:
-        Tuple[
-            List[pd.DataFrame],
-            List[pd.DataFrame],
-            List[pd.DataFrame],
-            List[pd.DataFrame],
-            List[pd.DataFrame],
-            List[pd.DataFrame]],
+        Tuple[WTSeries,
+              WTSeries,
+              WTSeries,
+              WTSeries,
+              WTSeries,
+              WTSeries],
             the lists of train part inputs, train part targets, validation part inputs,
             validation part targets,  test part inputs and test part targets
     """

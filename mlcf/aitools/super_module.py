@@ -1,6 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import Callable, List, Tuple
+from typing import Callable, List, Optional, Tuple
 
 import torch
 from torch.utils.data import DataLoader
@@ -13,7 +13,7 @@ from time import time_ns
 
 # MLCF modules
 from mlcf.datatools.wtseries_tensor import WTSeriesTensor
-from mlcf.datatools.wtseries_training import WTSeriesTraining, TRAIN, VALIDATION, TEST
+from mlcf.datatools.wtseries_training import Partition, WTSeriesTraining
 from mlcf.aitools.log import ProgressBar, add_metrics_to_log, log_to_message
 from mlcf.envtools.hometools import ProjectHome
 from mlcf.aitools.training_manager import TrainingManager
@@ -87,7 +87,7 @@ class SuperModule(Module):
                              project: ProjectHome,
                              resume_training: bool = False):
         self.manager = TrainingManager(model=self, project=project)
-        self.manager.load_checkpoint(resume_trainin=resume_training)
+        self.manager.load_checkpoint(resume_training=resume_training)
         self.initialize = True
 
     def init(self,
@@ -111,7 +111,8 @@ class SuperModule(Module):
         self.manager = TrainingManager(model=self, project=project)
         self.loss = loss
         self.optimizer = optimizer
-        self.metrics = metrics
+        if metrics:
+            self.metrics = metrics
         self.manager.info(f"Initialisation du modèle:")
         self.manager.info(f"  -Loss: {self.loss.__class__.__name__}")
         self.manager.info(f"  -Optimizer: {self.optimizer.__class__.__name__}")
@@ -128,7 +129,7 @@ class SuperModule(Module):
             evaluate: bool = False,
             tensorboard: bool = False,
             checkpoint: bool = False,
-            *args, **kwargs) -> Tuple[List[OrderedDict], OrderedDict]:
+            *args, **kwargs) -> Tuple[List[OrderedDict], Optional[OrderedDict]]:
         """Fit/train the model (need to be initialized first)
 
         Args:
@@ -155,13 +156,13 @@ class SuperModule(Module):
         if not self.initialize:
             raise Exception("The module has not been compiled")
 
-        train_data = WTSeriesTensor(TRAIN, ts_data=dataset,
+        train_data = WTSeriesTensor(Partition.TRAIN, ts_data=dataset,
                                     transform_x=self.transform_x,
                                     transform_y=self.transform_y)
-        validation_data = WTSeriesTensor(VALIDATION, ts_data=dataset,
+        validation_data = WTSeriesTensor(Partition.VALIDATION, ts_data=dataset,
                                          transform_x=self.transform_x,
                                          transform_y=self.transform_y)
-        test_data = WTSeriesTensor(TEST, ts_data=dataset,
+        test_data = WTSeriesTensor(Partition.TEST, ts_data=dataset,
                                    transform_x=self.transform_x,
                                    transform_y=self.transform_y)
 
@@ -191,7 +192,7 @@ class SuperModule(Module):
 
             msg = log_to_message(log)
 
-            if talkative:
+            if talkative and pb:
                 pb.close(msg)
 
             self.manager.info(msg)
@@ -308,11 +309,15 @@ class SuperModule(Module):
         loss_name = prefix+loss_name
         loss = 0.0
         time_step = 0.0
-        predictions = []
-        labels = []
+        predictions: Tensor
+        labels: Tensor
         N = len(dataloader.dataset)
 
+        batch_index: int
+        batch_inputs: Tensor
+        batch_labels: Tensor
         for batch_index, (batch_inputs, batch_labels) in enumerate(dataloader):
+            batch_size: int = len(batch_inputs)
 
             t0 = time_ns()  # start evaluation duration step --------------------------------START--
             if type_batchrun == 'train':
@@ -322,6 +327,8 @@ class SuperModule(Module):
             batch_labels = batch_labels.to(self.device)
 
             # Propagation avant
+            batch_outputs: Tensor
+            batch_loss: Tensor
             batch_outputs, batch_loss = self.feedforward(batch_inputs=batch_inputs,
                                                          batch_labels=batch_labels)
 
@@ -344,9 +351,9 @@ class SuperModule(Module):
                 if batch_index == 0:  # init if batch_index = 0
                     predictions = zeros((N,) + batch_outputs.shape[1:])
                     labels = zeros((N,) + batch_labels.shape[1:])
-                index = batch_index*dataloader.batch_size
-                predictions[index: min(N, index + dataloader.batch_size)] = batch_outputs
-                labels[index: min(N, index + dataloader.batch_size)] = batch_labels
+                index: int = batch_index*batch_size
+                predictions[index: min(N, index + batch_size)] = batch_outputs
+                labels[index: min(N, index + batch_size)] = batch_labels
 
         return log, labels, predictions
 

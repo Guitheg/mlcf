@@ -1,6 +1,4 @@
-
 from pathlib import Path
-import os.path
 import configparser
 
 from typing import List
@@ -39,8 +37,8 @@ def get_config(dir_project: Path, dir_pref: Path) -> configparser.RawConfigParse
     Renvoi la configuration du programme si la version de la config projet et celle du programme est
     différente
     """
-    dir_config_prgm = os.path.join(dir_project, FILE_PARAMETER_NAME)
-    dir_config_pref = os.path.join(dir_pref, FILE_PARAMETER_NAME)
+    dir_config_prgm = dir_project.joinpath(FILE_PARAMETER_NAME)
+    dir_config_pref = dir_pref.joinpath(FILE_PARAMETER_NAME)
     config = configparser.RawConfigParser()
     configproject = configparser.RawConfigParser()
 

@@ -1,11 +1,11 @@
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 import pandas as pd
 from enum import Enum, unique
 from pathlib import Path
 import pickle
 
 # MLCF modules
-from mlcf.datatools.preprocessing import Identity, WTSeriesPreProcess
+from mlcf.datatools.preprocessing import Identity
 from mlcf.datatools.utils import build_forecast_ts_training_dataset
 from mlcf.datatools.wtseries import WTSeries
 from mlcf.envtools.hometools import ProjectHome
@@ -38,15 +38,15 @@ def read_wtseries_training(path: Path, project: ProjectHome = None):
             path = Path(path)
         else:
             raise Exception(f"path type should be Path or str: {type(path)}")
-    path: Path = path.with_suffix(EXTENSION_FILE)
-    if not path.is_file():
+    path_suffix = path.with_suffix(EXTENSION_FILE)
+    if not path_suffix.is_file():
         raise Exception("The given file path is unknown")
-    if path.suffix != EXTENSION_FILE:
+    if path_suffix.suffix != EXTENSION_FILE:
         raise Exception("The given file is not a WTST FILE (.wtst)")
-    with open(path, "rb") as read_file:
+    with open(path_suffix, "rb") as read_file:
         wtseries_training: WTSeriesTraining = pickle.load(read_file)
     if project:
-        project.log.info(f"[WTST]- WTST dataset load from {path}")
+        project.log.info(f"[WTST]- WTST dataset load from {path_suffix}")
         project.log.info(f"[WTST]- WTST dataset: {wtseries_training}")
     return wtseries_training
 
@@ -70,15 +70,16 @@ class WTSeriesTraining(object):
             index_column (str, optional): the name of the column we want to index the data. In
             general it's "Date". Defaults to None.
         """
-        super(WTSeriesTraining, self).__init__(*args, **kwargs)
+        super(WTSeriesTraining, self).__init__()
 
         self.features_has_been_set = False
+        self.index_column_has_been_set = False
         self.raw_data: List[pd.DataFrame] = []
         self.input_size: int = input_size
         self.target_size: int = target_size
-        self.index_column: str = index_column
-        self.features: List[str] = None
-        self.project: ProjectHome = project
+        self.index_column: str = ""
+        self.features: List[str] = [""]
+        self.project: Optional[ProjectHome] = project
 
         self.train_data: Dict = {INPUT: WTSeries(self.input_size),
                                  TARGET: WTSeries(self.target_size)}
@@ -94,6 +95,8 @@ class WTSeriesTraining(object):
                               TEST: self.test_data}
         if features is not None:
             self._set_features(features)
+        if index_column is not None:
+            self._set_index_column(index_column)
 
     def write(self, dir: Path, name: str):
         if not isinstance(dir, Path):
@@ -125,12 +128,13 @@ class WTSeriesTraining(object):
             do_shuffle (bool, optional): perform a shuffle if True. Defaults to False.
         """
 
-        self.ts_data[partition][INPUT].merge_window_data(input_ts_data,
-                                                         ignore_data_empty=True)
-        self.ts_data[partition][TARGET].merge_window_data(target_ts_data,
-                                                          ignore_data_empty=True)
+        self(partition, Field.INPUT).merge_window_data(input_ts_data,  # type: ignore
+                                                       ignore_data_empty=True)
+        self(partition, Field.TARGET).merge_window_data(target_ts_data,  # type: ignore
+                                                        ignore_data_empty=True)
         if do_shuffle:
-            self.ts_data[partition][INPUT].make_commmon_shuffle(self.ts_data[partition][TARGET])
+            target_wtseries: WTSeries = self(partition, Field.TARGET)  # type: ignore
+            self(partition, Field.INPUT).make_common_shuffle(target_wtseries)  # type: ignore
 
     def add_time_serie(self,
                        dataframe: pd.DataFrame,
@@ -140,7 +144,7 @@ class WTSeriesTraining(object):
                        n_interval: int = 1,
                        offset: int = 0,
                        window_step: int = 1,
-                       preprocess: WTSeriesPreProcess = Identity):
+                       preprocess=Identity):
         """extend the time series data by extracting the window data from a input dataframe
 
         Args:
@@ -155,7 +159,7 @@ class WTSeriesTraining(object):
             window_step (int, optional): the step of each window. Defaults to 1.
         """
         data = dataframe.copy()
-        if self.index_column is not None:
+        if self.index_column_has_been_set:
             data.set_index(self.index_column, inplace=True)
         if self.features_has_been_set:
             selected_data = data[self.features]
@@ -178,17 +182,17 @@ class WTSeriesTraining(object):
 
         self._add_ts_data(input_ts_data=training_dataset[0],
                           target_ts_data=training_dataset[1],
-                          partition=TRAIN,
+                          partition=Partition.TRAIN,
                           do_shuffle=do_shuffle)
 
         self._add_ts_data(input_ts_data=training_dataset[2],
                           target_ts_data=training_dataset[3],
-                          partition=VALIDATION,
+                          partition=Partition.VALIDATION,
                           do_shuffle=do_shuffle)
 
         self._add_ts_data(input_ts_data=training_dataset[4],
                           target_ts_data=training_dataset[5],
-                          partition=TEST,
+                          partition=Partition.TEST,
                           do_shuffle=do_shuffle)
         if self.project:
             self.project.log.debug(f"[WTST]- New WTST data: {self}")
@@ -218,18 +222,18 @@ class WTSeriesTraining(object):
         """
         if field is not None and part is None:
             raise Exception("You should fill part if field is filled")
-        elif field is not None:
-            return self.ts_data[part][field]
+        elif field is not None and part is not None:
+            return self.ts_data[part.value][field.value]
         if part is not None and field is None:
-            return self.ts_data[part]
+            return self.ts_data[part.value]
         return self.ts_data
 
     def __str__(self) -> str:
         return (f"Input size: {self.input_size}, Target size: {self.target_size}, " +
-                f"Index name: '{self.index_column}' - Data: " +
-                f"Length Train: {self.len(TRAIN)}, " +
-                f"Length Validation: {self.len(VALIDATION)}, " +
-                f"Length Test: {self.len(TEST)}")
+                f"Index name: '{self.index_column if self.index_column_has_been_set else 'X'}'" +
+                f"\nData lengths: \nLength Train: {self.len(Partition.TRAIN)}, " +
+                f"\nLength Validation: {self.len(Partition.VALIDATION)}, " +
+                f"\nLength Test: {self.len(Partition.TEST)}")
 
     def len(self, part: Partition = None) -> int:
         """Return the length of a partition 'train', 'val' or 'test'
@@ -241,8 +245,10 @@ class WTSeriesTraining(object):
             int: The sum of the 3 parts length if is None. Else return the length of the part
         """
         if part is not None:
-            return len(self(part, INPUT))
-        return len(self(TRAIN, INPUT)) + len(self(VALIDATION, INPUT)) + len(self(TEST, INPUT))
+            return len(self(part, Field.INPUT))
+        return (len(self(Partition.TRAIN, Field.INPUT)) +
+                len(self(Partition.VALIDATION, Field.INPUT)) +
+                len(self(Partition.TEST, Field.INPUT)))
 
     def width(self, field: Field = None) -> Union[int, Tuple[int, int]]:
         """return the width of windows data given 'input' or 'target'
@@ -273,11 +279,15 @@ class WTSeriesTraining(object):
         return 0
 
     def __len__(self):
-        return len()
+        return self.len()
 
     def _set_features(self, features: List[str]):
         self.features = features
         self.features_has_been_set = True
+
+    def _set_index_column(self, index_column: str):
+        self.index_column = index_column
+        self.index_column_has_been_set = True
 
     def x_train(self, index: int = None) -> Union[Dict[str, WTSeries], WTSeries]:
         if index is None:

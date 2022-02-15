@@ -1,5 +1,3 @@
-
-import os
 from pathlib import Path
 import logging
 from logging.handlers import RotatingFileHandler
@@ -11,13 +9,13 @@ from mlcf.envtools.pathtools import create_path
 
 def init_logging(home_name: str, dir_pref: Path, config: RawConfigParser) -> logging.Logger:
 
-    log_dir = create_path(os.path.join(dir_pref, config.get('Log', 'DirLog')))
+    log_dir = create_path(str(dir_pref.joinpath(config.get('Log', 'DirLog'))))
 
     log_file_name_debug = config.get('Log', 'BaseLogFileNameForDebug')
-    path_log_file_name_debug = os.path.join(log_dir, log_file_name_debug)
+    path_log_file_name_debug = log_dir.joinpath(log_file_name_debug)
 
     log_file_name_info = config.get('Log', 'BaseLogFileNameInfo')
-    path_log_file_name_info = os.path.join(log_dir, log_file_name_info)
+    path_log_file_name_info = log_dir.joinpath(log_file_name_info)
 
     logger = logging.getLogger(home_name+"_logger")
     logger.setLevel(logging.DEBUG)

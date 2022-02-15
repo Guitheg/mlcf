@@ -76,12 +76,12 @@ class WTSeries(object):
         Raises:
             Exception: [description]
         """
-        super(WTSeries, self).__init__(*args, **kwargs)
+        super(WTSeries, self).__init__()
 
         self.raw_data: pd.DataFrame = data
         self._window_width: int = window_width
         self.features_has_been_set = False
-        self.features: List[str] = None
+        self.features: List[str] = [""]
 
         if data is not None:
             self.data: List[pd.DataFrame] = window_data(self.raw_data,
@@ -89,7 +89,7 @@ class WTSeries(object):
                                                         window_step)
             self._set_features(self.raw_data.columns)
         else:
-            self.data: List = []
+            self.data = []
         if not self.is_empty() and len(self.data[0].index) != self.width():
             raise Exception("The window size is suppose to be equal " +
                             "to the number of row if it is not empty")

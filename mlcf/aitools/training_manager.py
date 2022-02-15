@@ -2,7 +2,8 @@ import pandas as pd
 from os.path import join, isfile
 
 from pathlib import Path
-from typing import Dict, List, OrderedDict
+from typing import Any, Dict, List
+from collections import OrderedDict
 from enum import Enum
 from datetime import datetime
 
@@ -92,17 +93,17 @@ class TrainingManager(object):
             self.home_path = self.project.get_dir()
             self.training_home = join(self.home_path, HOME)
             self.infofile_path = join(self.training_home, INFOFILE)
-            self.logs_path = create_path(self.training_home, LOGS)
-            self.models_path = create_path(self.training_home, MODELS)
-            self.checkpoint_path = create_path(self.models_path, CHECKPOINT,
+            self.logs_path = create_path(str(self.training_home), LOGS)
+            self.models_path = create_path(str(self.training_home), MODELS)
+            self.checkpoint_path = create_path(str(self.models_path), CHECKPOINT,
                                                f"checkpoints_{self.model.training_name}")
-            self.board_path = create_path(self.logs_path, TENSORBOARD_LOGS_NAME,
+            self.board_path = create_path(str(self.logs_path), TENSORBOARD_LOGS_NAME,
                                           f"boards_{self.model.training_name}")
             now = datetime.now()
             self.now = str(now.strftime("%Y-%d%b%Hh%Mm%S"))
 
             self.board_name = f"board_{self.now}_{self.model.training_name}"
-            self.board = SummaryWriter(join(self.board_path, self.board_name))
+            self.board = SummaryWriter(self.board_path.joinpath(self.board_name))
             self.has_training_manager = True
             self.load_infofile()
             print(self.infofile)
@@ -117,8 +118,7 @@ class TrainingManager(object):
     def get_last_checkpoint_path(self) -> Path:
         if len(self.infofile) == 0:
             raise Exception("Infofile doesn't exist yet")
-        if self.my_info is None:
-            raise Exception("This training didn't save a checkpoint yet")
+
         return self.infofile.loc[self.model.training_name][PATH_LAST_CHECKPOINT]
 
     def load_checkpoint(self, resume_training: bool = False) -> None:
@@ -140,7 +140,7 @@ class TrainingManager(object):
                 self.debug("Resuming training...")
                 self.model.train()
             else:
-                if self.use_project:
+                if self.project:
                     self.debug("Evaluation...")
                 self.model.eval()
         else:
@@ -193,10 +193,11 @@ class TrainingManager(object):
         self.infofile.loc[self.model.training_name] = update_dict
         self.infofile.to_csv(self.infofile_path, index_label=TRAINING_NAME)
 
-    def tensorboard_stream(self, log: OrderedDict, num_epoch: int) -> None:
+    def tensorboard_stream(self, log: OrderedDict[str, Any], num_epoch: int) -> None:
         if self.exist():
+            l: str
             for l in log:
-                self.board.add_scalar(l, log[l], num_epoch)
+                self.board.add_scalar(l, log.get(l), num_epoch)
             self.board.close()
         else:
             if not self.disable_warning:

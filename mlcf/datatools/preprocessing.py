@@ -1,5 +1,6 @@
 # MLCF modules
 from mlcf.datatools.wtseries import WTSeries
+from typing import TypeVar
 
 
 class WTSeriesPreProcess():
@@ -12,16 +13,18 @@ class WTSeriesPreProcess():
 
 
 class Identity(WTSeriesPreProcess):
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> WTSeries:
         return self.data
 
 
 class AutoNormalize(WTSeriesPreProcess):
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> WTSeries:
         for i in range(len(self.data)):
             self.data[i] = ((self.data[i] - self.data[i].mean()) / self.data[i].std()).round(6)
         return self.data
 
+
+WTSeriesPreProcessType = TypeVar("WTSeriesPreProcessType", bound=WTSeriesPreProcess)
 
 PreProcessDict = {
     "Identity": Identity,
