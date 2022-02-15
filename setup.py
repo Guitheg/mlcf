@@ -5,7 +5,7 @@ if __name__ == "__main__":
     setup(
         tests_require=["pytest", 
                     "pytest-mock"],
-        install_require=["torch",
+        install_requires=["torch",
                         "torchvision",
                         "torchaudio",
                         "tensorboard",
