@@ -1,5 +1,6 @@
-# https://github.com/Yvictor/ta-lib
-talib-binary
+# https://mrjbq7.github.io/ta-lib/
+--find-link https://pypi.anaconda.org/masdeseiscaracteres/simple 
+ta-lib
 
 # ---Pytorch---
 # https://pytorch.org/
