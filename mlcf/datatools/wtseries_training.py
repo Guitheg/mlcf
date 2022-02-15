@@ -143,10 +143,10 @@ class WTSeriesTraining(object):
         """
 
         self(partition, Field.INPUT).merge_window_data(  # type: ignore
-            input_ts_data, ignore_data_empty=True  
+            input_ts_data, ignore_data_empty=True
         )
         self(partition, Field.TARGET).merge_window_data(  # type: ignore
-            target_ts_data, ignore_data_empty=True 
+            target_ts_data, ignore_data_empty=True
         )
         if do_shuffle:
             target_wtseries: WTSeries = self(partition, Field.TARGET)  # type: ignore

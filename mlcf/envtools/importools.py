@@ -1,5 +1,4 @@
 import importlib
-from importlib.machinery import ModuleSpec
 from os.path import basename
 from pathlib import Path
 
