@@ -39,8 +39,8 @@ jobs:
 
     - name: Test with Mypy
       run: |
-        mypy mlcf
+        python -m mypy mlcf
 
     - name: Test with pytest
       run: |
-        pytest
+        pytest --cov
