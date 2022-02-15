@@ -1,3 +1,5 @@
+# https://github.com/Yvictor/ta-lib
+talib-binary
 
 # ---Pytorch---
 # https://pytorch.org/
