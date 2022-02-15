@@ -195,9 +195,8 @@ class TrainingManager(object):
 
     def tensorboard_stream(self, log: OrderedDict[str, Any], num_epoch: int) -> None:
         if self.exist():
-            l: str
-            for l in log:
-                self.board.add_scalar(l, log.get(l), num_epoch)
+            for key in log:
+                self.board.add_scalar(key, log.get(key), num_epoch)
             self.board.close()
         else:
             if not self.disable_warning:

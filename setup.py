@@ -1,12 +1,5 @@
-from setuptools import setup, find_packages
-import mlcf
+from setuptools import setup
 
-setup(
-    tests_require=["pytest", 
-                   "pytest-mock"],
-    install_requires=["freqtrade",
-                      "torch==1.10.2+cu113",
-                      "tensorboard",
-                      "torch-tb-profiler"],
-    setup_requires=['flake8']
-)
+
+if __name__ == "__main__":
+    setup()

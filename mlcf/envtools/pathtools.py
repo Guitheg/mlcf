@@ -3,8 +3,6 @@ from os import makedirs
 from os.path import abspath, dirname, expanduser, isdir, join
 from pathlib import Path
 
-from pydantic import PathNotExistsError
-
 
 def create_path(*paths: str) -> Path:
     new_path = join(*paths)
@@ -18,7 +16,7 @@ def get_path(*paths: str, create_dir: bool = False) -> Path:
         create_path(*paths)
     my_path = join(*paths)
     if not isdir(my_path):
-        raise PathNotExistsError(f"The directory: '{my_path}' is not a directory")
+        raise Exception(f"The directory: '{my_path}' is not a directory")
     return Path(my_path)
 
 
