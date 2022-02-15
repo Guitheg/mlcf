@@ -1,6 +1,5 @@
-from pathlib import Path
 import configparser
-
+from pathlib import Path
 from typing import List
 
 FILE_PARAMETER_NAME = "parameters.ini"
@@ -16,9 +15,8 @@ def get_param_dict_from_str(list_param: List[str]):
     return param_dict
 
 
-class Parameters():
-    def __init__(self, config: configparser.RawConfigParser,
-                 path: Path):
+class Parameters:
+    def __init__(self, config: configparser.RawConfigParser, path: Path):
         self.config = config
         self.path = path
 

@@ -1,7 +1,8 @@
-from os.path import join, isdir, abspath, dirname, expanduser
-from os import makedirs
-from pathlib import Path
 import sys
+from os import makedirs
+from os.path import abspath, dirname, expanduser, isdir, join
+from pathlib import Path
+
 from pydantic import PathNotExistsError
 
 
