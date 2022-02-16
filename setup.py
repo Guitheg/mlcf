@@ -2,6 +2,8 @@ import platform
 from setuptools import setup
 from setuptools.command.install import install
 from setuptools.command.develop import develop
+from distutils.command.sdist import sdist
+
 import os
 
 WINDOW_OS = "Windows"
@@ -17,6 +19,12 @@ def talib_install():
         os.system(f"pip install {dir} TA_Lib-0.4.24-cp39-cp39-win_amd64.whl")
     else:
         raise Exception("Unknown OS")
+
+
+class TalibSdit(sdist):
+    def run(self) -> None:
+        talib_install()
+        return super().run()
 
 
 class TalibDevelop(develop):
@@ -55,5 +63,6 @@ setup(
         "build_helper/talib-install.sh"
     ],
     cmdclass={"install": TalibInstall,
-              "develop": TalibDevelop}
+              "develop": TalibDevelop,
+              "sdist": TalibSdit}
 )
