@@ -5,7 +5,7 @@ import os
 
 def talib_install():
     dir = "build_helper"
-    os.system(f"sh {dir}/talib-install.sh")
+    os.system(f"cd {dir} && sh talib-install.sh")
 
 class TalibDevelop(develop):
     def run(self) -> None:
