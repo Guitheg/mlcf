@@ -1,16 +1,28 @@
 from setuptools import setup
 from setuptools.command.install import install
+from setuptools.command.develop import develop
 import os
+
+def talib_install():
+    dir = "build_helper"
+    os.system(f"sh {dir}/talib-install.sh")
+
+class TalibDevelop(develop):
+    def run(self) -> None:
+        talib_install()
+        return super().run()
+    
+    def finalize_options(self) -> None:
+        return super().finalize_options()
 
 class TalibInstall(install):
     def run(self):
-        os.system("sh build_helper/talib-install.sh")
+        talib_install()
         install.run(self)
         
     def finalize_options(self) -> None:
         return super().finalize_options()
-
-
 setup(
-    cmdclass={'install': TalibInstall}
+    cmdclass={"install": TalibInstall,
+              "develop": TalibDevelop}
 )
