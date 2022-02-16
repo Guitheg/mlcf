@@ -31,7 +31,7 @@ jobs:
         python -m pip install flake8 pytest
         if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
         pip install -r requirements.txt
-        pip install -e . --find-links
+        pip install -e .
 
     - name: Lint with flake8
       run: |
