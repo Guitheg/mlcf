@@ -1,23 +1,29 @@
-from os.path import isdir, isfile, join
+from os.path import join
 from pathlib import Path
-import pickle   
+
 import pandas as pd
-from mlcf.datatools.wtseries_training import WTSeriesTraining, EXTENSION_FILE, read_wtseries_training
+from mlcf.datatools.wtseries_training import WTSeriesTraining, EXTENSION_FILE, \
+                                             read_wtseries_training
+
 
 def init_data():
     data = pd.read_json("tests/testdata/BTC_BUSD-1h.json")
     columns = ["date", "open", "high", "low", "close", "volume"]
     data = pd.DataFrame(data.values, columns=columns)
-    data['date'] =  pd.to_datetime(data["date"], unit="ms")
+    data['date'] = pd.to_datetime(data["date"], unit="ms")
     return data
+
+
 data = init_data()
+
 
 def test_WTSeriesTraining():
     ts_data = WTSeriesTraining(9)
     ts_data.add_time_serie(data.iloc[0:1000], prop_tv=0.2)
     assert len(ts_data.x_train()) == 800 - 10 + 1
-    
-def test_io_WTSeriesTraining(mocker):
+
+
+def test_io_WTSeriesTraining():
     ts_data = WTSeriesTraining(9, index_column='date')
     ts_data.add_time_serie(data.iloc[0:1000], prop_tv=0.2)
     ts_data.write("tests/testdata", "WTStraining_BTCBUSD-1h")
