@@ -46,6 +46,7 @@ install_requirements = [
     "freqtrade"
 ]
 
+talib_install()
 setup(
     install_requires=install_requirements,
     cmdclass={"install": TalibInstall,
