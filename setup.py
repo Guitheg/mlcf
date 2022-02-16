@@ -3,6 +3,10 @@ from setuptools import setup
 from setuptools.command.install import install
 from setuptools.command.develop import develop
 from distutils.command.sdist import sdist
+try:
+    from wheel.bdist_wheel import bdist_wheel
+except ImportError:
+    bdist_wheel = None
 
 import os
 
@@ -45,6 +49,24 @@ class TalibInstall(install):
         return super().finalize_options()
 
 
+if bdist_wheel:
+    class TalibBdistWheel(bdist_wheel):
+        def run(self):
+            talib_install()
+            # Run wheel build command
+            super().run(self)
+
+        def finalize_options(self):
+            super().finalize_options(self)
+
+
+cmdclass = {
+    "install": TalibInstall,
+    "develop": TalibDevelop,
+    "sdist": TalibSdit,
+    "bdist_wheel": TalibBdistWheel
+}
+
 install_requirements = [
     "setuptools==59.5.0",
     "tensorboard",
@@ -55,14 +77,5 @@ install_requirements = [
 talib_install()
 setup(
     install_requires=install_requirements,
-    data_files=[
-        "build_helper/ta-lib-0.4.0-src.tar.gz",
-        "build_helper/TA_Lib-0.4.24-cp39-cp39-win_amd64.whl"
-    ],
-    scripts=[
-        "build_helper/talib-install.sh"
-    ],
-    cmdclass={"install": TalibInstall,
-              "develop": TalibDevelop,
-              "sdist": TalibSdit}
+    cmdclass=cmdclass
 )
