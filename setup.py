@@ -37,8 +37,6 @@ class TalibInstall(install):
         return super().finalize_options()
 
 
-talib_install()
-
 install_requirements = [
     "setuptools==59.5.0",
     "tensorboard",
@@ -48,6 +46,7 @@ install_requirements = [
     "freqtrade"
 ]
 
+talib_install()
 setup(
     install_requires=install_requirements,
     cmdclass={"install": TalibInstall,
