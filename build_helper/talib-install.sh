@@ -5,7 +5,7 @@ else
 fi
 echo "Installing to ${INSTALL_LOC}"
 if [ ! -f "${INSTALL_LOC}/lib/libta_lib.a" ]; then
-  if [! -f "ta-lib-0.4.0-src.tar.gz"]; then
+  if [! -f "./ta-lib-0.4.0-src.tar.gz"]; then
     wget https://github.com/Guitheg/mlcf/blob/main/build_helper/ta-lib-0.4.0-src.tar.gz
   fi
   tar zxvf ta-lib-0.4.0-src.tar.gz
