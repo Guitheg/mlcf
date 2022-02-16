@@ -43,7 +43,7 @@ def init_data():
 data = init_data()
 
 
-def test_mlp(mocker):
+def test_mlp():
     ts_data = WTSeriesTraining(20)
     ts_data.add_time_serie(data)
     module = MLP(features=ts_data.ndim(), window_width=ts_data.input_size)

@@ -1,3 +1,6 @@
+# setuptools version 59.5 to avoid : AttributeError: module 'setuptools._distutils' has no attribute 'version'
+setuptools==59.5.0
+
 # ---Pytorch---
 # https://pytorch.org/
 --find-links https://download.pytorch.org/whl/cu113/torch_stable.html
@@ -8,11 +11,9 @@ tensorboard
 torch-tb-profiler
 # ---
 
-# https://github.com/Guitheg/ritl
-ritl
-
 # https://github.com/rmsolgi/geneticalgorithm
 geneticalgorithm2
 
 # https://www.freqtrade.io/en/stable/te
+ccxt==1.72.98
 freqtrade
