@@ -2,7 +2,7 @@ import pandas as pd
 from os.path import join, isfile
 
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Dict, List
 from collections import OrderedDict
 from enum import Enum
 from datetime import datetime
