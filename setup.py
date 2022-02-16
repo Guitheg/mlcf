@@ -41,14 +41,19 @@ install_requirements = [
     "setuptools==59.5.0",
     "tensorboard",
     "torch-tb-profiler",
-    "geneticalgorithm2",
-    "ccxt>=1.72.98",
-    "freqtrade"
+    "geneticalgorithm2"
 ]
 
 talib_install()
 setup(
     install_requires=install_requirements,
+    data_files=[
+        "build_helper/ta-lib-0.4.0-src.tar.gz",
+        "build_helper/TA_Lib-0.4.24-cp39-cp39-win_amd64.whl"
+    ],
+    scripts=[
+        "build_helper/talib-install.sh"
+    ],
     cmdclass={"install": TalibInstall,
               "develop": TalibDevelop}
 )
