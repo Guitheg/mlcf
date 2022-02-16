@@ -193,7 +193,7 @@ class TrainingManager(object):
         self.infofile.loc[self.model.training_name] = update_dict
         self.infofile.to_csv(self.infofile_path, index_label=TRAINING_NAME)
 
-    def tensorboard_stream(self, log: OrderedDict[str, Any], num_epoch: int) -> None:
+    def tensorboard_stream(self, log: OrderedDict, num_epoch: int) -> None:
         if self.exist():
             for key in log:
                 self.board.add_scalar(key, log.get(key), num_epoch)
