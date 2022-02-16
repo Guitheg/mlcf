@@ -15,6 +15,6 @@ def init_data():
 data = init_data()
 
 
-def test_super_module(mocker):
+def test_super_module():
     ts_data = WTSeriesTraining(20, index_column="date")
     SuperModule(ts_data.input_size)
