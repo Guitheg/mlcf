@@ -9,8 +9,10 @@ from mlcf.datatools.indice import Indice, add_indicators
 from mlcf.datatools.preprocessing import WTSeriesPreProcess
 
 # MLCF modules
-from mlcf.datatools.wtseries_training import WTSeriesTraining
+from mlcf.datatools.wtseries_training import WTSeriesTraining, read_wtseries_training
 from mlcf.envtools.hometools import MlcfHome
+from mlcf.envtools.hometools import ProjectHome
+
 
 
 def run_download_freqtrade(
@@ -32,6 +34,10 @@ def run_download_freqtrade(
         sys.argv = old_sysargv
         return exception.code
     sys.argv = old_sysargv
+
+
+def read_wtseries_training_from_file(path: Path, project: ProjectHome):
+    return read_wtseries_training(path, project)
 
 
 def write_wtstdataset_from_raw_data(
