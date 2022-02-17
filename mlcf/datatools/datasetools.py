@@ -52,7 +52,12 @@ def write_wtstdataset_from_raw_data(
     preprocess: WTSeriesPreProcess,
 ):
 
-    dataset = WTSeriesTraining(input_size, target_size, index_column, project=project)
+    dataset = WTSeriesTraining(
+        input_size=input_size,
+        target_size=target_size,
+        index_column=index_column,
+        project=project
+    )
     for pair in pairs:
         for tf in timeframes:
             project.log.info(f"Loading data ({pair}-{tf}) in {rawdata_dir}")
