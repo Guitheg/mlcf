@@ -57,8 +57,8 @@ class WTSeriesTraining(object):
         self,
         input_size: int,
         target_size: int = 1,
+        features: List[str] = [],
         index_column: str = None,
-        features: List[str] = None,
         project: ProjectHome = None,
         *args,
         **kwargs,
@@ -74,15 +74,13 @@ class WTSeriesTraining(object):
             index_column (str, optional): the name of the column we want to index the data. In
             general it's "Date". Defaults to None.
         """
-        super(WTSeriesTraining, self).__init__()
-
         self.features_has_been_set = False
         self.index_column_has_been_set = False
         self.raw_data: List[pd.DataFrame] = []
         self.input_size: int = input_size
         self.target_size: int = target_size
         self.index_column: str = ""
-        self.features: List[str] = [""]
+        self.features: List[str] = []
         self.project: Optional[ProjectHome] = project
 
         self.train_data: Dict = {
@@ -105,7 +103,7 @@ class WTSeriesTraining(object):
             VALIDATION: self.val_data,
             TEST: self.test_data,
         }
-        if features is not None:
+        if len(features) != 0:
             self._set_features(features)
         if index_column is not None:
             self._set_index_column(index_column)
@@ -226,7 +224,9 @@ class WTSeriesTraining(object):
             self.project.log.debug(f"[WTST]- New WTST data: {self}")
 
     def __call__(
-        self, part: Partition = None, field: Field = None
+        self,
+        part: Union[Partition, str] = None,
+        field: Union[Field, str] = None
     ) -> Union[Dict[str, Dict], Dict[str, WTSeries], WTSeries]:
         """return the time series data (a dict format) if None arguments has been filled.
         If part is filled, return the partition (train, validation, or test) (with a dict format).
@@ -248,12 +248,14 @@ class WTSeriesTraining(object):
             or a dict of window data (a part 'train', 'validation' or 'test'),
             or a window data (a field 'input', 'target')
         """
+        part_value = part.value if isinstance(part, Partition) else str(part)
+        field_value = field.value if isinstance(field, Field) else str(field)
         if field is not None and part is None:
             raise Exception("You should fill part if field is filled")
         elif field is not None and part is not None:
-            return self.ts_data[part.value][field.value]
+            return self.ts_data[part_value][field_value]
         if part is not None and field is None:
-            return self.ts_data[part.value]
+            return self.ts_data[part_value]
         return self.ts_data
 
     def __str__(self) -> str:
@@ -314,7 +316,7 @@ class WTSeriesTraining(object):
         return self.len()
 
     def _set_features(self, features: List[str]):
-        self.features = features
+        self.features = list(features)
         self.features_has_been_set = True
 
     def _set_index_column(self, index_column: str):
@@ -350,3 +352,34 @@ class WTSeriesTraining(object):
         if index is None:
             return self.test_data[TARGET]
         return self.test_data[TARGET][index]
+
+    def copy(self, filter: Optional[List[Union[bool, str]]] = None):
+        wtstraining_copy = WTSeriesTraining(
+            input_size=self.input_size,
+            target_size=self.target_size,
+            features=(list(self.raw_data[0].loc[:, filter].columns) if filter else self.features),
+            index_column=self.index_column,
+            project=self.project
+        )
+        if filter:
+            wtstraining_copy.raw_data = list(map(lambda rdata: rdata.loc[:, filter], self.raw_data))
+        else:
+            wtstraining_copy.raw_data = self.raw_data
+        wtstraining_copy.train_data = {
+            INPUT: self.train_data[INPUT].copy(filter),
+            TARGET: self.train_data[TARGET].copy(filter),
+        }
+        wtstraining_copy.val_data = {
+            INPUT: self.val_data[INPUT].copy(filter),
+            TARGET: self.val_data[TARGET].copy(filter),
+        }
+        wtstraining_copy.test_data = {
+            INPUT: self.test_data[INPUT].copy(filter),
+            TARGET: self.test_data[TARGET].copy(filter),
+        }
+        wtstraining_copy.ts_data = {
+            TRAIN: wtstraining_copy.train_data,
+            VALIDATION: wtstraining_copy.val_data,
+            TEST: wtstraining_copy.test_data,
+        }
+        return wtstraining_copy

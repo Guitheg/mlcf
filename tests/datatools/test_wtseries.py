@@ -35,25 +35,36 @@ def test_WTSeries():
     assert win.is_empty()
     assert 0 == win.ndim()
     assert (0, 10, 0) == win.size()
-    win2 = WTSeries(data=data[["close", "open"]].iloc[0:100], window_width=10)
+    win2 = WTSeries(raw_data=data[["close", "open"]].iloc[0:100], window_width=10)
     win.merge_window_data(win2)
     assert win.ndim() == 2
     assert len(win) == len(win2)
-    win3 = WTSeries(data=data.iloc[0:100], window_width=20)
+    win3 = WTSeries(raw_data=data.iloc[0:100], window_width=20)
     with pytest.raises(Exception):
         win.merge_window_data(win3)
-    win3.add_data(data[100:200], 5)
+    win3.add_data(data[100:200], window_step=5)
     assert len(win3) == (((100-20) // 1) + 1) + (((100-20) // 5) + 1)
     win3.add_one_window(data[200:220])
     assert len(win3) == (((100-20) // 1) + 1) + (((100-20) // 5) + 1) + 1
 
 
 def test_WTSeries_make_common_shuffle():
-    wts = WTSeries(data=data[["close", "open"]].iloc[0:100], window_width=20)
-    wts2 = WTSeries(data=data[["close", "open"]].iloc[100:200], window_width=20)
+    wts = WTSeries(raw_data=data[["close", "open"]].iloc[0:100], window_width=20)
+    wts2 = WTSeries(raw_data=data[["close", "open"]].iloc[100:200], window_width=20)
     assert wts()[0].index[0] == 0
     assert wts2()[0].index[0] == 100
     wts.make_common_shuffle(wts2)
     assert wts()[0].index[0] != 0
     assert wts2()[0].index[0] != 100
     assert wts()[0].index[0] == wts2()[0].index[0]-100
+
+
+def test_WTSeries_copy():
+    wts = WTSeries(raw_data=data[["close", "open"]].iloc[0:100], window_width=20)
+    wts_copy = wts.copy()
+    assert wts._window_width == wts_copy._window_width
+    assert wts.window_step == wts_copy.window_step
+    assert len(wts.data) == len(wts_copy.data)
+    for win, win_cp in zip(wts.data, wts_copy.data):
+        assert len(win) == len(win_cp)
+        assert len(win.columns) == len(win.columns)
