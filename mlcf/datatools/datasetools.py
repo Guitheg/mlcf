@@ -14,7 +14,6 @@ from mlcf.envtools.hometools import MlcfHome
 from mlcf.envtools.hometools import ProjectHome
 
 
-
 def run_download_freqtrade(
     pairs: List[str], timeframes: List[str], days: int, exchange: str, userdir: Path
 ):
