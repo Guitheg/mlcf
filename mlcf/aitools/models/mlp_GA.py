@@ -1,20 +1,18 @@
 
 from torch import nn, relu, tensor, sigmoid, sum
-from ai.super_module import SuperModule
-from ai.metrics import L2
+from mlcf.aitools.super_module import SuperModule
+from mlcf.aitools.metrics import L2
 from torch.optim import SGD
 from torch.nn import L1Loss
 from torchvision import transforms
-from datatools.wtseries_training import WTSeriesTraining, Partition as P
+from mlcf.datatools.wtseries_training import WTSeriesTraining, Partition as P
 
 class MLPGA(SuperModule):
-
-    
 
     def __init__(self, features, window_width,
                 input_size=20, n_epoch = 1, batch_size= 5, 
                 learning_rate = 0.1, loss=L1Loss(),metrics=[L2],
-                optimizer = SGD(),
+                optimizer = None,
                 *args, **kwargs):
 
         super(MLPGA, self).__init__(*args, **kwargs)
