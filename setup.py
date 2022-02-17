@@ -4,7 +4,8 @@ install_requirements = [
     "setuptools==59.5.0",
     "tensorboard",
     "torch-tb-profiler",
-    "geneticalgorithm2"
+    "geneticalgorithm2",
+    "freqtrade"
 ]
 
 setup(

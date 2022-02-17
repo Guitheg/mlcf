@@ -22,7 +22,7 @@ jobs:
 
     - name: Install TA-LIB
       run: |
-        wget https://github.com/Guitheg/mlcf/blob/main/build_helper/talib-install.sh
+        wget https://raw.githubusercontent.com/Guitheg/mlcf/main/build_helper/talib-install.sh
         sh talib-install.sh
 
     - name: Install dependencies
