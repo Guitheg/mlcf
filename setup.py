@@ -1,12 +1,13 @@
-from setuptools import setup, find_packages
-import mlcf
+from setuptools import setup
+
+install_requirements = [
+    "setuptools==59.5.0",
+    "tensorboard",
+    "torch-tb-profiler",
+    "geneticalgorithm2",
+    "freqtrade"
+]
 
 setup(
-    tests_require=["pytest", 
-                   "pytest-mock"],
-    install_requires=["freqtrade",
-                      "torch==1.10.2+cu113",
-                      "tensorboard",
-                      "torch-tb-profiler"],
-    setup_requires=['flake8']
+    install_requires=install_requirements,
 )

@@ -3,6 +3,10 @@ maintest_*.py
 
 #vscode
 .vscode/
+.trunk/
+.isort.cfg
+.flake8
+.markdownlint.yaml
 
 #mlcf
 commands.sh
@@ -135,7 +139,7 @@ venv.bak/
 # mkdocs documentation
 /site
 
-# mypy
+# type
 .mypy_cache/
 .dmypy.json
 dmypy.json
