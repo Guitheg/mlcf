@@ -11,7 +11,7 @@ from torch.optim import SGD
 from torch.nn import L1Loss
 
 
-glb_raw_data = None
+glb_raw_data = pd.DataFrame()
 glb_wts_training = None
 glb_nn_model = None
 glb_nn_model_max_loss = None
