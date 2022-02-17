@@ -1,5 +1,6 @@
 import argparse
 from enum import Enum, unique
+import os
 from pathlib import Path
 
 from mlcf.commands import build_dataset, launch_machine_learning
@@ -38,7 +39,7 @@ def main():
         "--userdir",
         help="The user directory commonly called 'user_data'",
         type=Path,
-        default=Path(get_dir_prgm().joinpath("user_data")),
+        default=Path(os.curdir).joinpath("user_data"),
     )
     general_arguments_group.add_argument(
         "--create-userdir",
