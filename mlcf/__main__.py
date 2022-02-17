@@ -53,8 +53,7 @@ def main():
         dest="command",
         title="CG-RBI commands",
         description="",
-        help="The list of commands you can use",
-        required=True,
+        help="The list of commands you can use"
     )
 
     # @@@@ Build arguments @@@@@
