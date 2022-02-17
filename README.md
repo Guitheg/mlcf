@@ -21,8 +21,6 @@ python -m mlcf <list_of_arguments>
 
 ## Installation
 
----
-
 OS officially supported:  
 
 - **Linux**  
@@ -66,6 +64,64 @@ pip install mlcf
 ```
 
 ---
+
+## MLCF module usage
+
+Before all, we need to create an user directory where all of our project will be stored : logs, checkpoint, models, trainers, parameters file etc.  
+The arborescence of a mlfc_home repository is as follow:  
+
+```bash
+mlfc_home
+│   parameters.ini
+├───data
+│   │   dataset_a.wst
+│   │   dataset_b.wst
+│   └   ...
+│
+├───logs
+│   ├─  debugMessages
+│   └─  infoMessages
+│
+├───ml
+│   ├───models
+│   │   │   lstm.py
+│   │   │   cnn_n_lstm.py
+│   │   └─  ...
+│   │
+│   └───trainers
+│       |   trainer_lstm_a.py
+│       |   trainer_lstm_b.py
+│       └─  ...
+│
+└───Training
+    ├───TrainingInfo.csv
+    ├───logs
+    │   └───boards
+    │       ├───boards_TrainingA
+    │       ├───boards_TrainingB
+    │       │   ├───board_17feb_17h_TrainingB
+    │       │   ├───board_18feb_19h_TrainingB
+    │       │   └─  ...
+    │       └─  ...
+    │   
+    └───saves
+        └───checkpoints
+            ├───checkpoints_TrainingA
+            ├───checkpoints_TrainingB
+            │   ├───checkpoint_TrainingA_17feb_17h.pt
+            │   ├───checkpoint_TrainingB_18feb_19h.pt
+            │   └─  ...
+            └─  ... 
+        
+```
+
+To create the project repository use:
+
+*Note: the ```path_to_dir``` value is set by default to the current directory.*
+
+```bash
+mlfc --create-userdir --userdir <path_to_dir>
+```
 
 ## MLCF library
 
