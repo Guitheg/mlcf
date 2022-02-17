@@ -95,8 +95,7 @@ mlfc_home
 │
 └───Training
     ├───TrainingInfo.csv
-    ├───logs
-    │   └───boards
+    ├───boards
     │       ├───boards_TrainingA
     │       ├───boards_TrainingB
     │       │   ├───board_17feb_17h_TrainingB
@@ -104,8 +103,7 @@ mlfc_home
     │       │   └─  ...
     │       └─  ...
     │   
-    └───saves
-        └───checkpoints
+    └───checkpoints
             ├───checkpoints_TrainingA
             ├───checkpoints_TrainingB
             │   ├───checkpoint_TrainingA_17feb_17h.pt
