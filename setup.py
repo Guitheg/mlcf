@@ -5,7 +5,7 @@ install_requirements = [
     "tensorboard",
     "torch-tb-profiler",
     "geneticalgorithm2",
-    "freqtrade"
+    "TA-Lib"
 ]
 
 setup(
