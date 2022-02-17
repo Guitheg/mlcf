@@ -7,7 +7,7 @@ from mlcf.aitools.metrics import L2
 from mlcf.datatools.wtseries_training import WTSeriesTraining, Partition as P
 from mlcf.datatools.wtseries_tensor import WTSeriesTensor
 
-from torch import Tensor, nn, sigmoid
+from torch import nn, sigmoid
 # MLCF modules
 from mlcf.aitools.super_module import SuperModule
 
