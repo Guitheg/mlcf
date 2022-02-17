@@ -9,7 +9,7 @@ maintest_*.py
 .markdownlint.yaml
 
 #mlcf
-commands.sh
+mlcf_home/
 
 #freqtrade
 user_data/
