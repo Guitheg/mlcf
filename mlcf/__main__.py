@@ -9,7 +9,7 @@ from mlcf.commands import build_dataset, launch_machine_learning
 from mlcf.datatools.indice import Indice
 from mlcf.datatools.preprocessing import PreProcessDict
 from mlcf.datatools.wtseries_training import EXTENSION_FILE, read_wtseries_training
-from mlcf.envtools.hometools import MlcfHome, get_dir_prgm
+from mlcf.envtools.hometools import MlcfHome
 
 PRGM_NAME = MlcfHome.HOME_NAME
 
