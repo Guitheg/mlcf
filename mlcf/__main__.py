@@ -1,36 +1,20 @@
 import argparse
-from enum import Enum, unique
+
 import os
 from pathlib import Path
 
-from mlcf.commands import build_dataset, launch_machine_learning
-
-# @@ MLCF modules @@@
+# MLCF modules
 from mlcf.datatools.indice import Indice
 from mlcf.datatools.preprocessing import PreProcessDict
-from mlcf.datatools.wtseries_training import EXTENSION_FILE, read_wtseries_training
 from mlcf.envtools.hometools import MlcfHome
+from mlcf.commands.main import run, Command
 
 PRGM_NAME = MlcfHome.HOME_NAME
 
 
-@unique
-class Command(Enum):
-    BUILD = "build-dataset"
-    TRAIN = "train"
-    VISUALIZE = "visualize"
-
-    @classmethod
-    def list_value(self):
-        return [item.value for item in list(self)]
-
-
 def main():
-    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ARGUMENT PARSER @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     parser = argparse.ArgumentParser(prog=PRGM_NAME)
-    # @@@@ Generals arguments @@@@@
+    # Generals arguments
     general_arguments_group = parser.add_argument_group(
         "Common arguments", "All this arguments are common with every commands"
     )
@@ -49,19 +33,17 @@ def main():
         + "then it raises an error.",
         action="store_true",
     )
-
     subcommands = parser.add_subparsers(
         dest="command",
         title="CG-RBI commands",
         description="",
         help="The list of commands you can use"
     )
-
-    # @@@@ Build arguments @@@@@
+    # Build arguments
     command_build = subcommands.add_parser(
         Command.BUILD.value, help="Dataset creation command"
     )
-    # freqtrade
+    # - freqtrade
     group_freqtrade = command_build.add_argument_group(
         "Data download information",
         "All info needed to download the"
@@ -180,7 +162,6 @@ def main():
         metavar="INDICE",
         nargs="+",
     )
-
     group_wtst.add_argument(
         "--preprocess",
         help="List of pre processing function we want to use "
@@ -190,8 +171,7 @@ def main():
         choices=PreProcessDict.keys(),
         metavar="FUNCTION NAME",
     )
-
-    # @@@@@ Train arguments @@@@@
+    # Train arguments
     command_train = subcommands.add_parser(
         Command.TRAIN.value, help="Neural Network training command"
     )
@@ -210,7 +190,6 @@ def main():
         type=str,
         metavar="NAME",
     )
-
     command_train.add_argument(
         "--dataset-name",
         help="The dataset name use for the training",
@@ -218,7 +197,6 @@ def main():
         type=str,
         required=True,
     )
-
     command_train.add_argument(
         "--param",
         help="The list of arguments for the trainer. IMPORTANT: "
@@ -227,8 +205,7 @@ def main():
         nargs="+",
         type=str,
     )
-
-    # @@@@@ Visualize arguments @@@@@
+    # Visualize arguments
     command_visualize = subcommands.add_parser(
         Command.VISUALIZE.value, help="Dataset visualization command"
     )
@@ -246,49 +223,12 @@ def main():
         default="console",
         type=str,
     )
-
     args = parser.parse_args()
 
-    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ PROJECT ENV @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     userdir: Path = Path(args.userdir)
-    # try:
+
     mlcf = MlcfHome(home_directory=userdir, create_userdir=args.create_userdir)
-    # except:
-    #     raise Exception(f"userdir: {userdir} doesn't exist yet. Add '--create-userdir' to create"+
-    #                     " userdir repository or find a correct path.")
-    mlcf.log.info(f"Arguments: {args}")
-
-    kwargs = vars(args).copy()
-    kwargs.pop("create_userdir")
-    if args.command:
-        kwargs.pop("command")
-        # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  MlcfHome Build Dataset @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        if args.command == Command.BUILD.value:
-
-            kwargs["preprocess"] = PreProcessDict[args.preprocess]
-            if args.indices:
-                kwargs["indices"] = [Indice(indice) for indice in args.indices]
-            build_dataset(project=mlcf, **kwargs)
-
-        # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@  MlcfHome Visualize Dataset @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        elif args.command == Command.VISUALIZE.value:
-            dataset_filepath = mlcf.data_dir.joinpath(args.dataset_name).with_suffix(
-                EXTENSION_FILE
-            )
-            mlcf.check_file(dataset_filepath, mlcf.data_dir)
-            dataset = read_wtseries_training(dataset_filepath)
-            print(dataset("train", "input")[0])
-
-        # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@  MlcfHome Train Neural Network @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        elif args.command == Command.TRAIN.value:
-            if args.training_name is None:
-                kwargs["training_name"] = args.trainer_name
-
-            launch_machine_learning(project=mlcf, **kwargs)
-
-        # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ EXIT @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    run(mlcf, args)
     mlcf.exit()
 
 
