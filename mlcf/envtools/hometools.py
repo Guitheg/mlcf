@@ -9,6 +9,7 @@ from typing import Tuple
 from mlcf.envtools.logtools import init_logging
 from mlcf.envtools.paramtools import FILE_PARAMETER_NAME, Parameters, get_config
 from mlcf.envtools.pathtools import get_dir_prgm, get_path
+from mlcf import __version__, __appname__, __fullappname__
 
 
 class ProjectHome:
@@ -32,7 +33,7 @@ class ProjectHome:
 
 
 class MlcfHome(ProjectHome):
-    HOME_NAME = "mlcf"
+    HOME_NAME = "mlcf_home"
     DATA = "data"
     ML = "ml"
     TRAINERS = "trainers"
@@ -81,8 +82,7 @@ def init_project(
     logger = init_logging(home_name=home_name, dir_pref=dir_pref, config=config)
 
     id_prog = (
-        f"{config.get('Version', 'AppName')} - {config.get('Version', 'FullAppName')}"
-        + f"- version {config.get('Version', 'Number')}"
+        f"{__appname__} - {__fullappname__} - version v{__version__}"
     )
 
     syst_info = f"{platform.system()} {platform.release()} - Python  {platform.python_version()}"

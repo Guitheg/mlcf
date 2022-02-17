@@ -1,5 +1,6 @@
 import argparse
 from enum import Enum, unique
+import os
 from pathlib import Path
 
 from mlcf.commands import build_dataset, launch_machine_learning
@@ -8,7 +9,7 @@ from mlcf.commands import build_dataset, launch_machine_learning
 from mlcf.datatools.indice import Indice
 from mlcf.datatools.preprocessing import PreProcessDict
 from mlcf.datatools.wtseries_training import EXTENSION_FILE, read_wtseries_training
-from mlcf.envtools.hometools import MlcfHome, get_dir_prgm
+from mlcf.envtools.hometools import MlcfHome
 
 PRGM_NAME = MlcfHome.HOME_NAME
 
@@ -38,7 +39,7 @@ def main():
         "--userdir",
         help="The user directory commonly called 'user_data'",
         type=Path,
-        default=Path(get_dir_prgm().joinpath("user_data")),
+        default=Path(os.curdir).joinpath("user_data"),
     )
     general_arguments_group.add_argument(
         "--create-userdir",
@@ -53,8 +54,7 @@ def main():
         dest="command",
         title="CG-RBI commands",
         description="",
-        help="The list of commands you can use",
-        required=True,
+        help="The list of commands you can use"
     )
 
     # @@@@ Build arguments @@@@@
