@@ -1,9 +1,6 @@
-import runpy
-import sys
 from pathlib import Path
-from typing import List
-
-from freqtrade.data.history.history_utils import load_pair_history
+from typing import Generator, List
+import pandas as pd
 
 from mlcf.datatools.indice import Indice, add_indicators
 from mlcf.datatools.preprocessing import WTSeriesPreProcess
@@ -14,37 +11,34 @@ from mlcf.envtools.hometools import MlcfHome
 from mlcf.envtools.hometools import ProjectHome
 
 
-
-def run_download_freqtrade(
-    pairs: List[str], timeframes: List[str], days: int, exchange: str, userdir: Path
-):
-    old_sysargv = sys.argv
-    sys.argv = [sys.argv[0]]
-    sys.argv.append("download-data")
-    sys.argv.append("--pairs")
-    sys.argv.extend(pairs)
-    sys.argv.append("-t")
-    sys.argv.extend(timeframes)
-    sys.argv.extend(["--days", str(days)])
-    sys.argv.extend(["--exchange", exchange])
-    sys.argv.extend(["--userdir", str(userdir)])
-    try:
-        runpy.run_module("freqtrade", run_name="__main__")
-    except SystemExit as exception:
-        sys.argv = old_sysargv
-        return exception.code
-    sys.argv = old_sysargv
-
-
 def read_wtseries_training_from_file(path: Path, project: ProjectHome):
     return read_wtseries_training(path, project)
+
+
+def read_ohlcv_json_rawdata(path: Path) -> pd.DataFrame:
+    if not path.is_file():
+        raise Exception(f"The path {path} lead to any file")
+    data = pd.read_json(path).values
+    if data.shape[1] != 6:
+        raise Exception("It's seems it is not OHLCV data - because we don't have 6 columns")
+    columns = ["date", "open", "high", "low", "close", "volume"]
+    data = pd.DataFrame(data, columns=columns)
+    data['date'] = pd.to_datetime(data["date"], unit="ms")
+    return data
+
+
+def read_all_ohlcv_rawdata_from_dir(dir: Path) -> Generator:
+    if not dir.is_dir():
+        raise Exception(f"The path {dir} lead to any directory")
+    for file in dir.iterdir():
+        if file.is_file() and file.suffix == ".json":
+            data = read_ohlcv_json_rawdata(file)
+            yield data
 
 
 def write_wtstdataset_from_raw_data(
     project: MlcfHome,
     rawdata_dir: Path,
-    pairs: List[str],
-    timeframes: List[str],
     dataset_name: str,
     input_size: int,
     target_size: int,
@@ -56,6 +50,7 @@ def write_wtstdataset_from_raw_data(
     prop_v: float,
     indices: List[Indice],
     preprocess: WTSeriesPreProcess,
+    *args, **kwargs
 ):
 
     dataset = WTSeriesTraining(
@@ -64,23 +59,20 @@ def write_wtstdataset_from_raw_data(
         index_column=index_column,
         project=project
     )
-    for pair in pairs:
-        for tf in timeframes:
-            project.log.info(f"Loading data ({pair}-{tf}) in {rawdata_dir}")
-            pair_history = load_pair_history(pair, tf, rawdata_dir)
-            if indices:
-                project.log.info(f"Adding indicators: {[i.value for i in indices]}")
-                pair_history = add_indicators(pair_history, indices)
 
-            dataset.add_time_serie(
-                pair_history,
-                prop_tv=prop_tv,
-                prop_v=prop_v,
-                do_shuffle=False,
-                n_interval=n_interval,
-                offset=offset,
-                window_step=window_step,
-                preprocess=preprocess,
-            )
-
+    for raw_data in read_all_ohlcv_rawdata_from_dir(rawdata_dir):
+        if indices:
+            project.log.info(f"Adding indicators: {[i.value for i in indices]}")
+            raw_data = add_indicators(raw_data, indices)
+        dataset.add_time_serie(
+            raw_data,
+            prop_tv=prop_tv,
+            prop_v=prop_v,
+            do_shuffle=False,
+            n_interval=n_interval,
+            offset=offset,
+            window_step=window_step,
+            preprocess=preprocess,
+        )
+    project.log.debug(f"Dataset built:{dataset}")
     dataset.write(project.data_dir, dataset_name)

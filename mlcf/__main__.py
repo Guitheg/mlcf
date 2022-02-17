@@ -43,54 +43,20 @@ def main():
     command_build = subcommands.add_parser(
         Command.BUILD.value, help="Dataset creation command"
     )
-    # - freqtrade
-    group_freqtrade = command_build.add_argument_group(
-        "Data download information",
-        "All info needed to download the"
-        + "wanted data. This will be passed"
-        + " to 'freqtrade download-data'",
+    command_build.add_argument(
+        "--rawdata-dir",
+        help="The directory of the raw data used to build the dataset. It will uses every file in" +
+        " the given directory",
+        type=Path,
+        required=True
     )
-    group_freqtrade.add_argument(
-        "--pairs",
-        help="The list of pairs we want to download (Default: BTC/BUSD)",
-        type=str,
-        default=["BTC/BUSD"],
-        nargs="+",
-    )
-    group_freqtrade.add_argument(
-        "-t",
-        "--timeframes",
-        help="The list of timeframes we want to download (Default: 1h)",
-        type=str,
-        default=["1h"],
-        nargs="+",
-    )
-    group_freqtrade.add_argument(
-        "--days",
-        help="Number of days of history data (Default: 30)",
-        metavar="NUMBER",
-        default=30,
-        type=int,
-    )
-    group_freqtrade.add_argument(
-        "--exchange",
-        help="The exchange market we will take the data from " + "(default: binance)",
-        type=str,
-        default="binance",
-    )
-    # - wtst
-    group_wtst = command_build.add_argument_group(
-        "Windowed Time Series Training data information",
-        "All information about how to create the WTST"
-        + " data from the downloaded data",
-    )
-    group_wtst.add_argument(
+    command_build.add_argument(
         "--dataset-name",
         help="The name of the dataset file which will be created",
         type=str,
         required=True,
     )
-    group_wtst.add_argument(
+    command_build.add_argument(
         "-in",
         "--input-size",
         help="The width of the input part in the sliding window. "
@@ -99,7 +65,7 @@ def main():
         metavar="WIDTH",
         type=int,
     )
-    group_wtst.add_argument(
+    command_build.add_argument(
         "-tar",
         "--target-size",
         help="The width of the target part in the sliding window (Default: 1)",
@@ -107,21 +73,21 @@ def main():
         type=int,
         metavar="WIDTH",
     )
-    group_wtst.add_argument(
+    command_build.add_argument(
         "--offset",
         help="The width of the offset part in the sliding window (Default: 0)",
         default=0,
         type=int,
         metavar="WIDTH",
     )
-    group_wtst.add_argument(
+    command_build.add_argument(
         "--window-step",
         help="The step between each sliding window (Default: 1)",
         default=1,
         type=int,
         metavar="STEP",
     )
-    group_wtst.add_argument(
+    command_build.add_argument(
         "--n-interval",
         help="The number of intervals by which the data will be divided. "
         + "It allows to not have test and validation part just at the end "
@@ -131,14 +97,14 @@ def main():
         type=int,
         metavar="NUMBER",
     )
-    group_wtst.add_argument(
+    command_build.add_argument(
         "--index-column",
         help="Name of the index column (commonly the time) (Default: 'date')",
         default="date",
         metavar="NAME",
         type=str,
     )
-    group_wtst.add_argument(
+    command_build.add_argument(
         "--prop-tv",
         help="The proportion of the test and validation part union "
         + "from the data (Default: 0.1)",
@@ -146,7 +112,7 @@ def main():
         type=float,
         metavar="PERCENTAGE",
     )
-    group_wtst.add_argument(
+    command_build.add_argument(
         "--prop-v",
         help="The proportion of the validation part from the test and "
         + "the validation par union (Default: 0.3)",
@@ -154,7 +120,7 @@ def main():
         type=float,
         metavar="PERCENTAGE",
     )
-    group_wtst.add_argument(
+    command_build.add_argument(
         "--indices",
         help="List of indicators we want to add in the data (Optionnal)",
         type=str,
@@ -162,7 +128,7 @@ def main():
         metavar="INDICE",
         nargs="+",
     )
-    group_wtst.add_argument(
+    command_build.add_argument(
         "--preprocess",
         help="List of pre processing function we want to use "
         + "to pre process the data. Note: it's use independtly on each "
@@ -225,9 +191,7 @@ def main():
     )
     args = parser.parse_args()
 
-    userdir: Path = Path(args.userdir)
-
-    mlcf = MlcfHome(home_directory=userdir, create_userdir=args.create_userdir)
+    mlcf = MlcfHome(home_directory=args.userdir, create_userdir=args.create_userdir)
     run(mlcf, args)
     mlcf.exit()
 
