@@ -17,13 +17,55 @@ In addition to using modules' functions, we can use MLCF as a python module :
 python -m mlcf <list_of_arguments>
 ```
 
+---
+
 ## Installation
 
-A simple pip install is require to install MLCF.
+---
+
+OS officially supported:  
+
+- **Linux**  
+
+Python version officially supported:  
+
+- **3.7**  
+
+- **3.8**  
+
+- **3.9**
+
+To succeed the installation, it needs to install some dependencies, which are:
+
+- the TA-LIB C library
+- PyTorch v1.10.2 (cuda 11.3)
+
+---
+
+### Installation for Linux (python v3.7, v3.8, v3.9)
+
+- TA-LIB C library installation:  
+
+*Note: the talib-install.sh file and the ta-lib-0.4.0-src.tar.gz archive will be downloaded on your PC. They can be manually deleted at the end of the installation.*  
+
+```bash
+wget https://raw.githubusercontent.com/Guitheg/mlcf/main/build_helper/talib-install.sh
+sh talib-install.sh
+```
+
+- Pytorch with cuda 11.3 installation:  
+
+```bash
+pip3 install torch==1.10.2+cu113 torchvision==0.11.3+cu113 torchaudio==0.10.2+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
+```
+
+- MLCF package
 
 ```bash
 pip install mlcf
 ```
+
+---
 
 ## MLCF library
 
@@ -52,3 +94,5 @@ The aitools library provides :
 The envtools library provides :
 
 - ProjectHome
+
+More details explanation are coming soon...
