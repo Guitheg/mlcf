@@ -62,7 +62,7 @@ class MlcfHome(ProjectHome):
         if not file_path.is_file():
             list_file = [x.stem for x in dir.iterdir() if x.is_file()]
             raise Exception(
-                f"{file_path} doesn't exist. Here the list of file detected by"
+                f"{file_path} doesn't exist. Here the list of file detected by "
                 + f"MlcfHome: {list_file}. All this file are in: {dir}"
             )
 
