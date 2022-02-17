@@ -46,16 +46,12 @@ COLUMNS_INFOFILE: List[str] = [
 class TrainingHome(Enum):
     INFOFILE: str = "TrainingInfo.csv"
     HOME: str = "Training"
-    LOGS: str = "logs"
-    MODELS: str = "saves"
     CHECKPOINT: str = "checkpoints"
     TENSORBOARD_LOGS_NAME: str = "boards"
 
 
 INFOFILE: str = TrainingHome.INFOFILE.value
 HOME: str = TrainingHome.HOME.value
-LOGS: str = TrainingHome.LOGS.value
-MODELS: str = TrainingHome.MODELS.value
 CHECKPOINT: str = TrainingHome.CHECKPOINT.value
 TENSORBOARD_LOGS_NAME: str = TrainingHome.TENSORBOARD_LOGS_NAME.value
 
