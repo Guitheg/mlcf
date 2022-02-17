@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple, Union
 import pandas as pd
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
@@ -58,7 +58,7 @@ class WTSeries(object):
 
     def __init__(self,
                  window_width: int,
-                 data: pd.DataFrame = None,
+                 raw_data: pd.DataFrame = None,
                  window_step: int = 1,
                  *args, **kwargs):
         """A Window Data is a list of DataFrame (windows) extract from a raw DataFrame.
@@ -69,7 +69,7 @@ class WTSeries(object):
         Args:
             window_width (int): it is the size of the window apply on the DataFrame and therefore
             the size of every window dataframe
-            data (pd.DataFrame, optional): The raw DataFrame to apply the sliding window and
+            raw_data (pd.DataFrame, optional): The raw DataFrame to apply the sliding window and
             extract the data. Defaults to None.
             window_step (int, optional): The step of each slide of the window. Defaults to 1.
 
@@ -78,16 +78,16 @@ class WTSeries(object):
         """
         super(WTSeries, self).__init__()
 
-        self.raw_data: pd.DataFrame = data
         self._window_width: int = window_width
         self.features_has_been_set = False
         self.features: List[str] = [""]
+        self.window_step = window_step
 
-        if data is not None:
-            self.data: List[pd.DataFrame] = window_data(self.raw_data,
+        if raw_data is not None:
+            self.data: List[pd.DataFrame] = window_data(raw_data,
                                                         self.width(),
                                                         window_step)
-            self._set_features(self.raw_data.columns)
+            self._set_features(raw_data.columns)
         else:
             self.data = []
         if not self.is_empty() and len(self.data[0].index) != self.width():
@@ -108,7 +108,7 @@ class WTSeries(object):
         Args:
             columns (List[str]): the list of columns names
         """
-        self.features = features
+        self.features = list(features)
         self.features_has_been_set = True
 
     def make_common_shuffle(self, other: WTSeries):
@@ -222,8 +222,8 @@ class WTSeries(object):
         return self.data
 
     def add_data(self, data: pd.DataFrame,
-                 window_step: int = 1,
-                 ignore_data_empty: bool = False):
+                 ignore_data_empty: bool = False,
+                 window_step: int = None):
         """From a raw data, perform the sliding window and add the windows to the list of
         window: {win_data}
 
@@ -237,11 +237,16 @@ class WTSeries(object):
             Exception: [The number of features is supposed to be the same]
             Exception: [Data is empty]
         """
+        if window_step:
+            w_step = window_step
+        else:
+            w_step = self.window_step
+
         if len(data) != 0:
             if self.features_has_been_set:
                 if len(data.columns) != self.ndim():
                     raise Exception("The number of features is supposed to be the same")
-            data_to_add: List[pd.DataFrame] = window_data(data, self.width(), window_step)
+            data_to_add: List[pd.DataFrame] = window_data(data, self.width(), w_step)
             self.data.extend(data_to_add)
             if not self.features_has_been_set:
                 self._set_features(data.columns)
@@ -304,3 +309,13 @@ class WTSeries(object):
         else:
             if not ignore_data_empty:
                 raise Exception("Data is empty")
+
+    def copy(self, filter: Optional[List[Union[bool, str]]] = None):
+        wtseries_copy = WTSeries(self._window_width, raw_data=None, window_step=self.window_step)
+
+        if filter:
+            wtseries_copy.data = list(map(lambda window: window.loc[:, filter], self.data))
+        else:
+            wtseries_copy.data = self.data
+
+        return wtseries_copy
