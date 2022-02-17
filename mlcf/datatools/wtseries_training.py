@@ -224,7 +224,9 @@ class WTSeriesTraining(object):
             self.project.log.debug(f"[WTST]- New WTST data: {self}")
 
     def __call__(
-        self, part: Partition = None, field: Field = None
+        self,
+        part: Union[Partition, str] = None,
+        field: Union[Field, str] = None
     ) -> Union[Dict[str, Dict], Dict[str, WTSeries], WTSeries]:
         """return the time series data (a dict format) if None arguments has been filled.
         If part is filled, return the partition (train, validation, or test) (with a dict format).
@@ -246,12 +248,14 @@ class WTSeriesTraining(object):
             or a dict of window data (a part 'train', 'validation' or 'test'),
             or a window data (a field 'input', 'target')
         """
+        part_value = part.value if isinstance(part, Partition) else str(part)
+        field_value = field.value if isinstance(field, Field) else str(field)
         if field is not None and part is None:
             raise Exception("You should fill part if field is filled")
         elif field is not None and part is not None:
-            return self.ts_data[part.value][field.value]
+            return self.ts_data[part_value][field_value]
         if part is not None and field is None:
-            return self.ts_data[part.value]
+            return self.ts_data[part_value]
         return self.ts_data
 
     def __str__(self) -> str:

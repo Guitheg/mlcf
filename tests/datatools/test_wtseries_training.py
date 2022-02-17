@@ -2,7 +2,7 @@ from os.path import join
 from pathlib import Path
 
 import pandas as pd
-from mlcf.datatools.wtseries_training import WTSeriesTraining, EXTENSION_FILE, \
+from mlcf.datatools.wtseries_training import Partition, Field, WTSeriesTraining, EXTENSION_FILE, \
                                              read_wtseries_training
 
 
@@ -46,3 +46,11 @@ def test_WTSeriesTraining_copy():
     ts_data_filter = ts_data.copy(filter=[True, True, False, False, False])
     assert ts_data_filter.features == ["open", "high"]
     assert len(list(ts_data_filter.raw_data[0].columns)) == 2
+
+
+def test_WTSeriesTraining_call():
+    ts_data = WTSeriesTraining(9, index_column="date")
+    ts_data.add_time_serie(data.iloc[0:1000], prop_tv=0.2)
+
+    assert ts_data(Partition.TRAIN) == ts_data("train")
+    assert ts_data(Partition.TEST, Field.INPUT).data == ts_data("test", "input").data
