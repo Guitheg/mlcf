@@ -1,7 +1,7 @@
-import sys
 from os import makedirs
 from os.path import abspath, dirname, expanduser, isdir, join
 from pathlib import Path
+from mlcf.__init__ import __file__ as dir_mlfc
 
 
 def create_path(*paths: str) -> Path:
@@ -25,7 +25,7 @@ def get_dir_prgm() -> Path:
     #Renvoie la chaine de caractère correspondant au chemin d'accès aboslu de
     #l'endroit ou a été lancé le programme
     """
-    return Path(dirname(abspath(sys.argv[0])))
+    return Path(dirname(abspath(dir_mlfc)))
 
 
 def get_dir_home_user() -> Path:

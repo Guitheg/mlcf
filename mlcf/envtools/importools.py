@@ -1,6 +1,9 @@
 from importlib import util
+from importlib.abc import Loader
+from importlib.machinery import ModuleSpec
 from os.path import basename
 from pathlib import Path
+from types import ModuleType
 
 
 def model_class_import(pyfile_path: Path):
@@ -10,10 +13,11 @@ def model_class_import(pyfile_path: Path):
     module_spec = util.spec_from_file_location(
         trainer_name, pyfile_path
     )
-    if module_spec is not None:
+    if isinstance(module_spec, ModuleSpec):
         module = util.module_from_spec(module_spec)
-        if module is None:
-            module_spec.loader.exec_module(module)
+        loader = module_spec.loader
+        if isinstance(module, ModuleType) and isinstance(loader, Loader):
+            loader.exec_module(module)
         else:
             raise Exception("The module has not been found or correctly load...")
     else:
@@ -28,10 +32,11 @@ def train_method_import(pyfile_path: Path):
     module_spec = util.spec_from_file_location(
         trainer_name, pyfile_path
     )
-    if module_spec is not None:
+    if isinstance(module_spec, ModuleSpec):
         module = util.module_from_spec(module_spec)
-        if module is None:
-            module_spec.loader.exec_module(module)
+        loader = module_spec.loader
+        if isinstance(module, ModuleType) and isinstance(loader, Loader):
+            loader.exec_module(module)
         else:
             raise Exception("The module has not been found or correctly load...")
     else:
