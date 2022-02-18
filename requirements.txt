@@ -1,5 +1,5 @@
 # setuptools version 59.5 to avoid : AttributeError: module 'setuptools._distutils' has no attribute 'version'
-setuptools==59.5.0
+
 
 # ---Pytorch---
 # https://pytorch.org/
