@@ -1,7 +1,6 @@
 from setuptools import setup
 
 install_requirements = [
-    "setuptools==59.5.0",
     "tensorboard",
     "torch-tb-profiler",
     "geneticalgorithm2",
