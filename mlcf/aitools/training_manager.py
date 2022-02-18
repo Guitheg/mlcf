@@ -46,16 +46,12 @@ COLUMNS_INFOFILE: List[str] = [
 class TrainingHome(Enum):
     INFOFILE: str = "TrainingInfo.csv"
     HOME: str = "Training"
-    LOGS: str = "logs"
-    MODELS: str = "saves"
     CHECKPOINT: str = "checkpoints"
     TENSORBOARD_LOGS_NAME: str = "boards"
 
 
 INFOFILE: str = TrainingHome.INFOFILE.value
 HOME: str = TrainingHome.HOME.value
-LOGS: str = TrainingHome.LOGS.value
-MODELS: str = TrainingHome.MODELS.value
 CHECKPOINT: str = TrainingHome.CHECKPOINT.value
 TENSORBOARD_LOGS_NAME: str = TrainingHome.TENSORBOARD_LOGS_NAME.value
 
@@ -93,11 +89,9 @@ class TrainingManager(object):
             self.home_path = self.project.get_dir()
             self.training_home = join(self.home_path, HOME)
             self.infofile_path = join(self.training_home, INFOFILE)
-            self.logs_path = create_path(str(self.training_home), LOGS)
-            self.models_path = create_path(str(self.training_home), MODELS)
-            self.checkpoint_path = create_path(str(self.models_path), CHECKPOINT,
+            self.checkpoint_path = create_path(str(self.training_home), CHECKPOINT,
                                                f"checkpoints_{self.model.training_name}")
-            self.board_path = create_path(str(self.logs_path), TENSORBOARD_LOGS_NAME,
+            self.board_path = create_path(str(self.training_home), TENSORBOARD_LOGS_NAME,
                                           f"boards_{self.model.training_name}")
             now = datetime.now()
             self.now = str(now.strftime("%Y-%d%b%Hh%Mm%S"))
