@@ -232,6 +232,73 @@ Build a dataset named DatasetRSInorm which have the RSI indicator and a preproce
 mlcf build-dataset --rawdata-dir ~/Documents/data --dataset-name DatasetRSInorm --input-size 55 --indices RSI --preprocess AutoNormalize
 ```
 
+---
+
+### train command
+
+```
+usage: mlcf_home train [-h] --trainer-name NAME [--training-name NAME] --dataset-name NAME [--param PARAM [PARAM ...]]
+
+optional arguments:
+  -h, --help                show this help message and exit
+  --trainer-name NAME       The name of the trainer file. IMPORTANT: 
+                            the command call the method: train() inside 
+                            the file given by the trainer file name.
+  --training-name NAME      The name of the training name, useful for 
+                            logging, checkpoint etc.
+  --dataset-name NAME       The dataset name use for the training
+  --param PARAM [PARAM ...] The list of arguments for the trainer.
+                            IMPORTANT: The list must be in the form: key1=value1 key2=value2 key3=elem1,elem2,elem3
+```
+*Note: param argument doesn't work yet*
+
+usage example:
+
+Begin a training with a trainer script my_trainer.py, the training name is MyFirstTraining and the dataset DatasetRSInorm.wts:
+
+```
+mlcf train --trainer-name my_trainer --training-name MyFirstTraining --dataset-name DatasetRSInorm
+```
+
+Information about trainers script:  
+A python trainer script is a script with the definition of a function called train which take 3 required arguments and 2 optionnals:  
+
+- project : it is our project home class. It manage the logs, checkpoints, it allow to have a training manager.
+
+- training_name : it is the name of this training.
+
+- wtst_data : it is the WTSeriesTraining use for the training.
+
+- args and kwargs : will work with the argument param in order to pass personnal parameters.
+
+Here an example:  
+
+```python
+import torch
+
+from ritl import add  
+add(__file__, "..")  # ritl.add(__file__, "..") allows to import from 
+                     # .../mlcf_home/ml so models.lstm can be imported in a 
+                     # relative way.
+
+from models.lstm import LSTM
+
+def train(
+    project,
+    training_name,
+    wtst_data,
+    *args,
+    **kwargs,
+):
+    list_columns = wtst_data.features
+    lstm = LSTM(30, list_columns)
+    lstm.init(torch.nn.L1Loss(),
+              torch.optim.SGD(lstm.parameters(), lr=0.01, momentum=0.9),
+              training_name=training_name,
+              project=project)
+    lstm.fit(dataset=wtst_data, n_epochs=5, batchsize=20)
+```
+
 ## MLCF library
 
 In this part is introduced all the current tools of MLCF.
@@ -260,4 +327,5 @@ The envtools library provides :
 
 - ProjectHome
 
-More details explanation are coming soon...
+
+*More details explanation are coming soon...*
