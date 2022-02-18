@@ -207,13 +207,13 @@ def build_forecast_ts_training_dataset(dataframe: pd.DataFrame,
     test_target: WTSeries = WTSeries(window_width=target_width, window_step=window_step)
 
     for train, val, test in zip(*splited_interval_data):  # for each interval
-        train_prep = preprocess(WTSeries(data=train,
+        train_prep = preprocess(WTSeries(raw_data=train,
                                          window_width=window_width,
                                          window_step=window_step))
-        val_prep = preprocess(WTSeries(data=val,
+        val_prep = preprocess(WTSeries(raw_data=val,
                                        window_width=window_width,
                                        window_step=window_step))
-        test_prep = preprocess(WTSeries(data=test,
+        test_prep = preprocess(WTSeries(raw_data=test,
                                         window_width=window_width,
                                         window_step=window_step))
         train_data = train_prep()

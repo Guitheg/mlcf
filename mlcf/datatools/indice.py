@@ -1,9 +1,9 @@
 from enum import Enum, unique
 from functools import partial
+# import math
 from typing import List
 
 # import pandas_ta as pta
-import freqtrade.vendor.qtpylib.indicators as qtpylib
 import numpy as np
 import pandas as pd
 import talib.abstract as ta
@@ -23,10 +23,10 @@ class Indice(Enum):
     AROON = "AROON"
 
     # Awesome Oscillator
-    AO = "AO"
+    # AO = "AO"
 
     # Keltner Channel
-    KELTNER = "KC"
+    # KELTNER = "KC"
 
     # Ultimate Oscillator
     UO = "UO"
@@ -53,10 +53,10 @@ class Indice(Enum):
     ROC = "ROC"
 
     # Bollinger Bands
-    BBANDS = "BBANDS"
+    # BBANDS = "BBANDS"
 
     # Bollinger Bands - Weighted (EMA based instead of SMA)
-    W_BBANDS = "W_BBANDS"
+    # W_BBANDS = "W_BBANDS"
 
     # EMA - Exponential Moving Average
     EMA = "EMA"
@@ -132,10 +132,23 @@ class Indice(Enum):
     ###
 
     # Heikin Ashi Strategy
-    HEIKINASHI = "HEIKINASHI"
+    # HEIKINASHI = "HEIKINASHI"
 
     # Ichimoku Kinkō Hyō (ichimoku)
     ICHIMOKU = "ICHIMOKU"
+
+    # _____/////_____HERE START CUSTOM INDICATORS_____/////_____
+    # percent growth
+    PERCENTGROWTH = "PERCENTGROWTH"
+
+    # CURRENT SIMPLE MEAN AVERAGE
+    SMA1 = "SMA1"
+
+    # naturral log of SMA1
+    LNSMA1 = "LNSMA1"
+
+    # CUSTOM VOLATILITY
+    VOLATILITY = "VOLATILITY"
 
     @classmethod
     def list_value(self):
@@ -168,20 +181,20 @@ def add_indicator(data: pd.DataFrame, indice_name: Indice):
         dataframe["aroondown"] = aroon["aroondown"]
         dataframe["aroonosc"] = ta.AROONOSC(dataframe)
 
-    elif case(Indice.AO):
-        dataframe["ao"] = qtpylib.awesome_oscillator(dataframe)
+    # elif case(Indice.AO):
+    #     dataframe["ao"] = qtpylib.awesome_oscillator(dataframe)
 
-    elif case(Indice.KELTNER):
-        keltner = qtpylib.keltner_channel(dataframe)
-        dataframe["kc_upperband"] = keltner["upper"]
-        dataframe["kc_lowerband"] = keltner["lower"]
-        dataframe["kc_middleband"] = keltner["mid"]
-        dataframe["kc_percent"] = (dataframe["close"] - dataframe["kc_lowerband"]) / (
-            dataframe["kc_upperband"] - dataframe["kc_lowerband"]
-        )
-        dataframe["kc_width"] = (
-            dataframe["kc_upperband"] - dataframe["kc_lowerband"]
-        ) / dataframe["kc_middleband"]
+    # elif case(Indice.KELTNER):
+    #     keltner = qtpylib.keltner_channel(dataframe)
+    #     dataframe["kc_upperband"] = keltner["upper"]
+    #     dataframe["kc_lowerband"] = keltner["lower"]
+    #     dataframe["kc_middleband"] = keltner["mid"]
+    #     dataframe["kc_percent"] = (dataframe["close"] - dataframe["kc_lowerband"]) / (
+    #         dataframe["kc_upperband"] - dataframe["kc_lowerband"]
+    #     )
+    #     dataframe["kc_width"] = (
+    #         dataframe["kc_upperband"] - dataframe["kc_lowerband"]
+    #     ) / dataframe["kc_middleband"]
 
     elif case(Indice.UO):
         dataframe["uo"] = ta.ULTOSC(dataframe)
@@ -226,33 +239,33 @@ def add_indicator(data: pd.DataFrame, indice_name: Indice):
     elif case(Indice.ROC):
         dataframe["roc"] = ta.ROC(dataframe)
 
-    elif case(Indice.BBANDS):
-        bollinger = qtpylib.bollinger_bands(
-            qtpylib.typical_price(dataframe), window=20, stds=2
-        )
-        dataframe["bb_lowerband"] = bollinger["lower"]
-        dataframe["bb_middleband"] = bollinger["mid"]
-        dataframe["bb_upperband"] = bollinger["upper"]
-        dataframe["bb_percent"] = (dataframe["close"] - dataframe["bb_lowerband"]) / (
-            dataframe["bb_upperband"] - dataframe["bb_lowerband"]
-        )
-        dataframe["bb_width"] = (
-            dataframe["bb_upperband"] - dataframe["bb_lowerband"]
-        ) / dataframe["bb_middleband"]
+    # elif case(Indice.BBANDS):
+    #     bollinger = qtpylib.bollinger_bands(
+    #         qtpylib.typical_price(dataframe), window=20, stds=2
+    #     )
+    #     dataframe["bb_lowerband"] = bollinger["lower"]
+    #     dataframe["bb_middleband"] = bollinger["mid"]
+    #     dataframe["bb_upperband"] = bollinger["upper"]
+    #     dataframe["bb_percent"] = (dataframe["close"] - dataframe["bb_lowerband"]) / (
+    #         dataframe["bb_upperband"] - dataframe["bb_lowerband"]
+    #     )
+    #     dataframe["bb_width"] = (
+    #         dataframe["bb_upperband"] - dataframe["bb_lowerband"]
+    #     ) / dataframe["bb_middleband"]
 
-    elif case(Indice.W_BBANDS):
-        weighted_bollinger = qtpylib.weighted_bollinger_bands(
-            qtpylib.typical_price(dataframe), window=20, stds=2
-        )
-        dataframe["wbb_upperband"] = weighted_bollinger["upper"]
-        dataframe["wbb_lowerband"] = weighted_bollinger["lower"]
-        dataframe["wbb_middleband"] = weighted_bollinger["mid"]
-        dataframe["wbb_percent"] = (dataframe["close"] - dataframe["wbb_lowerband"]) / (
-            dataframe["wbb_upperband"] - dataframe["wbb_lowerband"]
-        )
-        dataframe["wbb_width"] = (
-            dataframe["wbb_upperband"] - dataframe["wbb_lowerband"]
-        ) / dataframe["wbb_middleband"]
+    # elif case(Indice.W_BBANDS):
+    #     weighted_bollinger = qtpylib.weighted_bollinger_bands(
+    #         qtpylib.typical_price(dataframe), window=20, stds=2
+    #     )
+    #     dataframe["wbb_upperband"] = weighted_bollinger["upper"]
+    #     dataframe["wbb_lowerband"] = weighted_bollinger["lower"]
+    #     dataframe["wbb_middleband"] = weighted_bollinger["mid"]
+    #     dataframe["wbb_percent"] = (dataframe["close"] - dataframe["wbb_lowerband"]) / (
+    #         dataframe["wbb_upperband"] - dataframe["wbb_lowerband"]
+    #     )
+    #     dataframe["wbb_width"] = (
+    #         dataframe["wbb_upperband"] - dataframe["wbb_lowerband"]
+    #     ) / dataframe["wbb_middleband"]
 
     elif case(Indice.EMA):
         dataframe["ema3"] = ta.EMA(dataframe, timeperiod=3)
@@ -335,12 +348,12 @@ def add_indicator(data: pd.DataFrame, indice_name: Indice):
     elif case(Indice.THREEINUPDOWN):
         dataframe["CDL3INSIDE"] = ta.CDL3INSIDE(dataframe)  # values [0, -100, 100]
 
-    elif case(Indice.HEIKINASHI):
-        heikinashi = qtpylib.heikinashi(dataframe)
-        dataframe["ha_open"] = heikinashi["open"]
-        dataframe["ha_close"] = heikinashi["close"]
-        dataframe["ha_high"] = heikinashi["high"]
-        dataframe["ha_low"] = heikinashi["low"]
+    # elif case(Indice.HEIKINASHI):
+    #     heikinashi = qtpylib.heikinashi(dataframe)
+    #     dataframe["ha_open"] = heikinashi["open"]
+    #     dataframe["ha_close"] = heikinashi["close"]
+    #     dataframe["ha_high"] = heikinashi["high"]
+    #     dataframe["ha_low"] = heikinashi["low"]
 
     elif case(Indice.ICHIMOKU):
         ichimoku, ichimoku_forward = dataframe.ta.ichimoku(lookahead=False)
@@ -362,6 +375,19 @@ def add_indicator(data: pd.DataFrame, indice_name: Indice):
         dataframe["ich_lead_spanB"] = pd.concat(
             [ichimoku["ISB_26"], ichimoku_forward["ISB_26"]]
         ).shift(-26)
+
+    elif case(Indice.PERCENTGROWTH):
+        dataframe = add_percent_growth(dataframe)
+
+    elif case(Indice.SMA1):
+        dataframe = add_SMA1(dataframe)
+
+    elif case(Indice.LNSMA1):
+        dataframe = add_ln_SMA1(dataframe)
+
+    elif case(Indice.VOLATILITY):
+        dataframe = add_volatility(dataframe)
+
     else:
         raise Exception("Unknown indice")
 
@@ -375,4 +401,72 @@ def add_indicators(data: pd.DataFrame, list_indice: List[Indice], dropna: bool =
         dataframe = add_indicator(dataframe, indice)
 
     dataframe.dropna(inplace=dropna)
+    return dataframe
+
+
+def add_percent_growth(data: pd.DataFrame):  # add percent growth on close
+
+    drop_SMA1 = False
+    if 'SMA1' not in data:
+        dataframe = add_SMA1(data.copy())
+        drop_SMA1 = True
+    else:
+        dataframe = data.copy()
+
+    growth_offset_list = [1, 3, 5]
+
+    for offset in growth_offset_list:
+        SMA1_copy = dataframe['SMA1'].copy().shift(offset)
+        dataframe['growth'+str(offset)] = dataframe['SMA1'].div(SMA1_copy)
+
+    if drop_SMA1:
+        dataframe.drop(['SMA1'], axis=1, inplace=True)
+    return dataframe
+
+
+def add_SMA1(data: pd.DataFrame):  # add percent growth on close
+    dataframe = data.copy()
+
+    dataframe['SMA1'] = (
+        dataframe['close'] +
+        dataframe['high'] +
+        dataframe['low'] +
+        dataframe['open']
+    )/4
+
+    return dataframe
+
+
+def add_ln_SMA1(data: pd.DataFrame):
+    drop_SMA1 = False
+    if 'SMA1' not in data:
+        dataframe = add_SMA1(data.copy())
+        drop_SMA1 = True
+    else:
+        dataframe = data.copy()
+
+    dataframe['lnSMA1'] = np.log(dataframe['SMA1'])
+
+    if drop_SMA1:
+        dataframe.drop('SMA1', axis=1, inplace=True)
+    return dataframe
+
+
+def add_volatility(data: pd.DataFrame):
+
+    volatility_offset_list = [1, 3, 5]
+    drop_growth = False
+    if ('growth'+str(volatility_offset_list[0])) not in data:
+        dataframe = add_percent_growth(data.copy())
+        drop_growth = True
+    else:
+        dataframe = data.copy()
+
+    for offset in volatility_offset_list:
+        dataframe['volatility'+str(offset)] = np.log(dataframe['growth'+str(offset)])
+
+    if drop_growth:
+        for offset in volatility_offset_list:
+            if ('growth'+str(offset)) in data:
+                dataframe.drop(('growth'+str(offset)), axis=1, inplace=True)
     return dataframe

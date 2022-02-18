@@ -7,7 +7,7 @@ from mlcf.aitools.metrics import L2
 from mlcf.datatools.wtseries_training import WTSeriesTraining, Partition as P
 from mlcf.datatools.wtseries_tensor import WTSeriesTensor
 
-from torch import nn, tensor, sigmoid
+from torch import nn, sigmoid
 # MLCF modules
 from mlcf.aitools.super_module import SuperModule
 
@@ -23,13 +23,13 @@ class MLP(SuperModule):
         out = sigmoid(self.layer(x))
         return out.view(-1)
 
-    def transform_x(self, x: tensor):
+    def transform_x(self, x):
         x = x.view(-1, self.n_features)
         mean = x.mean(axis=1).view(-1, 1).expand(len(x), self.n_features)
         std = x.std(axis=1).view(-1, 1).expand(len(x), self.n_features)
         return (x - mean) / std
 
-    def transform_y(self, y: tensor):
+    def transform_y(self, y):
         return y[:, :, 0].view(-1)
 
 

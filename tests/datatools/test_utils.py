@@ -19,7 +19,7 @@ data = init_data()
 
 
 def init_window_data():
-    win = WTSeries(window_width=10, data=data.iloc[0:100])
+    win = WTSeries(window_width=10, raw_data=data.iloc[0:100])
     return win
 
 

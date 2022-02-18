@@ -38,12 +38,7 @@ def get_config(dir_project: Path, dir_pref: Path) -> configparser.RawConfigParse
     dir_config_prgm = dir_project.joinpath(FILE_PARAMETER_NAME)
     dir_config_pref = dir_pref.joinpath(FILE_PARAMETER_NAME)
     config = configparser.RawConfigParser()
-    configproject = configparser.RawConfigParser()
 
-    configproject.read(dir_config_prgm)
     config.read((dir_config_prgm, dir_config_pref))
 
-    if config.get("Version", "number") == configproject.get("Version", "number"):
-        return config
-    else:
-        return configproject
+    return config
