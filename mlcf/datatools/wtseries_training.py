@@ -182,7 +182,7 @@ class WTSeriesTraining(object):
         else:
             selected_data = data
             self._set_features(data.columns)
-        self.raw_data.append(data)
+        self.raw_data.append(selected_data)
         if self.project:
             self.project.log.debug(
                 f"[WTST]- Data length {len(data)} will be add to the WTST data."
