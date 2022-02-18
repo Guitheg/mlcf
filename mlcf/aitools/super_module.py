@@ -19,6 +19,13 @@ from mlcf.envtools.hometools import ProjectHome
 from mlcf.aitools.training_manager import TrainingManager
 
 
+def select_list_index_collumns(list_to_select: List[str], list_all_collumns):
+    list_index = []
+    for e in list_to_select:
+        list_index.append(list_all_collumns.index(e))
+    return list_index
+
+
 class SuperModule(Module):
     def __init__(self, *args, **kwargs):
         """SuperModule mother class to instance supermodule modeles child. A SuperModule allows to
