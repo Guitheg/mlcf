@@ -28,11 +28,16 @@ def read_ohlcv_json_rawdata(path: Path) -> pd.DataFrame:
     return data
 
 
-def read_all_ohlcv_rawdata_from_dir(dir: Path, predicate_select: Callable) -> Generator:
+def read_all_ohlcv_rawdata_from_dir(
+    project: MlcfHome,
+    dir: Path,
+    predicate_select: Callable
+) -> Generator:
     if not dir.is_dir():
         raise Exception(f"The path {dir} lead to any directory")
     for file in dir.iterdir():
         if file.is_file() and file.suffix == ".json" and predicate_select(file):
+            project.log.debug(f"Rawdata select : {file.name}")
             data = read_ohlcv_json_rawdata(file)
             yield data
 
@@ -69,10 +74,11 @@ def write_wtstdataset_from_raw_data(
         project=project
     )
 
-    selected_rawdata = read_all_ohlcv_rawdata_from_dir(
+    selected_rawdata = list(read_all_ohlcv_rawdata_from_dir(
+        project,
         rawdata_dir,
         partial(select_raw_data_based_on_name, pairs, timeframes)
-    )
+    ))
     for raw_data in selected_rawdata:
         if indices:
             project.log.info(f"Adding indicators: {[i.value for i in indices]}")
