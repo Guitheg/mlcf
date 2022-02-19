@@ -95,8 +95,8 @@ mlfc_home
 │   │   └─  ...
 │   │
 │   └───trainers
-│       |   trainer_lstm_a.py
-│       |   trainer_lstm_b.py
+│       │   trainer_lstm_a.py
+│       │   trainer_lstm_b.py
 │       └─  ...
 │
 └───Training
