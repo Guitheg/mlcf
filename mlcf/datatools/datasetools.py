@@ -1,5 +1,6 @@
+from functools import reduce
 from pathlib import Path
-from typing import Generator, List
+from typing import Dict, List
 import pandas as pd
 
 from mlcf.datatools.indice import Indice, add_indicators
@@ -27,19 +28,33 @@ def read_ohlcv_json_rawdata(path: Path) -> pd.DataFrame:
     return data
 
 
-def read_all_ohlcv_rawdata_from_dir(dir: Path) -> Generator:
-    if not dir.is_dir():
-        raise Exception(f"The path {dir} lead to any directory")
-    for file in dir.iterdir():
-        if file.is_file() and file.suffix == ".json":
-            data = read_ohlcv_json_rawdata(file)
-            yield data
+def select_raw_data_based_on_name(pairs, timeframes, file):
+    pair, tf = file.stem.split("-")
+    return pair in [pair.replace("/", "_") for pair in pairs] and tf in timeframes
+
+
+def merge_dict_of_dataframe(
+    dict_of_dataframe: Dict[str, pd.DataFrame],
+    index_column: str
+) -> pd.DataFrame:
+    dataframe = reduce(
+        lambda item1, item2: pd.merge(
+            item1[1],
+            item2[1],
+            on=index_column,
+            suffixes=(f"_{item1[0]}", f"_{item2[0]}")
+        ),
+        dict_of_dataframe.items()
+    )
+    return dataframe
 
 
 def write_wtstdataset_from_raw_data(
     project: MlcfHome,
     rawdata_dir: Path,
     dataset_name: str,
+    pairs: List[str],
+    timeframes: List[str],
     input_size: int,
     target_size: int,
     offset: int,
@@ -50,6 +65,7 @@ def write_wtstdataset_from_raw_data(
     prop_v: float,
     indices: List[Indice],
     preprocess: WTSeriesPreProcess,
+    merge_pairs: bool,
     *args, **kwargs
 ):
 
@@ -60,19 +76,48 @@ def write_wtstdataset_from_raw_data(
         project=project
     )
 
-    for raw_data in read_all_ohlcv_rawdata_from_dir(rawdata_dir):
-        if indices:
-            project.log.info(f"Adding indicators: {[i.value for i in indices]}")
-            raw_data = add_indicators(raw_data, indices)
-        dataset.add_time_serie(
-            raw_data,
-            prop_tv=prop_tv,
-            prop_v=prop_v,
-            do_shuffle=False,
-            n_interval=n_interval,
-            offset=offset,
-            window_step=window_step,
-            preprocess=preprocess,
-        )
+    rawdata_set: Dict[str, Dict[str, pd.DataFrame]] = {}
+    for pair in pairs:
+        for tf in timeframes:
+            filename = f"{pair.replace('/','_')}-{tf}.json"
+            raw_data = read_ohlcv_json_rawdata(rawdata_dir.joinpath(filename))
+            if indices:
+                project.log.info(f"Adding indicators: {[i.value for i in indices]}")
+                raw_data = add_indicators(raw_data, indices)
+            if tf not in rawdata_set:
+                rawdata_set[tf] = {pair: raw_data}
+            else:
+                rawdata_set[tf][pair] = raw_data
+
+    if merge_pairs:
+        for tf in rawdata_set:
+            data_to_add = merge_dict_of_dataframe(rawdata_set[tf], index_column=index_column)
+            project.log.debug(f"List features of the data : {data_to_add.columns}")
+            dataset.add_time_serie(
+                data_to_add,
+                prop_tv=prop_tv,
+                prop_v=prop_v,
+                do_shuffle=False,
+                n_interval=n_interval,
+                offset=offset,
+                window_step=window_step,
+                preprocess=preprocess
+            )
+
+    else:
+        for tf in rawdata_set:
+            for pair in rawdata_set[tf]:
+                project.log.debug(f"List features of the data : {rawdata_set[tf][pair].columns}")
+                dataset.add_time_serie(
+                    rawdata_set[tf][pair],
+                    prop_tv=prop_tv,
+                    prop_v=prop_v,
+                    do_shuffle=False,
+                    n_interval=n_interval,
+                    offset=offset,
+                    window_step=window_step,
+                    preprocess=preprocess
+                )
+
     project.log.debug(f"Dataset built:{dataset}")
     dataset.write(project.data_dir, dataset_name)

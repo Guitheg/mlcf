@@ -57,7 +57,24 @@ def main():
         required=True,
     )
     command_build.add_argument(
-        "-in",
+        "--pairs",
+        help="The list of pairs from which the dataset is build. They are space-separated. " +
+             "(Default : BTC/BUSD)",
+        type=str,
+        nargs="+",
+        default=["BTC/BUSD"]
+    )
+    command_build.add_argument(
+        "--timeframes",
+        help="The list of timeframes from which the dataset is build. They are space-separated. " +
+             "(Default : 1d)",
+        type=str,
+        nargs="+",
+        default=["1d"],
+        choices=["1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h",
+                 "12h", "1d", "3d", "1w", "2w", "1M", "1y"]
+    )
+    command_build.add_argument(
         "--input-size",
         help="The width of the input part in the sliding window. "
         + "Can also be seen as the sequence length of a neural network.",
@@ -66,7 +83,6 @@ def main():
         type=int,
     )
     command_build.add_argument(
-        "-tar",
         "--target-size",
         help="The width of the target part in the sliding window (Default: 1)",
         default=1,
@@ -136,6 +152,11 @@ def main():
         type=str,
         choices=PreProcessDict.keys(),
         metavar="FUNCTION NAME",
+    )
+    command_build.add_argument(
+        "--merge-pairs",
+        help="Merge the pairs together in order to extend the number of features.",
+        action="store_true"
     )
     # Train arguments
     command_train = subcommands.add_parser(

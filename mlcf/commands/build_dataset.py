@@ -14,6 +14,8 @@ def build_dataset(
     project: MlcfHome,
     rawdata_dir: Path,
     dataset_name: str,
+    pairs: List[str],
+    timeframes: List[str],
     input_size: int,
     target_size: int,
     offset: int,
@@ -24,6 +26,7 @@ def build_dataset(
     prop_v: float,
     indices: List[Indice],
     preprocess: WTSeriesPreProcess,
+    merge_pairs: bool,
     *args,
     **kwargs
 ):
@@ -32,6 +35,8 @@ def build_dataset(
         project=project,
         rawdata_dir=rawdata_dir,
         dataset_name=dataset_name,
+        pairs=pairs,
+        timeframes=timeframes,
         input_size=input_size,
         target_size=target_size,
         offset=offset,
@@ -41,7 +46,8 @@ def build_dataset(
         prop_tv=prop_tv,
         prop_v=prop_v,
         indices=indices,
-        preprocess=preprocess
+        preprocess=preprocess,
+        merge_pairs=merge_pairs
     )
     del args
     del kwargs

@@ -22,11 +22,7 @@ def window_data(dataframe: pd.DataFrame,
         selected every window_step {window_step}
     """
     data = dataframe.copy()
-    if len(data) == 0:
-        return [pd.DataFrame(columns=data.columns)]
-    if len(data) < window_width:
-        raise Warning("The length of data is smaller than the" +
-                      "window size (return Empty DataFrame)")
+    if len(data) == 0 or len(data) < window_width:
         return [pd.DataFrame(columns=data.columns)]
     n_windows = ((len(data.index)-window_width) // window_step) + 1
     n_columns = len(data.columns)
@@ -282,9 +278,11 @@ class WTSeries(object):
             if not ignore_data_empty:
                 raise Exception("Data is empty")
 
-    def merge_window_data(self,
-                          window_data: WTSeries,
-                          ignore_data_empty: bool = False):
+    def add_window_data(
+        self,
+        window_data: WTSeries,
+        ignore_data_empty: bool = False
+    ):
         """merge the input WTSeries to the current WTSeries
 
         Args:

@@ -96,8 +96,8 @@ def input_target_data_windows(data_windows: WTSeries,
     list_tar: WTSeries = WTSeries(target_width)
     for window in data_windows():
         inp, tar = input_target_data(window, input_width, target_width)
-        list_in.add_one_window(inp)
-        list_tar.add_one_window(tar)
+        list_in.add_one_window(inp, ignore_data_empty=True)
+        list_tar.add_one_window(tar, ignore_data_empty=True)
 
     return list_in, list_tar
 
@@ -182,6 +182,7 @@ def build_forecast_ts_training_dataset(dataframe: pd.DataFrame,
             validation part targets,  test part inputs and test part targets
     """
     data = dataframe.copy()
+
     # Divide data in N interval
     list_interval_data_df: List[pd.DataFrame] = split_in_interval(data, n_interval=n_interval)
 
@@ -199,6 +200,7 @@ def build_forecast_ts_training_dataset(dataframe: pd.DataFrame,
 
     # Generate windowed data and targets
     window_width: int = input_width + offset + target_width
+
     train_input: WTSeries = WTSeries(window_width=input_width, window_step=window_step)
     train_target: WTSeries = WTSeries(window_width=target_width, window_step=window_step)
     val_input: WTSeries = WTSeries(window_width=input_width, window_step=window_step)
@@ -207,35 +209,57 @@ def build_forecast_ts_training_dataset(dataframe: pd.DataFrame,
     test_target: WTSeries = WTSeries(window_width=target_width, window_step=window_step)
 
     for train, val, test in zip(*splited_interval_data):  # for each interval
-        train_prep = preprocess(WTSeries(raw_data=train,
-                                         window_width=window_width,
-                                         window_step=window_step))
-        val_prep = preprocess(WTSeries(raw_data=val,
-                                       window_width=window_width,
-                                       window_step=window_step))
-        test_prep = preprocess(WTSeries(raw_data=test,
-                                        window_width=window_width,
-                                        window_step=window_step))
-        train_data = train_prep()
-        val_data = val_prep()
-        test_data = test_prep()
 
-        train_input_tmp, train_target_tmp = input_target_data_windows(train_data,
-                                                                      input_width,
-                                                                      target_width)
-        val_input_tmp, val_target_tmp = input_target_data_windows(val_data,
-                                                                  input_width,
-                                                                  target_width)
-        test_input_tmp, test_target_tmp = input_target_data_windows(test_data,
-                                                                    input_width,
-                                                                    target_width)
+        train_prep = preprocess(
+            WTSeries(
+                raw_data=train,
+                window_width=window_width,
+                window_step=window_step
+            )
+        )
 
-        train_input.merge_window_data(train_input_tmp)
-        train_target.merge_window_data(train_target_tmp)
-        val_input.merge_window_data(val_input_tmp)
-        val_target.merge_window_data(val_target_tmp)
-        test_input.merge_window_data(test_input_tmp)
-        test_target.merge_window_data(test_target_tmp)
+        val_prep = preprocess(
+            WTSeries(
+                raw_data=val,
+                window_width=window_width,
+                window_step=window_step
+            )
+        )
+
+        test_prep = preprocess(
+            WTSeries(
+                raw_data=test,
+                window_width=window_width,
+                window_step=window_step
+            )
+        )
+
+        train_data: WTSeries = train_prep()
+        val_data: WTSeries = val_prep()
+        test_data: WTSeries = test_prep()
+
+        train_input_tmp, train_target_tmp = input_target_data_windows(
+            train_data,
+            input_width,
+            target_width
+        )
+        val_input_tmp, val_target_tmp = input_target_data_windows(
+            val_data,
+            input_width,
+            target_width
+            )
+        test_input_tmp, test_target_tmp = input_target_data_windows(
+            test_data,
+            input_width,
+            target_width
+        )
+
+        train_input.add_window_data(train_input_tmp, ignore_data_empty=True)
+        train_target.add_window_data(train_target_tmp, ignore_data_empty=True)
+        val_input.add_window_data(val_input_tmp, ignore_data_empty=True)
+        val_target.add_window_data(val_target_tmp, ignore_data_empty=True)
+        test_input.add_window_data(test_input_tmp, ignore_data_empty=True)
+        test_target.add_window_data(test_target_tmp, ignore_data_empty=True)
 
     if do_shuffle:
         train_input.make_common_shuffle(train_target)
