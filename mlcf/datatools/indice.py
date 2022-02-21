@@ -137,6 +137,19 @@ class Indice(Enum):
     # Ichimoku Kinkō Hyō (ichimoku)
     ICHIMOKU = "ICHIMOKU"
 
+    # /////////____________CUSTOM INDICATORS STARTS HERE____________/////////
+
+    # percent growth
+    PERCENTGROWTH = "PERCENTGROWTH"
+
+    # SMA1
+    SMA1 = "SMA1"
+
+    # log of SMA1
+    LNSMA1 = "LNSMA1"
+
+    # volatility
+    VOLATILITY = "VOLATILITY"
 
     @classmethod
     def list_value(self):
@@ -363,6 +376,19 @@ def add_indicator(data: pd.DataFrame, indice_name: Indice):
         dataframe["ich_lead_spanB"] = pd.concat(
             [ichimoku["ISB_26"], ichimoku_forward["ISB_26"]]
         ).shift(-26)
+
+    elif case(Indice.SMA1):
+        dataframe["SMA1"] = add_SMA1(dataframe)
+
+    elif case(Indice.VOLATILITY):
+        dataframe["volatility"] = add_volatility(dataframe)
+
+    elif case(Indice.LNSMA1):
+        dataframe["LNSMA1"] = add_ln_SMA1(dataframe)
+
+    elif case(Indice.PERCENTGROWTH):
+        dataframe["percent_growth"] = add_percent_growth(dataframe)
+
     else:
         raise Exception("Unknown indice")
 
