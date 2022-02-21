@@ -137,6 +137,7 @@ class Indice(Enum):
     # Ichimoku Kinkō Hyō (ichimoku)
     ICHIMOKU = "ICHIMOKU"
 
+
     @classmethod
     def list_value(self):
         return [item.value for item in list(self)]
