@@ -2,6 +2,8 @@ import pickle
 from enum import Enum, unique
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
+import zipfile as z
+import os
 
 import pandas as pd
 
@@ -31,6 +33,7 @@ TEST: str = Partition.TEST.value
 INPUT: str = Field.INPUT.value
 TARGET: str = Field.TARGET.value
 EXTENSION_FILE = ".wtst"
+NUMBER_OF_WINDOWS = 10000  # to pack in one folder when we write
 
 
 def read_wtseries_training(path: Path, project: ProjectHome = None):
@@ -108,7 +111,48 @@ class WTSeriesTraining(object):
         if index_column is not None:
             self._set_index_column(index_column)
 
-    def write(self, dir: Path, name: str):
+    def _add_Partition_to_zipfile(
+        self,
+        dir: Path,
+        zipf: z.ZipFile,
+        partition: Union[str, Partition]
+    ):
+        part = partition
+        if isinstance(partition, Partition):
+            part = partition.value
+        for idx, (x_window, y_window) in enumerate(zip(
+            self(partition, Field.INPUT),
+            self(partition, Field.TARGET)
+        )):
+            windows_dir = str((idx // NUMBER_OF_WINDOWS)*NUMBER_OF_WINDOWS)
+            self._add_dataframe_to_zipfile(
+                dataframe=x_window,
+                zipf=zipf,
+                curr_dir=dir,
+                arch_dir=Path(f"TS_DATA/{part.swapcase()}/{windows_dir}/inputs/"),
+                name_file=f"{part[:2]}_window_{idx}_X"
+            )
+            self._add_dataframe_to_zipfile(
+                dataframe=y_window,
+                zipf=zipf,
+                curr_dir=dir,
+                arch_dir=Path(f"TS_DATA/{part.swapcase()}/{windows_dir}/targets/"),
+                name_file=f"{part[:2]}_window_{idx}_y"
+            )
+
+    def _add_dataframe_to_zipfile(
+        self,
+        dataframe: pd.DataFrame,
+        zipf: z.ZipFile,
+        curr_dir: Path,
+        arch_dir: Path,
+        name_file: str
+    ):
+        dataframe.to_csv(curr_dir.joinpath(name_file))
+        zipf.write(curr_dir.joinpath(name_file), arch_dir.joinpath(name_file))
+        os.remove(curr_dir.joinpath(name_file))
+
+    def write(self, dir: Path, name: str, metadata: pd.DataFrame = None):
         if not isinstance(dir, Path):
             if isinstance(dir, str):
                 dir = Path(dir)
@@ -117,8 +161,27 @@ class WTSeriesTraining(object):
         path: Path = dir.joinpath(name).with_suffix(EXTENSION_FILE)
         if not dir.is_dir():
             raise Exception(f"The given directory is unknown: {dir}")
-        with open(path, "wb") as write_file:
-            pickle.dump(self, write_file, pickle.HIGHEST_PROTOCOL)
+
+        with z.ZipFile(path, "w") as zipf:
+            for idx, df_rawdata in enumerate(self.raw_data):
+                self._add_dataframe_to_zipfile(
+                    dataframe=df_rawdata,
+                    zipf=zipf,
+                    curr_dir=dir,
+                    arch_dir=Path(f"RAW_DATA"),
+                    name_file=f"raw_data_{idx}"
+                )
+            self._add_Partition_to_zipfile(dir, zipf, Partition.TRAIN)
+            self._add_Partition_to_zipfile(dir, zipf, Partition.VALIDATION)
+            self._add_Partition_to_zipfile(dir, zipf, Partition.TEST)
+            if metadata:
+                self._add_dataframe_to_zipfile(
+                    dataframe=metadata,
+                    zipf=zipf,
+                    curr_dir=dir,
+                    arch_dir=Path(f""),
+                    name_file=f"metadata"
+                )
         if self.project:
             self.project.log.info(f"[WTST]- The dataset has been saved: {path}")
 
@@ -323,32 +386,32 @@ class WTSeriesTraining(object):
         self.index_column = index_column
         self.index_column_has_been_set = True
 
-    def x_train(self, index: int = None) -> Union[Dict[str, WTSeries], WTSeries]:
+    def x_train(self, index: int = None) -> Union[WTSeries, pd.DataFrame]:
         if index is None:
             return self.train_data[INPUT]
         return self.train_data[INPUT][index]
 
-    def y_train(self, index: int = None) -> Union[Dict[str, WTSeries], WTSeries]:
+    def y_train(self, index: int = None) -> Union[WTSeries, pd.DataFrame]:
         if index is None:
             return self.train_data[TARGET]
         return self.train_data[TARGET][index]
 
-    def x_val(self, index: int = None) -> Union[Dict[str, WTSeries], WTSeries]:
+    def x_val(self, index: int = None) -> Union[WTSeries, pd.DataFrame]:
         if index is None:
             return self.val_data[INPUT]
         return self.val_data[INPUT][index]
 
-    def y_val(self, index: int = None) -> Union[Dict[str, WTSeries], WTSeries]:
+    def y_val(self, index: int = None) -> Union[WTSeries, pd.DataFrame]:
         if index is None:
             return self.val_data[TARGET]
         return self.val_data[TARGET][index]
 
-    def x_test(self, index: int = None) -> Union[Dict[str, WTSeries], WTSeries]:
+    def x_test(self, index: int = None) -> Union[WTSeries, pd.DataFrame]:
         if index is None:
             return self.test_data[INPUT]
         return self.test_data[INPUT][index]
 
-    def y_test(self, index: int = None) -> Union[Dict[str, WTSeries], WTSeries]:
+    def y_test(self, index: int = None) -> Union[WTSeries, pd.DataFrame]:
         if index is None:
             return self.test_data[TARGET]
         return self.test_data[TARGET][index]
