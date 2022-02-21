@@ -19,6 +19,13 @@ from mlcf.envtools.hometools import ProjectHome
 from mlcf.aitools.training_manager import TrainingManager
 
 
+def select_list_index_collumns(list_to_select: List[str], list_all_collumns):
+    list_index = []
+    for e in list_to_select:
+        list_index.append(list_all_collumns.index(e))
+    return list_index
+
+
 class SuperModule(Module):
     def __init__(self, *args, **kwargs):
         """SuperModule mother class to instance supermodule modeles child. A SuperModule allows to
@@ -113,10 +120,13 @@ class SuperModule(Module):
         self.optimizer = optimizer
         if metrics:
             self.metrics = metrics
-        self.manager.info("Initialisation du modèle:")
+        self.manager.info("Model initialisation:")
         self.manager.info(f"  -Loss: {self.loss.__class__.__name__}")
         self.manager.info(f"  -Optimizer: {self.optimizer.__class__.__name__}")
-        self.manager.info(f"  -Metrics: {[f.__name__ for f in self.metrics]}")
+        if metrics:
+            self.manager.info(f"  -Metrics: {[f.__name__ for f in self.metrics]}")
+        else:
+            self.manager.info("  -Metrics: Any")
         self.set_device(device_str)
         self.initialize = True
 
@@ -167,10 +177,10 @@ class SuperModule(Module):
                                    transform_y=self.transform_y)
 
         self.manager.debug(
-                f"Size train tensor (x,y): {train_data.x_size()}, {train_data.y_size()}" +
-                f"Size validation tensor (x,y): {validation_data.x_size()}, "
+                f"\nSize train tensor (x,y): {train_data.x_size()}, {train_data.y_size()}" +
+                f"\nSize validation tensor (x,y): {validation_data.x_size()}, "
                 f"{validation_data.y_size()}" +
-                f"Size test tensor (x,y): {test_data.x_size()}, {test_data.y_size()}")
+                f"\nSize test tensor (x,y): {test_data.x_size()}, {test_data.y_size()}")
 
         train_loader = train_data.get_dataloader(batch_size=batchsize, shuffle=shuffle)
         validation_loader = validation_data.get_dataloader(batch_size=batchsize, shuffle=shuffle)
@@ -309,8 +319,8 @@ class SuperModule(Module):
         loss_name = prefix+loss_name
         loss = 0.0
         time_step = 0.0
-        predictions: Tensor
-        labels: Tensor
+        predictions: Tensor = Tensor()
+        labels: Tensor = Tensor()
         N = len(dataloader.dataset)
 
         batch_index: int

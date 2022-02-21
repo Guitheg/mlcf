@@ -1,36 +1,20 @@
 import argparse
-from enum import Enum, unique
+
 import os
 from pathlib import Path
 
-from mlcf.commands import build_dataset, launch_machine_learning
-
-# @@ MLCF modules @@@
+# MLCF modules
 from mlcf.datatools.indice import Indice
 from mlcf.datatools.preprocessing import PreProcessDict
-from mlcf.datatools.wtseries_training import EXTENSION_FILE, read_wtseries_training
 from mlcf.envtools.hometools import MlcfHome
+from mlcf.commands.main import run, Command
 
 PRGM_NAME = MlcfHome.HOME_NAME
 
 
-@unique
-class Command(Enum):
-    BUILD = "build-dataset"
-    TRAIN = "train"
-    VISUALIZE = "visualize"
-
-    @classmethod
-    def list_value(self):
-        return [item.value for item in list(self)]
-
-
 def main():
-    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ARGUMENT PARSER @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     parser = argparse.ArgumentParser(prog=PRGM_NAME)
-    # @@@@ Generals arguments @@@@@
+    # Generals arguments
     general_arguments_group = parser.add_argument_group(
         "Common arguments", "All this arguments are common with every commands"
     )
@@ -49,67 +33,48 @@ def main():
         + "then it raises an error.",
         action="store_true",
     )
-
     subcommands = parser.add_subparsers(
         dest="command",
         title="CG-RBI commands",
         description="",
         help="The list of commands you can use"
     )
-
-    # @@@@ Build arguments @@@@@
+    # Build arguments
     command_build = subcommands.add_parser(
         Command.BUILD.value, help="Dataset creation command"
     )
-    # freqtrade
-    group_freqtrade = command_build.add_argument_group(
-        "Data download information",
-        "All info needed to download the"
-        + "wanted data. This will be passed"
-        + " to 'freqtrade download-data'",
+    command_build.add_argument(
+        "--rawdata-dir",
+        help="The directory of the raw data used to build the dataset. It will uses every file in" +
+        " the given directory",
+        type=Path,
+        required=True
     )
-    group_freqtrade.add_argument(
-        "--pairs",
-        help="The list of pairs we want to download (Default: BTC/BUSD)",
-        type=str,
-        default=["BTC/BUSD"],
-        nargs="+",
-    )
-    group_freqtrade.add_argument(
-        "-t",
-        "--timeframes",
-        help="The list of timeframes we want to download (Default: 1h)",
-        type=str,
-        default=["1h"],
-        nargs="+",
-    )
-    group_freqtrade.add_argument(
-        "--days",
-        help="Number of days of history data (Default: 30)",
-        metavar="NUMBER",
-        default=30,
-        type=int,
-    )
-    group_freqtrade.add_argument(
-        "--exchange",
-        help="The exchange market we will take the data from " + "(default: binance)",
-        type=str,
-        default="binance",
-    )
-    # - wtst
-    group_wtst = command_build.add_argument_group(
-        "Windowed Time Series Training data information",
-        "All information about how to create the WTST"
-        + " data from the downloaded data",
-    )
-    group_wtst.add_argument(
+    command_build.add_argument(
         "--dataset-name",
         help="The name of the dataset file which will be created",
         type=str,
         required=True,
     )
-    group_wtst.add_argument(
-        "-in",
+    command_build.add_argument(
+        "--pairs",
+        help="The list of pairs from which the dataset is build. They are space-separated. " +
+             "(Default : BTC/BUSD)",
+        type=str,
+        nargs="+",
+        default=["BTC/BUSD"]
+    )
+    command_build.add_argument(
+        "--timeframes",
+        help="The list of timeframes from which the dataset is build. They are space-separated. " +
+             "(Default : 1d)",
+        type=str,
+        nargs="+",
+        default=["1d"],
+        choices=["1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h",
+                 "12h", "1d", "3d", "1w", "2w", "1M", "1y"]
+    )
+    command_build.add_argument(
         "--input-size",
         help="The width of the input part in the sliding window. "
         + "Can also be seen as the sequence length of a neural network.",
@@ -117,29 +82,28 @@ def main():
         metavar="WIDTH",
         type=int,
     )
-    group_wtst.add_argument(
-        "-tar",
+    command_build.add_argument(
         "--target-size",
         help="The width of the target part in the sliding window (Default: 1)",
         default=1,
         type=int,
         metavar="WIDTH",
     )
-    group_wtst.add_argument(
+    command_build.add_argument(
         "--offset",
         help="The width of the offset part in the sliding window (Default: 0)",
         default=0,
         type=int,
         metavar="WIDTH",
     )
-    group_wtst.add_argument(
+    command_build.add_argument(
         "--window-step",
         help="The step between each sliding window (Default: 1)",
         default=1,
         type=int,
         metavar="STEP",
     )
-    group_wtst.add_argument(
+    command_build.add_argument(
         "--n-interval",
         help="The number of intervals by which the data will be divided. "
         + "It allows to not have test and validation part just at the end "
@@ -149,14 +113,14 @@ def main():
         type=int,
         metavar="NUMBER",
     )
-    group_wtst.add_argument(
+    command_build.add_argument(
         "--index-column",
         help="Name of the index column (commonly the time) (Default: 'date')",
         default="date",
         metavar="NAME",
         type=str,
     )
-    group_wtst.add_argument(
+    command_build.add_argument(
         "--prop-tv",
         help="The proportion of the test and validation part union "
         + "from the data (Default: 0.1)",
@@ -164,7 +128,7 @@ def main():
         type=float,
         metavar="PERCENTAGE",
     )
-    group_wtst.add_argument(
+    command_build.add_argument(
         "--prop-v",
         help="The proportion of the validation part from the test and "
         + "the validation par union (Default: 0.3)",
@@ -172,7 +136,7 @@ def main():
         type=float,
         metavar="PERCENTAGE",
     )
-    group_wtst.add_argument(
+    command_build.add_argument(
         "--indices",
         help="List of indicators we want to add in the data (Optionnal)",
         type=str,
@@ -180,8 +144,7 @@ def main():
         metavar="INDICE",
         nargs="+",
     )
-
-    group_wtst.add_argument(
+    command_build.add_argument(
         "--preprocess",
         help="List of pre processing function we want to use "
         + "to pre process the data. Note: it's use independtly on each "
@@ -190,8 +153,12 @@ def main():
         choices=PreProcessDict.keys(),
         metavar="FUNCTION NAME",
     )
-
-    # @@@@@ Train arguments @@@@@
+    command_build.add_argument(
+        "--merge-pairs",
+        help="Merge the pairs together in order to extend the number of features.",
+        action="store_true"
+    )
+    # Train arguments
     command_train = subcommands.add_parser(
         Command.TRAIN.value, help="Neural Network training command"
     )
@@ -210,7 +177,6 @@ def main():
         type=str,
         metavar="NAME",
     )
-
     command_train.add_argument(
         "--dataset-name",
         help="The dataset name use for the training",
@@ -218,7 +184,6 @@ def main():
         type=str,
         required=True,
     )
-
     command_train.add_argument(
         "--param",
         help="The list of arguments for the trainer. IMPORTANT: "
@@ -227,8 +192,7 @@ def main():
         nargs="+",
         type=str,
     )
-
-    # @@@@@ Visualize arguments @@@@@
+    # Visualize arguments
     command_visualize = subcommands.add_parser(
         Command.VISUALIZE.value, help="Dataset visualization command"
     )
@@ -246,49 +210,10 @@ def main():
         default="console",
         type=str,
     )
-
     args = parser.parse_args()
 
-    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ PROJECT ENV @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    userdir: Path = Path(args.userdir)
-    # try:
-    mlcf = MlcfHome(home_directory=userdir, create_userdir=args.create_userdir)
-    # except:
-    #     raise Exception(f"userdir: {userdir} doesn't exist yet. Add '--create-userdir' to create"+
-    #                     " userdir repository or find a correct path.")
-    mlcf.log.info(f"Arguments: {args}")
-
-    kwargs = vars(args).copy()
-    kwargs.pop("create_userdir")
-    if args.command:
-        kwargs.pop("command")
-        # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  MlcfHome Build Dataset @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        if args.command == Command.BUILD.value:
-
-            kwargs["preprocess"] = PreProcessDict[args.preprocess]
-            if args.indices:
-                kwargs["indices"] = [Indice(indice) for indice in args.indices]
-            build_dataset(project=mlcf, **kwargs)
-
-        # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@  MlcfHome Visualize Dataset @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        elif args.command == Command.VISUALIZE.value:
-            dataset_filepath = mlcf.data_dir.joinpath(args.dataset_name).with_suffix(
-                EXTENSION_FILE
-            )
-            mlcf.check_file(dataset_filepath, mlcf.data_dir)
-            dataset = read_wtseries_training(dataset_filepath)
-            print(dataset("train", "input")[0])
-
-        # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@  MlcfHome Train Neural Network @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        elif args.command == Command.TRAIN.value:
-            if args.training_name is None:
-                kwargs["training_name"] = args.trainer_name
-
-            launch_machine_learning(project=mlcf, **kwargs)
-
-        # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ EXIT @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    mlcf = MlcfHome(home_directory=args.userdir, create_userdir=args.create_userdir)
+    run(mlcf, args)
     mlcf.exit()
 
 

@@ -140,10 +140,10 @@ class WTSeriesTraining(object):
             do_shuffle (bool, optional): perform a shuffle if True. Defaults to False.
         """
 
-        self(partition, Field.INPUT).merge_window_data(  # type: ignore
+        self(partition, Field.INPUT).add_window_data(  # type: ignore
             input_ts_data, ignore_data_empty=True
         )
-        self(partition, Field.TARGET).merge_window_data(  # type: ignore
+        self(partition, Field.TARGET).add_window_data(  # type: ignore
             target_ts_data, ignore_data_empty=True
         )
         if do_shuffle:
@@ -182,10 +182,10 @@ class WTSeriesTraining(object):
         else:
             selected_data = data
             self._set_features(data.columns)
-        self.raw_data.append(data)
+        self.raw_data.append(selected_data)
         if self.project:
             self.project.log.debug(
-                f"[WTST]- Data length {len(data)} will be add to the WTST data."
+                f"[WTST]- Data length {len(selected_data)} will be add to the WTST data."
             )
         training_dataset: Tuple = build_forecast_ts_training_dataset(
             selected_data,

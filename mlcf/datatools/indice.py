@@ -3,7 +3,7 @@ from functools import partial
 from typing import List
 
 # import pandas_ta as pta
-import freqtrade.vendor.qtpylib.indicators as qtpylib
+import indice_tools as i_tools
 import numpy as np
 import pandas as pd
 import talib.abstract as ta
@@ -169,10 +169,10 @@ def add_indicator(data: pd.DataFrame, indice_name: Indice):
         dataframe["aroonosc"] = ta.AROONOSC(dataframe)
 
     elif case(Indice.AO):
-        dataframe["ao"] = qtpylib.awesome_oscillator(dataframe)
+        dataframe["ao"] = i_tools.awesome_oscillator(dataframe)
 
     elif case(Indice.KELTNER):
-        keltner = qtpylib.keltner_channel(dataframe)
+        keltner = i_tools.keltner_channel(dataframe)
         dataframe["kc_upperband"] = keltner["upper"]
         dataframe["kc_lowerband"] = keltner["lower"]
         dataframe["kc_middleband"] = keltner["mid"]
@@ -227,8 +227,8 @@ def add_indicator(data: pd.DataFrame, indice_name: Indice):
         dataframe["roc"] = ta.ROC(dataframe)
 
     elif case(Indice.BBANDS):
-        bollinger = qtpylib.bollinger_bands(
-            qtpylib.typical_price(dataframe), window=20, stds=2
+        bollinger = i_tools.bollinger_bands(
+            i_tools.typical_price(dataframe), window=20, stds=2
         )
         dataframe["bb_lowerband"] = bollinger["lower"]
         dataframe["bb_middleband"] = bollinger["mid"]
@@ -241,8 +241,8 @@ def add_indicator(data: pd.DataFrame, indice_name: Indice):
         ) / dataframe["bb_middleband"]
 
     elif case(Indice.W_BBANDS):
-        weighted_bollinger = qtpylib.weighted_bollinger_bands(
-            qtpylib.typical_price(dataframe), window=20, stds=2
+        weighted_bollinger = i_tools.weighted_bollinger_bands(
+            i_tools.typical_price(dataframe), window=20, stds=2
         )
         dataframe["wbb_upperband"] = weighted_bollinger["upper"]
         dataframe["wbb_lowerband"] = weighted_bollinger["lower"]
@@ -336,7 +336,7 @@ def add_indicator(data: pd.DataFrame, indice_name: Indice):
         dataframe["CDL3INSIDE"] = ta.CDL3INSIDE(dataframe)  # values [0, -100, 100]
 
     elif case(Indice.HEIKINASHI):
-        heikinashi = qtpylib.heikinashi(dataframe)
+        heikinashi = i_tools.heikinashi(dataframe)
         dataframe["ha_open"] = heikinashi["open"]
         dataframe["ha_close"] = heikinashi["close"]
         dataframe["ha_high"] = heikinashi["high"]
@@ -375,4 +375,72 @@ def add_indicators(data: pd.DataFrame, list_indice: List[Indice], dropna: bool =
         dataframe = add_indicator(dataframe, indice)
 
     dataframe.dropna(inplace=dropna)
+    return dataframe
+
+
+def add_percent_growth(data: pd.DataFrame):  # add percent growth on close
+
+    drop_SMA1 = False
+    if 'SMA1' not in data:
+        dataframe = add_SMA1(data.copy())
+        drop_SMA1 = True
+    else:
+        dataframe = data.copy()
+
+    growth_offset_list = [1, 3, 5]
+
+    for offset in growth_offset_list:
+        SMA1_copy = dataframe['SMA1'].copy().shift(offset)
+        dataframe['growth'+str(offset)] = dataframe['SMA1'].div(SMA1_copy)
+
+    if drop_SMA1:
+        dataframe.drop(['SMA1'], axis=1, inplace=True)
+    return dataframe
+
+
+def add_SMA1(data: pd.DataFrame):  # add percent growth on close
+    dataframe = data.copy()
+
+    dataframe['SMA1'] = (
+        dataframe['close'] +
+        dataframe['high'] +
+        dataframe['low'] +
+        dataframe['open']
+    )/4
+
+    return dataframe
+
+
+def add_ln_SMA1(data: pd.DataFrame):
+    drop_SMA1 = False
+    if 'SMA1' not in data:
+        dataframe = add_SMA1(data.copy())
+        drop_SMA1 = True
+    else:
+        dataframe = data.copy()
+
+    dataframe['lnSMA1'] = np.log(dataframe['SMA1'])
+
+    if drop_SMA1:
+        dataframe.drop('SMA1', axis=1, inplace=True)
+    return dataframe
+
+
+def add_volatility(data: pd.DataFrame):
+
+    volatility_offset_list = [1, 3, 5]
+    drop_growth = False
+    if ('growth'+str(volatility_offset_list[0])) not in data:
+        dataframe = add_percent_growth(data.copy())
+        drop_growth = True
+    else:
+        dataframe = data.copy()
+
+    for offset in volatility_offset_list:
+        dataframe['volatility'+str(offset)] = np.log(dataframe['growth'+str(offset)])
+
+    if drop_growth:
+        for offset in volatility_offset_list:
+            if ('growth'+str(offset)) in data:
+                dataframe.drop(('growth'+str(offset)), axis=1, inplace=True)
     return dataframe

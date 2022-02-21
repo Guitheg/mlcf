@@ -1,5 +1,5 @@
 # MLCF modules
-from mlcf.datatools.wtseries_training import read_wtseries_training
+from mlcf.datatools.wtseries_training import read_wtseries_training, EXTENSION_FILE
 from mlcf.envtools.hometools import MlcfHome
 from mlcf.envtools.importools import train_method_import
 
@@ -13,7 +13,7 @@ def launch_machine_learning(
     **kwargs,
 ):
 
-    data_path = project.data_dir.joinpath(dataset_name)
+    data_path = project.data_dir.joinpath(dataset_name).with_suffix(EXTENSION_FILE)
     project.check_file(data_path, project.data_dir)
 
     wtst_data = read_wtseries_training(data_path, project=project)

@@ -1,10 +1,8 @@
 from pathlib import Path
 from typing import List
 
-from mlcf.datatools.datasetools import (
-    run_download_freqtrade,
-    write_wtstdataset_from_raw_data,
-)
+from mlcf.datatools.datasetools import write_wtstdataset_from_raw_data
+
 
 # MLCF modules
 from mlcf.datatools.indice import Indice
@@ -14,12 +12,10 @@ from mlcf.envtools.hometools import MlcfHome
 
 def build_dataset(
     project: MlcfHome,
-    userdir: Path,
+    rawdata_dir: Path,
+    dataset_name: str,
     pairs: List[str],
     timeframes: List[str],
-    days: int,
-    exchange: str,
-    dataset_name: str,
     input_size: int,
     target_size: int,
     offset: int,
@@ -30,21 +26,11 @@ def build_dataset(
     prop_v: float,
     indices: List[Indice],
     preprocess: WTSeriesPreProcess,
+    merge_pairs: bool,
     *args,
-    **kwargs,
+    **kwargs
 ):
-    rawdata_dir: Path = userdir.joinpath("data", exchange)
-    run_download_freqtrade(
-        pairs=pairs,
-        timeframes=timeframes,
-        days=days,
-        exchange=exchange,
-        userdir=userdir,
-    )
-    project.log.info(
-        f"Download data with freqtrade. Pairs: {pairs}, Timeframes: {timeframes}, "
-        + f"Days of historic: {days}, Market: {exchange}. Saved here: {rawdata_dir} "
-    )
+
     write_wtstdataset_from_raw_data(
         project=project,
         rawdata_dir=rawdata_dir,
@@ -61,4 +47,7 @@ def build_dataset(
         prop_v=prop_v,
         indices=indices,
         preprocess=preprocess,
+        merge_pairs=merge_pairs
     )
+    del args
+    del kwargs
