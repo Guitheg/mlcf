@@ -29,7 +29,7 @@ def test_WTSeriesTraining_copy():
     ts_data.add_time_serie(data.iloc[0:1000], prop_tv=0.2)
 
     ts_data_copy = ts_data.copy()
-    assert ts_data_copy.input_size == ts_data.input_size
+    assert ts_data_copy.input_width == ts_data.input_width
     assert ts_data_copy.features == ts_data.features
     assert ts_data_copy.index_column == ts_data.index_column
 

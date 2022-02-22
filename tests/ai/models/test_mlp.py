@@ -46,7 +46,7 @@ data = init_data()
 def test_mlp():
     ts_data = WTSTraining(20)
     ts_data.add_time_serie(data)
-    module = MLP(features=ts_data.ndim(), window_width=ts_data.input_size)
+    module = MLP(features=ts_data.ndim(), window_width=ts_data.input_width)
     module.init(loss=L1Loss(),
                 optimizer=SGD(module.parameters(), lr=0.1),
                 metrics=[L2])

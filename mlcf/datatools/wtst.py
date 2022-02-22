@@ -1,9 +1,5 @@
-import pickle
 from enum import Enum, unique
-from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
-import zipfile as z
-import os
 
 import pandas as pd
 
@@ -41,8 +37,8 @@ def get_partition_value(partition: Union[str, Partition]) -> str:
 class WTSTraining(object):
     def __init__(
         self,
-        input_size: int,
-        target_size: int = 1,
+        input_width: int,
+        target_width: int = 1,
         features: List[str] = [],
         partition: Optional[Union[str, Partition]] = Partition.TRAIN,
         index_column: str = None,
@@ -55,34 +51,34 @@ class WTSTraining(object):
         extract from window sliding of a time series data.
 
         Args:
-            input_size (int): The number of available time / the input width for a ml model
-            target_size (int, optional): the size of the target /
+            input_width (int): The number of available time / the input width for a ml model
+            target_width (int, optional): the size of the target /
             the size of the output for a ml model. Defaults to 1.
             index_column (str, optional): the name of the column we want to index the data. In
             general it's "Date". Defaults to None.
         """
         self.features_has_been_set = False
         self.index_column_has_been_set = False
-        self.input_size: int = input_size
-        self.target_size: int = target_size
+        self.input_width: int = input_width
+        self.target_width: int = target_width
         self.index_column: str = ""
         self.features: List[str] = []
         self.project: Optional[ProjectHome] = project
-        self.part_str: str = get_partition_value(partition)
+        self.part_str: str = self.set_partition(partition)
 
         self.train_data: Dict = {
-            INPUT: WTSeries(self.input_size),
-            TARGET: WTSeries(self.target_size),
+            INPUT: WTSeries(self.input_width),
+            TARGET: WTSeries(self.target_width),
         }
 
         self.val_data: Dict = {
-            INPUT: WTSeries(self.input_size),
-            TARGET: WTSeries(self.target_size),
+            INPUT: WTSeries(self.input_width),
+            TARGET: WTSeries(self.target_width),
         }
 
         self.test_data: Dict = {
-            INPUT: WTSeries(self.input_size),
-            TARGET: WTSeries(self.target_size),
+            INPUT: WTSeries(self.input_width),
+            TARGET: WTSeries(self.target_width),
         }
 
         self.ts_data: Dict = {
@@ -144,8 +140,8 @@ class WTSTraining(object):
             )
         training_dataset: Tuple = build_forecast_ts_training_dataset(
             selected_data,
-            input_width=self.input_size,
-            target_width=self.target_size,
+            input_width=self.input_width,
+            target_width=self.target_width,
             offset=offset,
             window_step=window_step,
             n_interval=n_interval,
@@ -237,7 +233,7 @@ class WTSTraining(object):
             Union[int, Tuple[int, int]]: (input or target width)
             or respectively both if field is None
         """
-        return self.input_size, self.target_size
+        return self.input_width, self.target_width
 
     def ndim(self) -> int:
         if self.features_has_been_set:
@@ -246,8 +242,8 @@ class WTSTraining(object):
 
     def copy(self, filter: Optional[List[Union[bool, str]]] = None):
         wtstraining_copy = WTSTraining(
-            input_size=self.input_size,
-            target_size=self.target_size,
+            input_width=self.input_width,
+            target_width=self.target_width,
             features=(
                 pd.DataFrame(columns=self.features).loc[:, filter].columns
                 if filter else self.features
@@ -277,7 +273,7 @@ class WTSTraining(object):
 
     def __str__(self) -> str:
         return (
-            f"Input size: {self.input_size}, Target size: {self.target_size}, "
+            f"Input size: {self.input_width}, Target size: {self.target_width}, "
             + f"Index name: '{self.index_column if self.index_column_has_been_set else 'X'}'"
             + f"Data lengths: Train: {self.len(Partition.TRAIN)}, "
             + f"Validation: {self.len(Partition.VALIDATION)}, "

@@ -55,8 +55,8 @@ def write_wtstdataset_from_raw_data(
     dataset_name: str,
     pairs: List[str],
     timeframes: List[str],
-    input_size: int,
-    target_size: int,
+    input_width: int,
+    target_width: int,
     offset: int,
     window_step: int,
     n_interval: int,
@@ -70,8 +70,8 @@ def write_wtstdataset_from_raw_data(
 ):
 
     dataset = WTSTraining(
-        input_size=input_size,
-        target_size=target_size,
+        input_width=input_width,
+        target_width=target_width,
         index_column=index_column,
         project=project
     )

@@ -17,4 +17,4 @@ data = init_data()
 
 def test_super_module():
     ts_data = WTSTraining(20, index_column="date")
-    SuperModule(ts_data.input_size)
+    SuperModule(ts_data.input_width)
