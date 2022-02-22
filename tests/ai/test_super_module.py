@@ -1,6 +1,6 @@
 
 from mlcf.aitools.super_module import SuperModule
-from mlcf.datatools.wtseries_training import WTSeriesTraining
+from mlcf.datatools.wtst import WTSTraining
 import pandas as pd
 
 
@@ -16,5 +16,5 @@ data = init_data()
 
 
 def test_super_module():
-    ts_data = WTSeriesTraining(20, index_column="date")
+    ts_data = WTSTraining(20, index_column="date")
     SuperModule(ts_data.input_size)

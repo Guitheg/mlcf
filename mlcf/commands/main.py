@@ -3,7 +3,7 @@ from enum import Enum, unique
 
 # MLCF modules
 from mlcf.commands import build_dataset, launch_machine_learning
-from mlcf.datatools.wtseries_training import EXTENSION_FILE, read_wtseries_training
+from mlcf.datatools.wtst import EXTENSION_FILE, read_wtseries_training
 from mlcf.envtools.hometools import MlcfHome
 from mlcf.datatools.preprocessing import PreProcessDict
 from mlcf.datatools.indice import Indice

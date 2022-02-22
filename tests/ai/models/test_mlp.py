@@ -4,7 +4,7 @@ from torch.optim import SGD
 from torch.nn import L1Loss
 
 from mlcf.aitools.metrics import L2
-from mlcf.datatools.wtseries_training import WTSeriesTraining, Partition as P
+from mlcf.datatools.wtst import WTSTraining, Partition as P
 from mlcf.datatools.wtseries_tensor import WTSeriesTensor
 
 from torch import nn, sigmoid
@@ -44,7 +44,7 @@ data = init_data()
 
 
 def test_mlp():
-    ts_data = WTSeriesTraining(20)
+    ts_data = WTSTraining(20)
     ts_data.add_time_serie(data)
     module = MLP(features=ts_data.ndim(), window_width=ts_data.input_size)
     module.init(loss=L1Loss(),
@@ -52,6 +52,6 @@ def test_mlp():
                 metrics=[L2])
     module.summary()
     module.fit(ts_data, 1, 20)
-    tensor_data = WTSeriesTensor(P.TEST, ts_data=ts_data)
+    tensor_data = WTSeriesTensor(ts_data=ts_data, partition=P.TEST)
     i, _ = tensor_data[0]
     module.predict(i.view(1, -1))

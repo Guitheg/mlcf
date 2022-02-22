@@ -7,7 +7,7 @@ from mlcf.datatools.indice import Indice, add_indicators
 from mlcf.datatools.preprocessing import WTSeriesPreProcess
 
 # MLCF modules
-from mlcf.datatools.wtseries_training import WTSeriesTraining, read_wtseries_training
+from mlcf.datatools.wtst import WTSTraining, read_wtseries_training
 from mlcf.envtools.hometools import MlcfHome
 from mlcf.envtools.hometools import ProjectHome
 
@@ -69,7 +69,7 @@ def write_wtstdataset_from_raw_data(
     *args, **kwargs
 ):
 
-    dataset = WTSeriesTraining(
+    dataset = WTSTraining(
         input_size=input_size,
         target_size=target_size,
         index_column=index_column,
@@ -120,4 +120,4 @@ def write_wtstdataset_from_raw_data(
                 )
 
     project.log.debug(f"Dataset built:{dataset}")
-    dataset.write(project.data_dir, dataset_name)
+    # dataset.write(project.data_dir, dataset_name)

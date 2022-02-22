@@ -1,5 +1,5 @@
 # MLCF modules
-from mlcf.datatools.wtseries_training import read_wtseries_training, EXTENSION_FILE
+from mlcf.datatools.wtst import read_wtseries_training, EXTENSION_FILE
 from mlcf.envtools.hometools import MlcfHome
 from mlcf.envtools.importools import train_method_import
 
