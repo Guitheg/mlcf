@@ -7,7 +7,7 @@ import pandas as pd
 from mlcf.datatools.preprocessing import Identity
 from mlcf.datatools.utils import build_forecast_ts_training_dataset
 from mlcf.datatools.wtseries import WTSeries
-from mlcf.envtools.hometools import ProjectHome
+from mlcf.envtools.hometools import MlcfHome
 
 
 @unique
@@ -30,8 +30,8 @@ INPUT: str = Field.INPUT.value
 TARGET: str = Field.TARGET.value
 
 
-def get_partition_value(partition: Union[str, Partition]) -> str:
-    return partition.value if isinstance(partition, Partition) else partition
+def get_enum_value(enum: Union[str, Partition]) -> str:
+    return enum.value if isinstance(enum, Partition) else enum
 
 
 class WTSTraining(object):
@@ -42,7 +42,7 @@ class WTSTraining(object):
         features: List[str] = [],
         partition: Optional[Union[str, Partition]] = Partition.TRAIN,
         index_column: str = None,
-        project: ProjectHome = None,
+        project: MlcfHome = None,
         *args,
         **kwargs,
     ):
@@ -63,8 +63,9 @@ class WTSTraining(object):
         self.target_width: int = target_width
         self.index_column: str = ""
         self.features: List[str] = []
-        self.project: Optional[ProjectHome] = project
-        self.part_str: str = self.set_partition(partition)
+        self.project: Optional[MlcfHome] = project
+        self.part_str: str
+        self.set_partition(partition)
 
         self.train_data: Dict = {
             INPUT: WTSeries(self.input_width),
@@ -100,7 +101,7 @@ class WTSTraining(object):
         self.index_column_has_been_set = True
 
     def set_partition(self, partition: Union[str, Partition]):
-        self.part_str = get_partition_value(partition)
+        self.part_str = get_enum_value(partition)
 
     def add_time_serie(
         self,
@@ -155,27 +156,39 @@ class WTSTraining(object):
             input_ts_data=training_dataset[0],
             target_ts_data=training_dataset[1],
             partition=Partition.TRAIN,
-            do_shuffle=do_shuffle,
+            do_shuffle=do_shuffle
         )
 
         self._add_wts_data(
             input_ts_data=training_dataset[2],
             target_ts_data=training_dataset[3],
             partition=Partition.VALIDATION,
-            do_shuffle=do_shuffle,
+            do_shuffle=do_shuffle
         )
 
         self._add_wts_data(
             input_ts_data=training_dataset[4],
             target_ts_data=training_dataset[5],
             partition=Partition.TEST,
-            do_shuffle=do_shuffle,
+            do_shuffle=do_shuffle
         )
         if self.project:
             self.project.log.debug(f"[WTST]- New WTST data: {self}")
 
-    def __getitem__(self, idx: int, part: Union[str, Partition] = None):
-        inputs, targets = self(part)
+    def get(
+        self,
+        part: Partition,
+        field: Field
+    ) -> WTSeries:
+        part_str = get_enum_value(part)
+        field_str = get_enum_value(field)
+        return self.ts_data[part_str][field_str]
+
+    def __getitem__(
+        self,
+        idx: int
+    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        inputs, targets = self()
         return inputs[idx], targets[idx]
 
     def __call__(
@@ -203,14 +216,14 @@ class WTSTraining(object):
             or a window data (a field 'input', 'target')
         """
         if part is not None:
-            part_str = get_partition_value(part)
+            part_str = get_enum_value(part)
             return (
-                self.ts_data[part_str][Field.INPUT.value],
-                self.ts_data[part_str][Field.TARGET.value]
+                self.get(part_str, Field.INPUT.value),
+                self.get(part_str, Field.TARGET.value)
             )
         return (
-            self.ts_data[self.part_str][Field.INPUT.value],
-            self.ts_data[self.part_str][Field.TARGET.value]
+            self.get(self.part_str, Field.INPUT.value),
+            self.get(self.part_str, Field.TARGET.value)
         )
 
     def __len__(self) -> int:
@@ -240,7 +253,10 @@ class WTSTraining(object):
             return len(self.features)
         return 0
 
-    def copy(self, filter: Optional[List[Union[bool, str]]] = None):
+    def copy(
+        self,
+        filter: Optional[List[Union[bool, str]]] = None
+    ):
         wtstraining_copy = WTSTraining(
             input_width=self.input_width,
             target_width=self.target_width,
