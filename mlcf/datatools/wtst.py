@@ -30,8 +30,8 @@ INPUT: str = Field.INPUT.value
 TARGET: str = Field.TARGET.value
 
 
-def get_enum_value(enum: Union[str, Partition]) -> str:
-    return enum.value if isinstance(enum, Partition) else enum
+def get_enum_value(enum, Enum) -> str:
+    return enum.value if isinstance(enum, Enum) else enum
 
 
 class WTSTraining(object):
@@ -39,8 +39,8 @@ class WTSTraining(object):
         self,
         input_width: int,
         target_width: int = 1,
+        partition: Union[str, Partition] = Partition.TRAIN,
         features: List[str] = [],
-        partition: Optional[Union[str, Partition]] = Partition.TRAIN,
         index_column: str = None,
         project: MlcfHome = None,
         *args,
@@ -57,15 +57,12 @@ class WTSTraining(object):
             index_column (str, optional): the name of the column we want to index the data. In
             general it's "Date". Defaults to None.
         """
-        self.features_has_been_set = False
-        self.index_column_has_been_set = False
+        self._init(features, partition, index_column)
+
         self.input_width: int = input_width
         self.target_width: int = target_width
-        self.index_column: str = ""
-        self.features: List[str] = []
+
         self.project: Optional[MlcfHome] = project
-        self.part_str: str
-        self.set_partition(partition)
 
         self.train_data: Dict = {
             INPUT: WTSeries(self.input_width),
@@ -87,6 +84,14 @@ class WTSTraining(object):
             VALIDATION: self.val_data,
             TEST: self.test_data,
         }
+
+    def _init(self, features, partition, index_column):
+        self.features_has_been_set = False
+        self.index_column_has_been_set = False
+        self.index_column: str = ""
+        self.features: List[str] = []
+        self.part_str: str
+        self.set_partition(partition)
         if len(features) != 0:
             self._set_features(features)
         if index_column is not None:
@@ -101,7 +106,7 @@ class WTSTraining(object):
         self.index_column_has_been_set = True
 
     def set_partition(self, partition: Union[str, Partition]):
-        self.part_str = get_enum_value(partition)
+        self.part_str = get_enum_value(partition, Partition)
 
     def add_time_serie(
         self,
@@ -177,11 +182,11 @@ class WTSTraining(object):
 
     def get(
         self,
-        part: Partition,
-        field: Field
+        part: Union[str, Partition],
+        field: Union[str, Field]
     ) -> WTSeries:
-        part_str = get_enum_value(part)
-        field_str = get_enum_value(field)
+        part_str = get_enum_value(part, Partition)
+        field_str = get_enum_value(field, Field)
         return self.ts_data[part_str][field_str]
 
     def __getitem__(
@@ -216,7 +221,7 @@ class WTSTraining(object):
             or a window data (a field 'input', 'target')
         """
         if part is not None:
-            part_str = get_enum_value(part)
+            part_str = get_enum_value(part, Partition)
             return (
                 self.get(part_str, Field.INPUT.value),
                 self.get(part_str, Field.TARGET.value)
