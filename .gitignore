@@ -12,7 +12,7 @@ maintest_*.py
 .markdownlint.yaml
 
 #mlcf
-mlcf_home/
+mlcf_home/*
 
 #freqtrade
 user_data/*
