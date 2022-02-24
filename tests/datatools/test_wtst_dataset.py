@@ -74,10 +74,10 @@ def test_iterdir_in_zipfile(tmp_path):
         os.chdir(cwd)
 
 
-def test_write_wtstdataset_from_raw_data(mlcf_home, eth_ts_data):
+def test_write_wtstdataset_from_raw_data(mlcf_home, eth_ts_data, testdatadir):
     write_wtstdataset_from_raw_data(
         project=mlcf_home,
-        rawdata_dir=Path("tests/testdata/user_data/data/binance"),
+        rawdata_dir=Path(testdatadir / "user_data/data/binance"),
         dataset_name="TestDataSet",
         pairs=["ETH/BUSD"],
         timeframes=["1h"],

@@ -6,18 +6,21 @@ from mlcf.aitools.super_module import SuperModule
 from mlcf.datatools.wtst import WTSTraining
 from torch import nn, sigmoid
 from pathlib import Path
-import os
-print(os.getcwd())
 
 
 @pytest.fixture
-def rawdata_btc_path():
-    return Path("tests/testdata/user_data/data/binance/BTC_BUSD-1h.json")
+def testdatadir() -> Path:
+    return (Path(__file__).parent / "testdata").resolve()
 
 
 @pytest.fixture
-def rawdata_eth_path():
-    return Path("tests/testdata/user_data/data/binance/ETH_BUSD-1h.json")
+def rawdata_btc_path(testdatadir):
+    return Path(testdatadir / "user_data/data/binance/BTC_BUSD-1h.json")
+
+
+@pytest.fixture
+def rawdata_eth_path(testdatadir):
+    return Path(testdatadir / "user_data/data/binance/ETH_BUSD-1h.json")
 
 
 @pytest.fixture
