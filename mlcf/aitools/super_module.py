@@ -19,7 +19,7 @@ from mlcf.envtools.hometools import ProjectHome
 from mlcf.aitools.training_manager import TrainingManager
 
 
-def select_list_index_collumns(list_to_select: List[str], list_all_collumns):
+def select_list_index_columns(list_to_select: List[str], list_all_collumns: List[str]):
     list_index = []
     for e in list_to_select:
         list_index.append(list_all_collumns.index(e))
@@ -90,10 +90,25 @@ class SuperModule(Module):
         self.to(self.device)
         self.manager.info(f"  -Processeur utilisé: {self.device}")
 
-    def init_load_checkpoint(self, training_name: str,
-                             project: ProjectHome,
-                             resume_training: bool = False):
-        self.manager = TrainingManager(model=self, project=project)
+    def init_load_checkpoint(
+        self,
+        training_name: str,
+        loss: Callable,
+        optimizer: torch.optim.Optimizer,
+        device_str: str = "cuda",
+        metrics: List[Callable] = None,
+        project: ProjectHome = None,
+        resume_training: bool = False
+    ):
+        self.init(
+            loss,
+            optimizer,
+            device_str,
+            metrics,
+            training_name,
+            project
+        )
+        self.initialize = False
         self.manager.load_checkpoint(resume_training=resume_training)
         self.initialize = True
 
