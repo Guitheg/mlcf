@@ -15,7 +15,7 @@ maintest_*.py
 mlcf_home/
 
 #freqtrade
-user_data/
+user_data/*
 
 config.json
 *.sqlite
