@@ -1,3 +1,6 @@
+#pytest coverage file
+cov.xml
+
 #all main script to try some things...
 maintest_*.py
 
