@@ -6,13 +6,12 @@ from mlcf.aitools.super_module import SuperModule
 from mlcf.datatools.wtst import WTSTraining
 from torch import nn, sigmoid
 from pathlib import Path
-import sys
-print(sys.path)
+import os
+print(os.getcwd())
 
 
 @pytest.fixture
 def rawdata_btc_path():
-    print(sys.path)
     return Path("tests/testdata/user_data/data/binance/BTC_BUSD-1h.json")
 
 
