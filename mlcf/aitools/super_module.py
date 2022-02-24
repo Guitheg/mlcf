@@ -13,13 +13,13 @@ from time import time_ns
 
 # MLCF modules
 from mlcf.datatools.wtseries_tensor import WTSeriesTensor
-from mlcf.datatools.wtseries_training import Partition, WTSeriesTraining
+from mlcf.datatools.wtst import Partition, WTSTraining
 from mlcf.aitools.log import ProgressBar, add_metrics_to_log, log_to_message
 from mlcf.envtools.hometools import ProjectHome
 from mlcf.aitools.training_manager import TrainingManager
 
 
-def select_list_index_collumns(list_to_select: List[str], list_all_collumns):
+def select_list_index_columns(list_to_select: List[str], list_all_collumns: List[str]):
     list_index = []
     for e in list_to_select:
         list_index.append(list_all_collumns.index(e))
@@ -90,10 +90,25 @@ class SuperModule(Module):
         self.to(self.device)
         self.manager.info(f"  -Processeur utilisé: {self.device}")
 
-    def init_load_checkpoint(self, training_name: str,
-                             project: ProjectHome,
-                             resume_training: bool = False):
-        self.manager = TrainingManager(model=self, project=project)
+    def init_load_checkpoint(
+        self,
+        training_name: str,
+        loss: Callable,
+        optimizer: torch.optim.Optimizer,
+        device_str: str = "cuda",
+        metrics: List[Callable] = None,
+        project: ProjectHome = None,
+        resume_training: bool = False
+    ):
+        self.init(
+            loss,
+            optimizer,
+            device_str,
+            metrics,
+            training_name,
+            project
+        )
+        self.initialize = False
         self.manager.load_checkpoint(resume_training=resume_training)
         self.initialize = True
 
@@ -131,7 +146,7 @@ class SuperModule(Module):
         self.initialize = True
 
     def fit(self,
-            dataset: WTSeriesTraining,
+            dataset: WTSTraining,
             n_epochs: int,
             batchsize: int,
             shuffle: bool = False,
@@ -143,7 +158,7 @@ class SuperModule(Module):
         """Fit/train the model (need to be initialized first)
 
         Args:
-            dataset (WTSeriesTraining): The dataset used to train (and evaluate the model)
+            dataset (WTSTraining): The dataset used to train (and evaluate the model)
             n_epochs (int): The number of epochs
             batchsize (int): The batch size
             shuffle (bool, optional): If we want to shuffle the data. Defaults to True.
@@ -166,15 +181,24 @@ class SuperModule(Module):
         if not self.initialize:
             raise Exception("The module has not been compiled")
 
-        train_data = WTSeriesTensor(Partition.TRAIN, ts_data=dataset,
-                                    transform_x=self.transform_x,
-                                    transform_y=self.transform_y)
-        validation_data = WTSeriesTensor(Partition.VALIDATION, ts_data=dataset,
-                                         transform_x=self.transform_x,
-                                         transform_y=self.transform_y)
-        test_data = WTSeriesTensor(Partition.TEST, ts_data=dataset,
-                                   transform_x=self.transform_x,
-                                   transform_y=self.transform_y)
+        train_data = WTSeriesTensor(
+            ts_data=dataset,
+            partition=Partition.TRAIN,
+            transform_x=self.transform_x,
+            transform_y=self.transform_y
+        )
+        validation_data = WTSeriesTensor(
+            ts_data=dataset,
+            partition=Partition.VALIDATION,
+            transform_x=self.transform_x,
+            transform_y=self.transform_y
+        )
+        test_data = WTSeriesTensor(
+            ts_data=dataset,
+            partition=Partition.TEST,
+            transform_x=self.transform_x,
+            transform_y=self.transform_y
+        )
 
         self.manager.debug(
                 f"\nSize train tensor (x,y): {train_data.x_size()}, {train_data.y_size()}" +

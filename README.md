@@ -95,8 +95,8 @@ mlfc_home
 │   │   └─  ...
 │   │
 │   └───trainers
-│       |   trainer_lstm_a.py
-│       |   trainer_lstm_b.py
+│       │   trainer_lstm_a.py
+│       │   trainer_lstm_b.py
 │       └─  ...
 │
 └───Training
@@ -267,7 +267,7 @@ A python trainer script is a script with the definition of a function called tra
 
 - training_name : it is the name of this training.
 
-- wtst_data : it is the WTSeriesTraining use for the training.
+- wtst_data : it is the WTSTraining use for the training.
 
 - args and kwargs : will work with the argument param in order to pass personnal parameters.
 
@@ -308,7 +308,7 @@ In this part is introduced all the current tools of MLCF.
 The datatools library provides :
 
 - WTSeries
-- WTSeriesTraining
+- WTSTraining
 - WTSeriesTensor
 - WTSeriesPreProcess
 - Indice
