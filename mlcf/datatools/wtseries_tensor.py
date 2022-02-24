@@ -34,9 +34,6 @@ class WTSeriesTensor():
         self.ts_data = ts_data
         self.ts_data.set_partition(self.partition)
 
-        if len(self.ts_data) == 0:
-            raise ValueError("WTSTraining has a length of 0. It is empty")
-
     def x_size(self, *args, **kwargs):
         return self[0][0].size(*args, **kwargs)
 

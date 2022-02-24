@@ -1,4 +1,3 @@
-import pytest
 from mlcf.datatools.wtst import Partition, WTSTraining
 from mlcf.datatools.wtseries_tensor import WTSeriesTensor
 import numpy as np
@@ -6,8 +5,6 @@ import numpy as np
 
 def test_WTSeriesTensor(btc_ohlcv):
     ts_data = WTSTraining(9, index_column="date")
-    with pytest.raises(ValueError):
-        dataset = WTSeriesTensor(ts_data=ts_data, partition=Partition.TRAIN)
     ts_data.add_time_serie(btc_ohlcv.iloc[0:3000])
     assert ts_data.index_column == "date"
     dataset = WTSeriesTensor(ts_data=ts_data, partition=Partition.TRAIN)

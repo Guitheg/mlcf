@@ -97,17 +97,22 @@ class WTSTrainingDataset(WTSTraining):
                     Partition.TEST.value.swapcase()
                 ]:
                     part_dir: Path = Path(TS_DATA_ARCHDIR).joinpath(part)
-                    max_packet = max([int(packet) for packet
-                                      in iterdir_in_zipfile(zipf, part_dir)])
-                    data_dir: Path = part_dir.joinpath(str(max_packet), "inputs")
-                    self.indexes[part] = max(
-                        [int(str(file).split("_")[-2]) for file
-                         in iterdir_in_zipfile(zipf, data_dir)]
-                    )
-                    inputs, targets = self[0]
-                    features = inputs.columns
-                    input_width = len(inputs)
-                    target_width = len(targets)
+
+                    list_packet = [
+                        int(packet) for packet
+                        in iterdir_in_zipfile(zipf, part_dir)
+                    ]
+                    if len(list_packet) > 0:
+                        max_packet = max(list_packet)
+                        data_dir: Path = part_dir.joinpath(str(max_packet), "inputs")
+                        self.indexes[part.lower()] = max([
+                            int(str(file).split("_")[-2]) for file
+                            in iterdir_in_zipfile(zipf, data_dir)
+                        ])
+                        inputs, targets = self[0]
+                        features = inputs.columns
+                        input_width = len(inputs)
+                        target_width = len(targets)
 
         if input_width is None or target_width is None:
             raise Exception(
@@ -181,8 +186,10 @@ class WTSTrainingDataset(WTSTraining):
         return window_inputs, window_targets
 
     def len(self, part: Union[str, Partition] = None) -> int:
-        part_str = get_enum_value(part, Partition)
-        return self.indexes[part_str]
+        if part:
+            part_str = get_enum_value(part, Partition)
+            return self.indexes[part_str]
+        return self.indexes[self.part_str]
 
     def copy(
         self,

@@ -1,5 +1,5 @@
 # MLCF modules
-from mlcf.datatools.wtst import read_wtseries_training, EXTENSION_FILE
+from mlcf.datatools.wtst_dataset import EXTENSION_FILE, WTSTrainingDataset
 from mlcf.envtools.hometools import MlcfHome
 from mlcf.envtools.importools import train_method_import
 
@@ -16,7 +16,7 @@ def launch_machine_learning(
     data_path = project.data_dir.joinpath(dataset_name).with_suffix(EXTENSION_FILE)
     project.check_file(data_path, project.data_dir)
 
-    wtst_data = read_wtseries_training(data_path, project=project)
+    wtst_data = WTSTrainingDataset(dataset_path=data_path, project=project)
 
     pyfile_path = project.trainer_dir.joinpath(trainer_name.lower() + ".py")
     project.check_file(pyfile_path, project.trainer_dir)
