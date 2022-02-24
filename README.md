@@ -209,12 +209,24 @@ mlcf_home build-dataset [-h] --rawdata-dir RAWDATA_DIR --dataset-name DATASET_NA
 --preprocess FUNCTION NAME      List of pre processing function we want  
                                 to use to pre process the data. Note: 
                                 it's use independtly on each 
-                                window              
+                                window
+                                
+--pairs PAIRS [PAIRS ...]       The list of pairs from which the dataset
+                                is build. They are space-separated. 
+                                (Default : BTC/BUSD)
+                                
+--timeframes TIMEFRAMES [TIMEFRAMES ...] 
+                                The list of timeframes from which the 
+                                dataset is build. They are space-separated.
+                                (Default : 1d)
+                                
+--merge-pairs                   Merge the pairs together in order to 
+                                extend the number of features          
 ```
 
 usage example:
 
-Build a dataset named SimpleDataset from a raw_data which is in $HOME/Documents/data, with an input width of 55, and the default parameters:
+Build a dataset named SimpleDataset from a raw_data which is in $HOME/Documents/data, with an input width of 55, and the default parameters, with the BTC/BUSD pair and a timeframe of '1d':  
 
 ```bash
 mlcf build-dataset --rawdata-dir ~/Documents/data --dataset-name SimpleDataset --input-size 55
@@ -230,6 +242,12 @@ Build a dataset named DatasetRSInorm which have the RSI indicator and a preproce
 
 ```bash
 mlcf build-dataset --rawdata-dir ~/Documents/data --dataset-name DatasetRSInorm --input-size 55 --indices RSI --preprocess AutoNormalize
+```
+
+Build a dataset named DatasetETHBTC which have merged BTC and ETH features with a timeframe of one hour.
+
+```bash
+mlcf build-dataset --rawdata-dir ~/Documents/data --dataset-name DatasetETHBTC --input-size 55 --pairs BTC/BUSD ETH/BUSD --timeframes 1h --merge-pairs
 ```
 
 ---
@@ -307,25 +325,162 @@ In this part is introduced all the current tools of MLCF.
 
 The datatools library provides :
 
-- WTSeries
-- WTSTraining
-- WTSeriesTensor
-- WTSeriesPreProcess
-- Indice
-- datasetools
+- ### WTSeries  
+    - ```WTSeries(window_width, raw_data (optional), window_step (optional) (default: 1))```  
+    WTSeries for Windowed Time Series is a list of window (dataframe) extract from a time series data.
+         - ```make_common_shuffle(other: WTSeries)```  
+         perform a common shuffle between the self WTSeries and an other. (it's used to shuffle target and inputs together)
+         - ```get_features() -> List[str]```  
+         Return the list of features (name of columns)
+         - ```width() -> int```  
+         Return the width of the window
+         - ```ndim() -> int```  
+         Return the number of features. (the number of columns)
+         - ```shape() -> (int, int)```  
+         Return the shape of a window : width, ndim
+         - ```size() -> (int, int, int)```  
+         Return the full shape/size of the wtseries : n_windows, width, ndim
+         - ```is_empty() -> bool```  
+         Return True if the wtseries is empty
+         - ```add_data(data: DataFrame)```  
+         From a raw data, perform the sliding window operation in order to add the windowed data in the list of window of the wtseries.
+         - ```add_one_window(window: DataFrame)```  
+         Add a window to the list of window
+         - ```add_window_data(window_data: WTSeries)```  
+         Add all the window of the given window_data wtseries to the current wtseries.
+- ### WTSTraining
+    - ```WTSTraining(input_width: int, target_width: int, partition: str, features: List[str], index_column: str, project: MlcfHome)```  
+    WTSTraining is used to divide the data into windows, to create input windows and target window, to create train part, validation part and test part. WTSTraining allow to handle time series data in a machine learning training. The component of the WTSTraining is the WTSeries which is a list of window extract from window sliding of a time series data.
+        - ```set_partition(partition: str)```  
+        Set the partition : 'train', 'validation' or 'test'.
+        - ```add_time_serie(dataframe: DataFrame, prop_tv: float, prop_v: float, do_shuffle: bool, n_interval: int, offset: int, window_step: int, preprocess: WTSeriesPreProcess)```  
+        This function perform the sliding window operation on the given dataframe to add train, validation and test data in the WTSTraining.
+            - ```prop_tv```: is the percentage of the evaluation part (the union of test and validation part)
+            - ```prop_v```: is the percentage of validation part amoung the evaluation part
+            - ```do_shuffle```: if true then perform a shuffle of the wtseries
+            - ```n_interval```: the number of interval from which the raw data will be divide. (to avoid to have test and val only at the end of the raw_data)
+            - ```offset```: the width between the input window and the target window
+            - ```window_step```: the step between each sliding window
+        - ```__call__() -> WTSeries, WTSeries```  
+        Return the input and target WTSeries of the current partition  
+        Example of use :
+        ```python
+        myWtstraining = WTSTraining(...)
+        myWtstraining.add_time_serie(...)
+        inputs, target = myWtstraining() # call : __call__() function
+        ```
+        - ```width() -> int, int```  
+        Return the width of the input and of the target
+        - ```ndim() -> int```  
+        Return the number of features
+        - ```copy(filter: List[str | bool] (optional) -> WTSTraining```  
+        Return the same WTSTraining and if filter is set then return the filtered WTSTraining
+- ### WTSTrainingDataset
+    - ```WTSTrainingDataset(dataset_path: Path, ...)```  
+    WTSTrainingDataset specify WTSTraining. The new argument is dataset_path which lead to the dataset file. It work the same way as WTSTraining.
+- ### WTSeriesPreProcess  
+    Available WTSeriesPreprocess:  
+    - Identity
+    - AutoNormalize
+- ### Indice  
+    Available indices:  
+    - ADX
+    - Plus Directional Indicator / Movement
+    - Minus Directional Indicator / Movement
+    - Aroon, Aroon Oscillator
+    - Awesome Oscillator
+    - Keltner Channel
+    - Ultimate Oscillator
+    - Commodity Channel Index
+    - RSI
+    - Inverse Fisher transform on RSI
+    - Inverse Fisher transform on RSI normalized
+    - Stochastic RSI
+    - MACD
+    - MFI
+    - ROC
+    - Bollinger Bands
+    - Bollinger Bands - Weighted
+    - EMA - Exponential Moving Average
+    - SMA - Simple Moving Average
+    - Parabolic SAR
+    - TEMA - Triple Exponential Moving Average
+    - Hilbert Transform Indicator - SineWave
+    - Percent growth (return)
+    - SMA1
+    - Log of SMA1
+    - Volatility
+    - And other... (pattern recognition)
+- ### datasetools  
+    Available function to handle WTSTrainingDataset:  
+    - 
+    ```python
+    write_wtstdataset_from_raw_data(
+        project: MlcfHome,
+        rawdata_dir: Path,
+        dataset_name: str,
+        pairs: List[str],
+        timeframes: List[str],
+        input_width: int,
+        target_width: int,
+        offset: int,
+        window_step: int,
+        n_interval: int,
+        index_column: str,
+        prop_tv: float,
+        prop_v: float,
+        indices: List[Indice],
+        preprocess: WTSeriesPreProcess,
+        merge_pairs: bool
+       )
+    ```
+    This function create a .wtst WTSTrainingDataset file for a ```rawdata_dir``` directory.  
 
 ### AiTools
 
 The aitools library provides :
 
-- SuperModule
-- TrainingManager
+- ### SuperModule  
+    SuperModule is an abstract class which allow to have a files, logs, and checkpoints managements.  
+    Here the function implemented by SuperModule:  
+    - ```init(loss, optimizer, device_str, metrics, training_name, project)```  
+    The init function allows to initialize a training
+    - ```init_load_checkpoint(loss, optimizer, device_str, metrics, project, training_name, resume_training)```  
+    This function allows to load the last checkpoint of the training having the same name given the project
+    - ```fit(dataset: WTSTraining, n_epochs: int, batchsize: int, shuffle: bool, evaluate: bool, checkpoint: bool)```  
+    The fit function allows to perform a training
+    - ```predict(bacth_input: Tensor)```  
+    Given a batch of input give the prediction batch in output
+    - ```summary()```  
+    Return the summary of the current module neural network
+    
+    
+    To write a module from this super module you need to specify : 
+    - ```__init__```  
+    Here it allows to define the network and initialize the shape of the input of the network 
+    - ```forward```  
+    Here it allows to define the feed forwarding of the neural network
+    - ```transform_x``` 
+    Here it allows to define all shape transform the input data will go through
+    - ```transform_y``` 
+    Here it allows to define all shape transform the target data will go through  
+    
 
 ### EnvTools
 
 The envtools library provides :
 
-- ProjectHome
+- ### MlcfHome
+    Attributes available:  
+    - ```home_name```: the name of the directory name
+    - ```dir_prgm```: the path of the path from where the programm has been executed
+    - ```dir```: the path to the project directory
+    - ```data_dir```: the path where the WTSTrainingDataset are stored
+    - ```trainer_dir```: the path where trainers are stored
+    - ```models_dir```: the path where models are stored
+    - ```log```: logger of the project, will write every log in the files of the projects
+    - ```cfg```: link to the parameters.ini file stored in the project directory
+    - ```id```: information in text about the project
 
 
 *More details explanation are coming soon...*
