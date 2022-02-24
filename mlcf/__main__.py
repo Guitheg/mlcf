@@ -75,7 +75,7 @@ def main():
                  "12h", "1d", "3d", "1w", "2w", "1M", "1y"]
     )
     command_build.add_argument(
-        "--input-size",
+        "--input-width",
         help="The width of the input part in the sliding window. "
         + "Can also be seen as the sequence length of a neural network.",
         required=True,
@@ -83,7 +83,7 @@ def main():
         type=int,
     )
     command_build.add_argument(
-        "--target-size",
+        "--target-width",
         help="The width of the target part in the sliding window (Default: 1)",
         default=1,
         type=int,

@@ -1,0 +1,2 @@
+Training name,Model name,Optimizer,Loss function,Number of trained epochs,Last evaluation loss,Last checkpoint filepath
+test,LSTM,SGD,L1Loss,0,32327.456178669374,user_data/mlcf_home/Training/checkpoints/checkpoints_test/checkpoint_test_2022-17Feb21h52m56.pt

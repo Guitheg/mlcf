@@ -1,0 +1,6 @@
+
+[run]
+omit =
+    mlcf/commands/*
+    mlcf/__main__.py
+    tests/*

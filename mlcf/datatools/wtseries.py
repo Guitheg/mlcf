@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Optional, Tuple, Union
+from typing import Iterable, List, Optional, Tuple, Union
 import pandas as pd
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
@@ -50,7 +50,7 @@ def window_data(dataframe: pd.DataFrame,
     return list_data
 
 
-class WTSeries(object):
+class WTSeries(Iterable):
 
     def __init__(self,
                  window_width: int,
@@ -73,7 +73,7 @@ class WTSeries(object):
             Exception: [description]
         """
         super(WTSeries, self).__init__()
-
+        self.index = 0
         self._window_width: int = window_width
         self.features_has_been_set = False
         self.features: List[str] = [""]
@@ -192,6 +192,16 @@ class WTSeries(object):
     def __setitem__(self, index: int, value: pd.DataFrame):
         self.data[index] = value
 
+    def __iter__(self):
+        return iter(self.data)
+
+    def __next__(self):
+        r = self[self.index]
+        self.index += 1
+        if self.index >= len(self):
+            raise StopIteration()
+        return r
+
     def __getitem__(self, index: int) -> pd.DataFrame:
         """return a window (a dataframe) given the index of the list of {win_data}
 
@@ -218,7 +228,7 @@ class WTSeries(object):
         return self.data
 
     def add_data(self, data: pd.DataFrame,
-                 ignore_data_empty: bool = False,
+                 ignore_data_empty: bool = True,
                  window_step: int = None):
         """From a raw data, perform the sliding window and add the windows to the list of
         window: {win_data}
@@ -248,7 +258,7 @@ class WTSeries(object):
                 self._set_features(data.columns)
         else:
             if not ignore_data_empty:
-                raise Exception("")
+                raise Exception("Data is empty")
 
     def add_one_window(self, window: pd.DataFrame, ignore_data_empty: bool = False):
         """Add a dataframe (a window) (its length = to the {window_width}) to the list of window:

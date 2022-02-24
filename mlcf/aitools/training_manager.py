@@ -87,8 +87,8 @@ class TrainingManager(object):
             self.project = project
 
             self.home_path = self.project.get_dir()
-            self.training_home = join(self.home_path, HOME)
-            self.infofile_path = join(self.training_home, INFOFILE)
+            self.training_home = self.home_path.joinpath(HOME)
+            self.infofile_path = self.training_home.joinpath(INFOFILE)
             self.checkpoint_path = create_path(str(self.training_home), CHECKPOINT,
                                                f"checkpoints_{self.model.training_name}")
             self.board_path = create_path(str(self.training_home), TENSORBOARD_LOGS_NAME,

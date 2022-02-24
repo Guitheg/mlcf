@@ -7,13 +7,8 @@ from mlcf.datatools.indice import Indice, add_indicators
 from mlcf.datatools.preprocessing import WTSeriesPreProcess
 
 # MLCF modules
-from mlcf.datatools.wtseries_training import WTSeriesTraining, read_wtseries_training
+from mlcf.datatools.wtst_dataset import WTSTrainingDataset
 from mlcf.envtools.hometools import MlcfHome
-from mlcf.envtools.hometools import ProjectHome
-
-
-def read_wtseries_training_from_file(path: Path, project: ProjectHome):
-    return read_wtseries_training(path, project)
 
 
 def read_ohlcv_json_rawdata(path: Path) -> pd.DataFrame:
@@ -37,6 +32,8 @@ def merge_dict_of_dataframe(
     dict_of_dataframe: Dict[str, pd.DataFrame],
     index_column: str
 ) -> pd.DataFrame:
+    if len(dict_of_dataframe.keys()) == 1:
+        return dict_of_dataframe[list(dict_of_dataframe.keys())[0]]
     dataframe = reduce(
         lambda item1, item2: pd.merge(
             item1[1],
@@ -55,8 +52,8 @@ def write_wtstdataset_from_raw_data(
     dataset_name: str,
     pairs: List[str],
     timeframes: List[str],
-    input_size: int,
-    target_size: int,
+    input_width: int,
+    target_width: int,
     offset: int,
     window_step: int,
     n_interval: int,
@@ -69,9 +66,10 @@ def write_wtstdataset_from_raw_data(
     *args, **kwargs
 ):
 
-    dataset = WTSeriesTraining(
-        input_size=input_size,
-        target_size=target_size,
+    dataset = WTSTrainingDataset(
+        dataset_path=project.data_dir.joinpath(dataset_name),
+        input_width=input_width,
+        target_width=target_width,
         index_column=index_column,
         project=project
     )
@@ -103,7 +101,6 @@ def write_wtstdataset_from_raw_data(
                 window_step=window_step,
                 preprocess=preprocess
             )
-
     else:
         for tf in rawdata_set:
             for pair in rawdata_set[tf]:
@@ -120,4 +117,3 @@ def write_wtstdataset_from_raw_data(
                 )
 
     project.log.debug(f"Dataset built:{dataset}")
-    dataset.write(project.data_dir, dataset_name)
