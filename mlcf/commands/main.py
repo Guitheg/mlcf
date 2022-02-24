@@ -3,7 +3,7 @@ from enum import Enum, unique
 
 # MLCF modules
 from mlcf.commands import build_dataset, launch_machine_learning
-from mlcf.datatools.wtst import EXTENSION_FILE, read_wtseries_training
+from mlcf.datatools.wtst_dataset import EXTENSION_FILE, WTSTrainingDataset
 from mlcf.envtools.hometools import MlcfHome
 from mlcf.datatools.preprocessing import PreProcessDict
 from mlcf.datatools.indice import Indice
@@ -41,8 +41,8 @@ def run(mlcf: MlcfHome, args: Namespace):
                 EXTENSION_FILE
             )
             mlcf.check_file(dataset_filepath, mlcf.data_dir)
-            dataset = read_wtseries_training(dataset_filepath)
-            print(dataset("train", "input")[0])
+            dataset = WTSTrainingDataset(dataset_filepath)
+            print(dataset[0][0])
 
         elif args.command == Command.TRAIN.value:
             if args.training_name is None:
