@@ -108,7 +108,7 @@ class WTSTrainingDataset(WTSTraining):
                         self.indexes[part.lower()] = max([
                             int(str(file).split("_")[-2]) for file
                             in iterdir_in_zipfile(zipf, data_dir)
-                        ])
+                        ]) + 1
                         inputs, targets = self[0]
                         features = inputs.columns
                         input_width = len(inputs)
@@ -241,3 +241,8 @@ class WTSTrainingDataset(WTSTraining):
                     curr_dir=self.dataset_path.parent,
                     arch_path=arch_y_path
                 )
+                self.indexes[part_str] += 1
+        if self.project:
+            self.project.log.info(
+                f"Current length for {part_str} : {self.indexes[part_str]}"
+            )
