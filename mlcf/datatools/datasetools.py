@@ -88,9 +88,10 @@ def write_wtstdataset_from_raw_data(
                 rawdata_set[tf][pair] = raw_data
 
     if merge_pairs:
-        for tf in rawdata_set:
+        for i, tf in enumerate(rawdata_set):
             data_to_add = merge_dict_of_dataframe(rawdata_set[tf], index_column=index_column)
-            project.log.debug(f"List features of the data : {data_to_add.columns}")
+            project.log.info(f"List features: {list(data_to_add.columns)}")
+            project.log.info(f"Dataset built at {i/len(rawdata_set):.0%}")
             dataset.add_time_serie(
                 data_to_add,
                 prop_tv=prop_tv,
@@ -102,9 +103,11 @@ def write_wtstdataset_from_raw_data(
                 preprocess=preprocess
             )
     else:
-        for tf in rawdata_set:
-            for pair in rawdata_set[tf]:
-                project.log.debug(f"List features of the data : {rawdata_set[tf][pair].columns}")
+        for i, tf in enumerate(rawdata_set):
+            for j, pair in enumerate(rawdata_set[tf]):
+                project.log.info(f"List features: {list(rawdata_set[tf][pair].columns)}")
+                p = (i+((len(rawdata_set[tf])-1)*j)) / (len(rawdata_set)*len(rawdata_set[tf]))
+                project.log.info(f"Dataset built at {p:.0%}")
                 dataset.add_time_serie(
                     rawdata_set[tf][pair],
                     prop_tv=prop_tv,
