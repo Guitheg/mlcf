@@ -6,6 +6,7 @@ from typing import List
 import mlcf.datatools.indice_tools as i_tools
 import numpy as np
 import pandas as pd
+import pandas_ta as _  # noqa
 import talib.abstract as ta
 
 
@@ -378,16 +379,16 @@ def add_indicator(data: pd.DataFrame, indice_name: Indice):
         ).shift(-26)
 
     elif case(Indice.SMA1):
-        dataframe["SMA1"] = add_SMA1(dataframe)
+        dataframe = add_SMA1(dataframe)
 
     elif case(Indice.VOLATILITY):
-        dataframe["volatility"] = add_volatility(dataframe)
+        dataframe = add_volatility(dataframe)
 
     elif case(Indice.LNSMA1):
-        dataframe["LNSMA1"] = add_ln_SMA1(dataframe)
+        dataframe = add_ln_SMA1(dataframe)
 
     elif case(Indice.PERCENTGROWTH):
-        dataframe["percent_growth"] = add_percent_growth(dataframe)
+        dataframe = add_percent_growth(dataframe)
 
     else:
         raise Exception("Unknown indice")

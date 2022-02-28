@@ -171,11 +171,11 @@ mlcf_home build-dataset [-h] --rawdata-dir RAWDATA_DIR --dataset-name DATASET_NA
 --dataset-name DATASET_NAME     The name of the dataset file which will 
                                 be created
 
--in WIDTH, --input-size WIDTH   The width of the input part in the 
+-in WIDTH, --input-width WIDTH   The width of the input part in the 
                                 sliding window. Can also be seen as the 
                                 sequence length of a neural network.
 
--tar WIDTH, --target-size WIDTH The width of the target part in the 
+-tar WIDTH, --target-width WIDTH The width of the target part in the 
                                 sliding window (Default: 1)
 
 --offset WIDTH                  The width of the offset part in the 
