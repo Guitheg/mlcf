@@ -11,3 +11,8 @@ def test_add_indicators(btc_ohlcv):
     list_indice = [Indice.ADX, Indice.P_DIDM]
     data = add_indicators(btc_ohlcv, list_indice)
     assert len(data.columns) == 9
+
+
+def test_add_all_indicators(btc_ohlcv):
+    list_indice = list(Indice)
+    _ = add_indicators(btc_ohlcv, list_indice)
