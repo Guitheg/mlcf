@@ -5,7 +5,8 @@ install_requirements = [
     "torch-tb-profiler",
     "geneticalgorithm2",
     "TA-Lib",
-    "ritl"
+    "ritl",
+    "pandas-ta"
 ]
 
 setup(

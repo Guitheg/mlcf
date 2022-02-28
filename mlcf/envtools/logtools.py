@@ -32,16 +32,20 @@ def init_logging(
     file_handler_debug.setLevel(logging.DEBUG)
     file_handler_debug.setFormatter(formatter)
 
-    fileHandler = RotatingFileHandler(
+    file_handler = RotatingFileHandler(
         path_log_file_name_info,
         mode="a",
         maxBytes=config.getint("Log", "MaxBytes"),
         backupCount=1,
     )
-    fileHandler.setLevel(logging.INFO)
-    fileHandler.setFormatter(formatter)
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(formatter)
+
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.INFO)
 
     logger.addHandler(file_handler_debug)
-    logger.addHandler(fileHandler)
+    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
 
     return logger

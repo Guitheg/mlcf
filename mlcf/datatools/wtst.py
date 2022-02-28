@@ -295,7 +295,7 @@ class WTSTraining(object):
     def __str__(self) -> str:
         return (
             f"Input size: {self.input_width}, Target size: {self.target_width}, "
-            + f"Index name: '{self.index_column if self.index_column_has_been_set else 'X'}'"
+            + f"Index name: '{self.index_column if self.index_column_has_been_set else 'X'}' "
             + f"Data lengths: Train: {self.len(Partition.TRAIN)}, "
             + f"Validation: {self.len(Partition.VALIDATION)}, "
             + f"Test: {self.len(Partition.TEST)}"
