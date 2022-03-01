@@ -77,7 +77,7 @@ Before all, we need to create an user directory where all of our project will be
 The arborescence of a mlfc_home repository is as follow:  
 
 ```bash
-mlfc_home
+mlcf_home
 │   parameters.ini
 ├───data
 │   │   dataset_a.wst
@@ -122,13 +122,13 @@ mlfc_home
 To create the mlcf_home repository in a choosen repository, use:
 
 ```bash
-mlfc --create-userdir --userdir <path_to_dir>
+mlcf --create-userdir --userdir <path_to_dir>
 ```
 
 or to create it in the current repository:  
 
 ```bash
-mlfc --create-userdir
+mlcf --create-userdir
 ```
 
 The list of files in the mlcf_home:  
