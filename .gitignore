@@ -1,3 +1,6 @@
+#pytest coverage file
+cov.xml
+
 #all main script to try some things...
 maintest_*.py
 
@@ -9,10 +12,10 @@ maintest_*.py
 .markdownlint.yaml
 
 #mlcf
-mlcf_home/
+mlcf_home/*
 
 #freqtrade
-user_data/
+user_data/*
 
 config.json
 *.sqlite

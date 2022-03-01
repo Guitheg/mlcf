@@ -16,7 +16,7 @@ def get_path(*paths: str, create_dir: bool = False) -> Path:
         create_path(*paths)
     my_path = join(*paths)
     if not isdir(my_path):
-        raise Exception(f"The directory: '{my_path}' is not a directory")
+        raise Exception(f"The given path: '{my_path}' is not a directory")
     return Path(my_path)
 
 
