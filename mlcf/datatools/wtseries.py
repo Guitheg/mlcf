@@ -8,7 +8,8 @@ from random import shuffle
 
 def window_data(dataframe: pd.DataFrame,
                 window_width: int,
-                window_step: int = 1) -> List[pd.DataFrame]:
+                window_step: int = 1,
+                balance_tag: str = None) -> List[pd.DataFrame]:
     """
     Window the data given a {window_width} and a {window_step}.
 
@@ -39,15 +40,22 @@ def window_data(dataframe: pd.DataFrame,
     windowed_data_shape: Tuple[int, int, int] = (n_windows, window_width, n_columns)
     windowed_data = np.reshape(windowed_data, newshape=windowed_data_shape)
 
+    if balance_tag:
+        columns: List[str] = list(data.columns)[:-3]
+    else:
+        columns = data.columns
+
     # Make list of dataframe
-    list_data: List[pd.DataFrame] = []
-    for idx in range(n_windows):
-        list_data.append(
-            pd.DataFrame(windowed_data[idx],
-                         index=data.index[idx*window_step: (idx*window_step)+window_width],
-                         columns=data.columns)
-            )
-    return list_data
+    list_windows: List[pd.DataFrame] = [
+        pd.DataFrame(
+            window[:, :-3] if balance_tag else window,
+            index=data.index[idx*window_step: (idx*window_step)+window_width],
+            columns=columns)
+        for idx, window in enumerate(windowed_data)
+        if not balance_tag or data.loc[data.index[(idx*window_step)+window_width-1], balance_tag]
+    ]
+
+    return list_windows
 
 
 class WTSeries(Iterable):
@@ -56,6 +64,7 @@ class WTSeries(Iterable):
                  window_width: int,
                  raw_data: pd.DataFrame = None,
                  window_step: int = 1,
+                 tag_name: str = None,
                  *args, **kwargs):
         """A Window Data is a list of DataFrame (windows) extract from a raw DataFrame.
         A slinding window has been apply to the raw DataFrame and every dataframe windows has been
@@ -80,9 +89,11 @@ class WTSeries(Iterable):
         self.window_step = window_step
 
         if raw_data is not None:
-            self.data: List[pd.DataFrame] = window_data(raw_data,
-                                                        self.width(),
-                                                        window_step)
+            self.data: List[pd.DataFrame] = window_data(
+                raw_data,
+                self.width(),
+                window_step,
+                tag_name)
             self._set_features(raw_data.columns)
         else:
             self.data = []

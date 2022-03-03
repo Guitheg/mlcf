@@ -6,6 +6,8 @@ from mlcf.aitools.super_module import SuperModule
 from mlcf.datatools.wtst import WTSTraining
 from torch import nn, sigmoid
 from pathlib import Path
+import random
+random.seed(0)
 
 
 @pytest.fixture

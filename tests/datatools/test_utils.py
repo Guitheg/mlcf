@@ -1,14 +1,23 @@
 import pytest
 import pandas as pd
 import numpy as np
-from mlcf.datatools.utils import split_pandas, to_train_val_test, \
-                                 split_in_interval, input_target_data_windows, input_target_data, \
-                                 build_forecast_ts_training_dataset
-from mlcf.datatools.wtseries import WTSeries
+from mlcf.datatools.utils import (
+    countinous_value_to_discrete_category,
+    split_pandas,
+    to_train_val_test,
+    split_in_interval,
+    input_target_data_windows,
+    input_target_data,
+    balanced_category_tag,
+    balance_category_by_tagging,
+    build_forecast_ts_training_dataset,
+    RETURN_COLNAME)
+from mlcf.datatools.indice import add_return
+from mlcf.datatools.wtseries import WTSeries, window_data
 
 
 @pytest.fixture
-def window_data(btc_ohlcv):
+def windata(btc_ohlcv):
     win = WTSeries(window_width=10, raw_data=btc_ohlcv.iloc[0:100])
     return win
 
@@ -64,16 +73,16 @@ def test_split_in_interval(btc_ohlcv):
     assert isinstance(list_data[0], pd.DataFrame)
 
 
-def test_input_target_data_window(window_data):
-    input, target = input_target_data_windows(window_data, 9, 1)
+def test_input_target_data_window(windata):
+    input, target = input_target_data_windows(windata, 9, 1)
     assert len(input) == len(target) and len(input) == 100 - 10 + 1
     assert len(input[0]) == 9 and len(target[0]) == 1
     assert target[0].index[0] == input[1].index[-1]
 
     with pytest.raises(Exception):
-        input, target = input_target_data_windows(window_data, 9, 2)
+        input, target = input_target_data_windows(windata, 9, 2)
 
-    input, target = input_target_data_windows(window_data, 8, 2)
+    input, target = input_target_data_windows(windata, 8, 2)
     assert len(input[0]) == 8 and len(target[0]) == 2
     assert target[0].index[0] == input[2].index[-2] and target[0].index[1] == input[2].index[-1]
 
@@ -109,7 +118,66 @@ def test_build_forecast_ts_training_dataset(btc_ohlcv):
         btc_ohlcv[["close", "open"]].iloc[0:1000],
         input_width=9,
         prop_tv=0.2,
-        prop_v=0.2,
-        do_shuffle=True)
+        prop_v=0.2)
     assert ti[0].index[0] == ti[0].index[1]-1
-    assert ti[0].index[0] != ti[1].index[0]-1
+
+
+def test_continous_value_to_discrete_category(btc_ohlcv):
+    data = btc_ohlcv.copy()
+    data = add_return(data, offset=1, colname=RETURN_COLNAME, dropna=True)
+    new_data = countinous_value_to_discrete_category(data, RETURN_COLNAME, 10)
+    assert np.all(data == new_data[data.columns])
+    value_counts = new_data.category.value_counts()
+    assert value_counts[0] == 1698 and value_counts[10] == 1829
+    assert np.all(
+        new_data[RETURN_COLNAME][new_data.category == 0] < -new_data[RETURN_COLNAME].std())
+    assert np.all(
+        new_data[RETURN_COLNAME][new_data.category == 10] > new_data[RETURN_COLNAME].std())
+
+
+def test_balanced_category_tag(btc_ohlcv):
+    data = btc_ohlcv.copy()
+    data = add_return(data, offset=1, colname=RETURN_COLNAME, dropna=True)
+    new_data = countinous_value_to_discrete_category(data, RETURN_COLNAME, 10)
+    tagged_data = balanced_category_tag(new_data, "category")
+    value_counts = tagged_data.category[tagged_data.tag].value_counts()
+    assert value_counts[10] == 1763
+    assert value_counts[1] == 732
+    assert np.all(data == tagged_data[data.columns])
+
+
+def test_balance_category_by_tagging(btc_ohlcv, eth_ohlcv):
+    list_intervals = [btc_ohlcv, eth_ohlcv]
+    new_list_intervals, tag = balance_category_by_tagging(
+        list_intervals,
+        n_category=10,
+        target_width=1,
+        offset=0
+    )
+    assert tag == "tag"
+    assert np.all(btc_ohlcv.iloc[1:] == new_list_intervals[0][btc_ohlcv.columns])
+    assert np.all(eth_ohlcv.iloc[1:] == new_list_intervals[1][eth_ohlcv.columns])
+
+
+def test_window_data_tag(btc_ohlcv):
+    tagged_data, tag = balance_category_by_tagging(
+        [btc_ohlcv[["close", "open"]].iloc[0:1000]],
+        n_category=10,
+        target_width=1,
+        offset=0,
+        sample_function=lambda x, k: x[:k]
+    )
+    list_windows = window_data(tagged_data[0], window_width=10, window_step=1, balance_tag=tag)
+    data = tagged_data[0]
+    assert np.all(data.loc[33:42, ["close", "open"]] == list_windows[0])
+
+
+def test_build_forecast_ts_training_dataset_flattens_hist(btc_ohlcv):
+    ti, tt, vi, vt, tei, tet = build_forecast_ts_training_dataset(
+        btc_ohlcv[["close", "open"]].iloc[0:1000],
+        input_width=9,
+        prop_tv=0.2,
+        prop_v=0.2,
+        n_category=10)
+
+    assert np.all(btc_ohlcv.loc[1:9, ["close", "open"]] == ti[0])

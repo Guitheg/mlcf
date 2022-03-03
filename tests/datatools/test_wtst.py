@@ -7,9 +7,12 @@ def test_WTSeriesTraining(btc_ohlcv):
     assert len(ts_data) == 800 - 10 + 1
 
 
-def test_io_WTSeriesTraining(btc_ohlcv):
-    ts_data = WTSTraining(9, index_column='date')
-    ts_data.add_time_serie(btc_ohlcv.iloc[0:1000], prop_tv=0.2)
+def test_WTSeriesTraining_balance(btc_ohlcv):
+    ts_data = WTSTraining(9)
+    import random
+    random.seed(0)
+    ts_data.add_time_serie(btc_ohlcv.iloc[0:1000], prop_tv=0.2, n_category=10)
+    assert len(ts_data) == 515
 
 
 def test_WTSeriesTraining_copy(btc_ohlcv):
