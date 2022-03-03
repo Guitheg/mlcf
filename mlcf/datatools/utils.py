@@ -138,7 +138,7 @@ def countinous_value_to_discrete_category(
     dataframe: pd.DataFrame,
     column: str,
     n_bins: int,
-    bounds: Tuple[float] = None,
+    bounds: Tuple[float, float] = None,
     new_columns_name: str = "category"
 ) -> pd.DataFrame:
     """
@@ -224,7 +224,7 @@ def balance_category_by_tagging(
         n_category: int,
         target_width: int,
         offset: int,
-        bounds: Tuple[float] = None,
+        bounds: Tuple[float, float] = None,
         max_count: int = None,
         cat_col_name: str = "category",
         tag_col_name: str = "tag",
@@ -389,7 +389,7 @@ def build_forecast_ts_training_dataset(
     prop_v: float = 0.3,
     preprocess=Identity,
     n_category: int = 0,
-    bounds: Tuple[float] = None,
+    bounds: Tuple[float, float] = None,
     max_count: int = None,
 ) -> Tuple[WTSeries, WTSeries, WTSeries, WTSeries, WTSeries, WTSeries]:
     """ From a time serie dataframe, build a forecast training dataset:

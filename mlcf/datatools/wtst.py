@@ -4,7 +4,6 @@ from typing import Dict, List, Optional, Tuple, Union
 import pandas as pd
 
 # MLCF modules
-from mlcf.datatools.preprocessing import Identity
 from mlcf.datatools.utils import build_forecast_ts_training_dataset
 from mlcf.datatools.wtseries import WTSeries
 from mlcf.envtools.hometools import MlcfHome
@@ -139,8 +138,8 @@ class WTSTraining(object):
             )
         training_dataset: Tuple = build_forecast_ts_training_dataset(
             selected_data,
-            input_width=self.input_width,
-            target_width=self.target_width,
+            self.input_width,
+            self.target_width,
             *args, **kwargs
         )
 

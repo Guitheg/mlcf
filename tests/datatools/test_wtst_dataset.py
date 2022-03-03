@@ -91,7 +91,8 @@ def test_write_wtstdataset_from_raw_data(mlcf_home, eth_ts_data, testdatadir):
         prop_v=0.2,
         indices=[],
         preprocess=Identity,
-        merge_pairs=True
+        merge_pairs=True,
+        n_category=0
     )
 
     dataset_path = mlcf_home.data_dir.joinpath("TestDataSet.wtst")
