@@ -158,6 +158,13 @@ def main():
         help="Merge the pairs together in order to extend the number of features.",
         action="store_true"
     )
+    command_build.add_argument(
+        "--n-category",
+        help="Give a number of category in order to balance number of returns category in the"
+        + " training part of the dataset.",
+        type=int,
+        default=0
+    )
     # Train arguments
     command_train = subcommands.add_parser(
         Command.TRAIN.value, help="Neural Network training command"
