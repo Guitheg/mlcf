@@ -160,70 +160,38 @@ However you can use any OHLCV data download with your own way.
 build-dataset usage:
 
 ```
-mlcf_home build-dataset [-h] --rawdata-dir RAWDATA_DIR --dataset-name DATASET_NAME -in WIDTH [-tar WIDTH] [--offset WIDTH] [--window-step STEP] [--n-interval NUMBER] [--index-column NAME] [--prop-tv PERCENTAGE] [--prop-v PERCENTAGE] [--indices INDICE [INDICE ...]] [--preprocess FUNCTION NAME]
+usage: mlcf_home build-dataset [-h] --rawdata-dir RAWDATA_DIR --dataset-name DATASET_NAME [--pairs PAIRS [PAIRS ...]]
+                               [--timeframes {1m,3m,5m,15m,30m,1h,2h,4h,6h,8h,12h,1d,3d,1w,2w,1M,1y} [{1m,3m,5m,15m,30m,1h,2h,4h,6h,8h,12h,1d,3d,1w,2w,1M,1y} ...]] --input-width WIDTH
+                               [--target-width WIDTH] [--offset WIDTH] [--window-step STEP] [--n-interval NUMBER] [--index-column NAME] [--prop-tv PERCENTAGE] [--prop-v PERCENTAGE]
+                               [--indices INDICE [INDICE ...]] [--preprocess FUNCTION NAME] [--merge-pairs] [--n_category N_CATEGORY]
 
--h, --help                      show this help message and exit
-
---rawdata-dir RAWDATA_DIR       The directory of the raw data used to 
-                                build the dataset. It will uses every 
-                                file in the given directory
-
---dataset-name DATASET_NAME     The name of the dataset file which will 
-                                be created
-
--in WIDTH, --input-width WIDTH   The width of the input part in the 
-                                sliding window. Can also be seen as the 
-                                sequence length of a neural network.
-
--tar WIDTH, --target-width WIDTH The width of the target part in the 
-                                sliding window (Default: 1)
-
---offset WIDTH                  The width of the offset part in the 
-                                sliding window (Default: 0)
-
---window-step STEP              The step between each sliding window 
-                                (Default: 1)
-
---n-interval NUMBER             The number of intervals by which the 
-                                data will be divided. It allows to not 
-                                have test and validation part just at 
-                                the end (but at the end of each part) 
-                                without having an overlap between
-                                the train and the evaluations parts. 
-                                (Default: 1)
-
---index-column NAME             Name of the index column (commonly the 
-                                time) (Default: 'date')
-
---prop-tv PERCENTAGE            The proportion of the test and 
-                                validation part union from the data 
-                                (Default: 0.1)
-
---prop-v PERCENTAGE             The proportion of the validation part 
-                                from the test and the validation par 
-                                union (Default: 0.3)
-
---indices INDICE [INDICE ...]   List of indicators we want to add in the 
-                                data (Optionnal)
-
---preprocess FUNCTION NAME      List of pre processing function we want  
-                                to use to pre process the data. Note: 
-                                it's use independtly on each 
-                                window
-                                
---pairs PAIRS [PAIRS ...]       The list of pairs from which the dataset
-                                is build. They are space-separated. 
-                                (Default : BTC/BUSD)
-                                
---timeframes TIMEFRAMES [TIMEFRAMES ...] 
-                                The list of timeframes from which the 
-                                dataset is build. They are space-separated.
-                                (Default : 1d)
-                                
---merge-pairs                   Merge the pairs together in order to 
-                                extend the number of features          
+optional arguments:
+  -h, --help            show this help message and exit
+  --rawdata-dir RAWDATA_DIR
+                        The directory of the raw data used to build the dataset. It will uses every file in the given directory
+  --dataset-name DATASET_NAME
+                        The name of the dataset file which will be created
+  --pairs PAIRS [PAIRS ...]
+                        The list of pairs from which the dataset is build. They are space-separated. (Default : BTC/BUSD)
+  --timeframes {1m,3m,5m,15m,30m,1h,2h,4h,6h,8h,12h,1d,3d,1w,2w,1M,1y} [{1m,3m,5m,15m,30m,1h,2h,4h,6h,8h,12h,1d,3d,1w,2w,1M,1y} ...]
+                        The list of timeframes from which the dataset is build. They are space-separated. (Default : 1d)
+  --input-width WIDTH   The width of the input part in the sliding window. Can also be seen as the sequence length of a neural network.
+  --target-width WIDTH  The width of the target part in the sliding window (Default: 1)
+  --offset WIDTH        The width of the offset part in the sliding window (Default: 0)
+  --window-step STEP    The step between each sliding window (Default: 1)
+  --n-interval NUMBER   The number of intervals by which the data will be divided. It allows to not have test and validation part just at the end (but at the end of each part) without having an overlap
+                        between the train and the evaluations parts. (Default: 1)
+  --index-column NAME   Name of the index column (commonly the time) (Default: 'date')
+  --prop-tv PERCENTAGE  The proportion of the test and validation part union from the data (Default: 0.1)
+  --prop-v PERCENTAGE   The proportion of the validation part from the test and the validation par union (Default: 0.3)
+  --indices INDICE [INDICE ...]
+                        List of indicators we want to add in the data (Optionnal)
+  --preprocess FUNCTION NAME
+                        List of pre processing function we want to use to pre process the data. Note: it's use independtly on each window
+  --merge-pairs         Merge the pairs together in order to extend the number of features.
+  --n_category N_CATEGORY
+                        Give a number of category in order to balance number of returns category in the training part of the dataset.
 ```
-
 usage example:
 
 Build a dataset named SimpleDataset from a raw_data which is in $HOME/Documents/data, with an input width of 55, and the default parameters, with the BTC/BUSD pair and a timeframe of '1d':  

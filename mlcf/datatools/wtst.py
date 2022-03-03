@@ -111,13 +111,7 @@ class WTSTraining(object):
     def add_time_serie(
         self,
         dataframe: pd.DataFrame,
-        prop_tv: float = 0.2,
-        prop_v: float = 0.3,
-        do_shuffle: bool = False,
-        n_interval: int = 1,
-        offset: int = 0,
-        window_step: int = 1,
-        preprocess=Identity,
+        *args, **kwargs
     ):
         """extend the time series data by extracting the window data from a input dataframe
 
@@ -126,7 +120,6 @@ class WTSTraining(object):
             prop_tv (float, optional): The percentage of test and val part. Defaults to 0.2.
             prop_v (float, optional): The percentage of val part in
             the union of test and val part. Defaults to 0.3.
-            do_shuffle (bool, optional): do a shuffle if True. Defaults to False.
             n_interval (int, optional): A number of interval to divide the raw data
             before windowing. Allow to homogenized the ts data. Defaults to 1.
             offset (int, optional): the width time between input and the target. Defaults to 0.
@@ -148,34 +141,25 @@ class WTSTraining(object):
             selected_data,
             input_width=self.input_width,
             target_width=self.target_width,
-            offset=offset,
-            window_step=window_step,
-            n_interval=n_interval,
-            prop_tv=prop_tv,
-            prop_v=prop_v,
-            do_shuffle=do_shuffle,
-            preprocess=preprocess,
+            *args, **kwargs
         )
 
         self._add_wts_data(
             input_ts_data=training_dataset[0],
             target_ts_data=training_dataset[1],
-            partition=Partition.TRAIN,
-            do_shuffle=do_shuffle
+            partition=Partition.TRAIN
         )
 
         self._add_wts_data(
             input_ts_data=training_dataset[2],
             target_ts_data=training_dataset[3],
-            partition=Partition.VALIDATION,
-            do_shuffle=do_shuffle
+            partition=Partition.VALIDATION
         )
 
         self._add_wts_data(
             input_ts_data=training_dataset[4],
             target_ts_data=training_dataset[5],
-            partition=Partition.TEST,
-            do_shuffle=do_shuffle
+            partition=Partition.TEST
         )
         if self.project:
             self.project.log.debug(f"[WTST]- New WTST data: {self}")
@@ -306,7 +290,6 @@ class WTSTraining(object):
         input_ts_data: WTSeries,
         target_ts_data: WTSeries,
         partition: Partition,
-        do_shuffle: bool = False,
     ):
         """_add_ts_data add a Input ts data and a target ts data to the train, val or test part.
         In function of the {partition} parameter which is the name of the part
@@ -321,5 +304,3 @@ class WTSTraining(object):
         inputs, targets = self(partition)
         inputs.add_window_data(input_ts_data, ignore_data_empty=True)
         targets.add_window_data(target_ts_data, ignore_data_empty=True)
-        if do_shuffle:
-            inputs.make_common_shuffle(targets)

@@ -1,8 +1,13 @@
-from typing import List, Tuple
+from typing import Callable, List, Tuple, Union
+import numpy as np
 import pandas as pd
 # MLCF modules
 from mlcf.datatools.wtseries import WTSeries
 from mlcf.datatools.preprocessing import Identity
+from mlcf.datatools.indice import add_return
+import random
+
+RETURN_COLNAME = "dclose"
 
 
 def split_pandas(dataframe: pd.DataFrame,
@@ -129,76 +134,184 @@ def input_target_data(dataframe: pd.DataFrame,
     return input_data, target_data
 
 
-def build_forecast_ts_training_dataset(dataframe: pd.DataFrame,
-                                       input_width: int,
-                                       target_width: int = 1,
-                                       offset: int = 0,
-                                       window_step: int = 1,
-                                       n_interval: int = 1,
-                                       prop_tv: float = 0.2,
-                                       prop_v: float = 0.4,
-                                       do_shuffle: bool = False,
-                                       preprocess=Identity,
-                                       ) -> Tuple[WTSeries,
-                                                  WTSeries,
-                                                  WTSeries,
-                                                  WTSeries,
-                                                  WTSeries,
-                                                  WTSeries]:
-    """ From a time serie dataframe, build a forecast training dataset:
-    -> ({n_interval} > 1): divide the dataframe in {n_interval} intervals
-    -> split the dataframe in train, validation and test part
-    -> windows the data with a window size of ({input_width} + {target_width} + {offset}) and
-    a window_step of {window_step}
-    -> make the X and y (input and target) parts given the {input_width} and {target_width}
-    -> make the lists of train part inputs, train part targets, validation part inputs, validation
-    part targets, test part inputs and test part targets
-    -> ({do_shuffle} is True): shuffle all the lists
+def countinous_value_to_discrete_category(
+    dataframe: pd.DataFrame,
+    column: str,
+    n_bins: int,
+    bounds: Tuple[float] = None,
+    new_columns_name: str = "category"
+) -> pd.DataFrame:
+    """
+    A category refere to a integer label that designates an interval. There are {n_bins} interval,
+    divided between the given {bounds}.
+    So this function will add a column to the {dataframe} which assign to each row a category
+    amoung {n_bins} categories and determined by the values of the given {column}.
+    The bounds are by default (-std, std) of the column values. (std = standard deviation)
 
     Args:
-        dataframe (pd.DataFrame): The dataframe (time serie)
-        input_width (int): The input size in a window of the data
-        target_width (int, optional): The target size in a window of the data. Defaults to 1.
-        offset (int, optional): the offset size between the input width and the target width.
-        Defaults to 0.
-        window_step (int, optional): to select a window every window_step. Defaults to 1.
-        n_interval (int, optional): the number of splited intervals. Defaults to 1.
-        prop_tv (float, optional): the proportion of the union of [test and validation] part.
-        Defaults to 0.2.
-        prop_v (float, optional): the proportion of validation in the union of
-        [test and validation] part. Defaults to 0.4.
-        do_shuffle (bool, optional): if True, do a shuffle on the data. Default to False.
-        preprocess (PreProcess, optional): is a preprocessing function taking a WTSeries in input.
-        default to Identity
+        dataframe (pd.DataFrame): The dataframe on which we will add the column.
+        column (str): the column name of the values that are involved
+        n_bins (int): the number of category
+        bounds (Tuple[float], optional): the bounds gives the lower bound of the lowest interval,
+        and the higher bound of the higher interval. Defaults to (-std, std).
+        new_columns_name (str, optional): The name of the new category column.
+        Defaults to "category".
 
     Returns:
-        Tuple[WTSeries,
-              WTSeries,
-              WTSeries,
-              WTSeries,
-              WTSeries,
-              WTSeries],
-            the lists of train part inputs, train part targets, validation part inputs,
-            validation part targets,  test part inputs and test part targets
+        pd.DataFrame: The modified dataframe
     """
     data = dataframe.copy()
+    if not bounds:
+        bounds = (-data[column].std(), data[column].std())
+    bins = np.linspace(bounds[0], bounds[1], n_bins)
+    data[new_columns_name] = pd.cut(data[column], bins).cat.codes
+    data[new_columns_name] += 1
+    data.loc[
+        (data[new_columns_name] == 0) &
+        (data[column] > bounds[1]),
+        new_columns_name
+    ] = n_bins
+    return data
 
-    # Divide data in N interval
-    list_interval_data_df: List[pd.DataFrame] = split_in_interval(data, n_interval=n_interval)
 
-    # Split each interval data in train val test
+def balanced_category_tag(
+    dataframe: pd.DataFrame,
+    category_column: str,
+    tag_col_name: str = "tag",
+    max_count: int = None,
+    sample_function: Callable = random.sample
+) -> pd.DataFrame:
+    """
+    Will tag True or False a row in order to have approximately the same amount of row tagged True
+    for each category. Then if you select all the row tagged True and you calculate an histogram on
+    it, the histogram should be flattens (more uniform).
+
+    Args:
+        dataframe (pd.DataFrame): the dataframe, should have a category column
+        category_column (str): the category column give from what category a row belong
+        tag_col_name (str, optional): The column name of the tag column. Defaults to "tag".
+        max_count (int, optional): You can fix the max amount of row to tag to True
+        for each category. Defaults to None.
+        sample_function (Callable, optional): The function to sample the rows to tag True.
+        By default it is random.
+        Sample function spec:(
+        In: a list of index, and the size of the sample to return,
+        Out: return a list of index.)
+        Defaults to random.sample.
+
+    Returns:
+        pd.DataFrame: The tagged dataframe
+    """
+    data = dataframe.copy()
+    idx_cat = data[category_column].value_counts().index
+    value_count = data[category_column].value_counts()
+    if not max_count:
+        max_count = np.mean([value_count[min(idx_cat)], value_count[max(idx_cat)]]).astype(int)
+    data[tag_col_name] = True
+    for idx in sorted(value_count.index):
+        if value_count[idx] > max_count:
+            data.loc[
+                sorted(sample_function(
+                    list(data[data[category_column] == idx].index),
+                    k=value_count[idx]-max_count)
+                ), tag_col_name
+            ] = False
+    return data
+
+
+def balance_category_by_tagging(
+        intervals_data: List[pd.DataFrame],
+        n_category: int,
+        target_width: int,
+        offset: int,
+        bounds: Tuple[float] = None,
+        max_count: int = None,
+        cat_col_name: str = "category",
+        tag_col_name: str = "tag",
+        sample_function: Callable = random.sample) -> Tuple[List[pd.DataFrame], Union[str, None]]:
+    """From a list of OHLCV data, this function will assign a category of the returns of the
+    close value. The return is compute at a time 't' as follow :
+        dclose(t) = ln{close(t)} - ln{close(t-target_width-offset)}
+    A number of return interval is compute and for each interval a label category is given.
+    Then the function will tag each row True or False in order to balance the number of row tagged
+    True in each category.
+    The effect of this process allows if you select each row tagged True, to flattens the histogram
+    of the categories.
+
+    Args:
+        intervals_data (List[pd.DataFrame]): list of OHLCV dataframe
+        n_category (int): the number of categories(intervals) to compute
+        target_width (int): the width of the target
+        offset (int): the width of the offset
+        bounds (Tuple[float], optional): the bounds gives the lower bound of the lowest interval
+        max_count (int, optional) = You can fix the max amount of row to tag to True
+        for each category. Defaults to None. (Optional)
+        cat_col_name (str, optional): the column name of the category. Defaults to "category".
+        tag_col_name (str, optional): the column name of the tag. Defaults to "tag".
+        sample_function (Callable, optional): The function to sample the rows to tag True.
+            By default it is random.
+            Sample function spec:(
+            In: a list of index, and the size of the sample to return,
+            Out: return a list of index.)
+            Defaults to random.sample.
+    Returns:
+        List[pd.DataFrame]: The list of categorized and tagged OHLCV data
+    """
+    if n_category > 1:
+        for idx, _ in enumerate(intervals_data):
+            intervals_data[idx] = add_return(
+                intervals_data[idx],
+                offset=target_width+offset,
+                colname=RETURN_COLNAME,
+                dropna=True)
+            intervals_data[idx] = countinous_value_to_discrete_category(
+                intervals_data[idx],
+                column=RETURN_COLNAME,
+                n_bins=n_category,
+                bounds=bounds,
+                new_columns_name=cat_col_name
+            )
+            intervals_data[idx] = balanced_category_tag(
+                intervals_data[idx],
+                cat_col_name,
+                max_count=max_count,
+                tag_col_name=tag_col_name,
+                sample_function=sample_function)
+        return intervals_data, tag_col_name
+    return intervals_data, None
+
+
+def train_val_test_list_data(
+    list_interval_data_df: List[pd.DataFrame],
+    prop_tv: float,
+    prop_v: float
+) -> Tuple[List[pd.DataFrame], List[pd.DataFrame], List[pd.DataFrame]]:
+
     splited_interval_data: Tuple[List[pd.DataFrame],
                                  List[pd.DataFrame],
                                  List[pd.DataFrame]] = ([], [], [])
     for interval_data_df in list_interval_data_df:
-        train, val, test = to_train_val_test(interval_data_df,
-                                             prop_tv=prop_tv,
-                                             prop_v=prop_v)
+        train, val, test = to_train_val_test(
+            interval_data_df,
+            prop_tv=prop_tv,
+            prop_v=prop_v)
         splited_interval_data[0].append(train)
         splited_interval_data[1].append(val)
         splited_interval_data[2].append(test)
 
-    # Generate windowed data and targets
+    return splited_interval_data
+
+
+def generate_windows_from_splited_interval_data(
+    splited_interval_data: Tuple[List[pd.DataFrame], List[pd.DataFrame], List[pd.DataFrame]],
+    input_width: int,
+    offset: int,
+    target_width: int,
+    window_step: int,
+    preprocess=Identity,
+    tag_name: str = None
+) -> Tuple[WTSeries, WTSeries, WTSeries, WTSeries, WTSeries, WTSeries]:
+
     window_width: int = input_width + offset + target_width
 
     train_input: WTSeries = WTSeries(window_width=input_width, window_step=window_step)
@@ -214,7 +327,8 @@ def build_forecast_ts_training_dataset(dataframe: pd.DataFrame,
             WTSeries(
                 raw_data=train,
                 window_width=window_width,
-                window_step=window_step
+                window_step=window_step,
+                tag_name=tag_name
             )
         )
 
@@ -261,10 +375,93 @@ def build_forecast_ts_training_dataset(dataframe: pd.DataFrame,
         test_input.add_window_data(test_input_tmp, ignore_data_empty=True)
         test_target.add_window_data(test_target_tmp, ignore_data_empty=True)
 
-    if do_shuffle:
-        train_input.make_common_shuffle(train_target)
-        val_input.make_common_shuffle(val_target)
-        test_input.make_common_shuffle(test_target)
+    return (train_input, train_target, val_input, val_target, test_input, test_target)
 
-    return (train_input, train_target, val_input,
-            val_target, test_input, test_target)
+
+def build_forecast_ts_training_dataset(
+    dataframe: pd.DataFrame,
+    input_width: int,
+    target_width: int = 1,
+    offset: int = 0,
+    window_step: int = 1,
+    n_interval: int = 1,
+    prop_tv: float = 0.2,
+    prop_v: float = 0.3,
+    preprocess=Identity,
+    n_category: int = 0,
+    bounds: Tuple[float] = None,
+    max_count: int = None,
+) -> Tuple[WTSeries, WTSeries, WTSeries, WTSeries, WTSeries, WTSeries]:
+    """ From a time serie dataframe, build a forecast training dataset:
+    -> ({n_interval} > 1): divide the dataframe in {n_interval} intervals
+    -> split the dataframe in train, validation and test part
+    -> balance the train_data by categorizing the return in n_category and tagging category True
+    or False in order to have approximately the same amount in each return category. (flatten the
+    return histogram if we select rows tagged True)
+    -> windows the data with a window size of ({input_width} + {target_width} + {offset}) and
+    a window_step of {window_step} and select windows if the last row of the window is tagged True
+    -> make the X and y (input and target) parts given the {input_width} and {target_width}
+    -> make the lists of train part inputs, train part targets, validation part inputs, validation
+    part targets, test part inputs and test part targets
+
+    Args:
+        dataframe (pd.DataFrame): The dataframe (time serie)
+        input_width (int): The input size in a window of the data
+        target_width (int, optional): The tarsplited_interval_dataion of the union of
+        [test and validation] part.
+        Defaults to 0.2.
+        prop_v (float, optional): the proportion of validation in the union of
+        [test and validation] part. Defaults to 0.4.
+        preprocess (PreProcess, optional): is a preprocessing function taking a WTSeries in input.
+        default to Identity
+        n_category (int): The number of return categories. (Default to 0)
+        bounds (Tuple[float]): The bounds of the returns to categories. (Optional)
+        max_count (int): the max value tagged true in each category. (Optional)
+
+    Returns:
+        Tuple[WTSeries,
+              WTSeries,
+              WTSeries,
+              WTSeries,
+              WTSeries,
+              WTSeries],
+            the lists of train part inputs, train part targets, validation part inputs,
+            validation part targets,  test part inputs and test part targets
+    """
+    data = dataframe.copy()
+
+    # Divide data in N interval
+    list_interval_data_df: List[pd.DataFrame] = split_in_interval(data, n_interval=n_interval)
+
+    # Split each interval data in train val test
+    splited_interval_data: Tuple[
+        List[pd.DataFrame],
+        List[pd.DataFrame],
+        List[pd.DataFrame]
+    ] = train_val_test_list_data(list_interval_data_df, prop_tv=prop_tv, prop_v=prop_v)
+
+    train_intervals_tagged, tag_name = balance_category_by_tagging(
+        splited_interval_data[0],
+        n_category,
+        target_width=target_width,
+        offset=offset,
+        bounds=bounds,
+        max_count=max_count)
+    splited_interval_data = (
+        train_intervals_tagged,
+        splited_interval_data[1],
+        splited_interval_data[2])
+
+    # Generate inputs and targets windows
+    windows = generate_windows_from_splited_interval_data(
+        splited_interval_data,
+        input_width=input_width,
+        offset=offset,
+        target_width=target_width,
+        window_step=window_step,
+        preprocess=preprocess,
+        tag_name=tag_name
+    )
+    (train_input, train_target, val_input, val_target, test_input, test_target) = windows
+
+    return (train_input, train_target, val_input, val_target, test_input, test_target)
