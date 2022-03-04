@@ -1,5 +1,6 @@
 from argparse import Namespace
-from mlcf.utils import ListEnum, unique
+from mlcf.utils import ListEnum
+from enum import unique
 
 # MLCF modules
 from mlcf.commands import build_dataset, launch_machine_learning
