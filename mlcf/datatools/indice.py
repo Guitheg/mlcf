@@ -156,6 +156,12 @@ class Indice(ListEnum):
     # return
     RETURN = "RETURN"
 
+    CANDLE_DIR = "CANDLE_DIR"
+
+    CANDLE_HEIGHT = "CANDLE_HEIGHT"
+
+    STATS = "STATS"
+
 
 def switch_indice(match: Indice, value: Indice):
     return match.value == value.value
@@ -393,6 +399,20 @@ def add_indicator(data: pd.DataFrame, indice_name: Indice):
     elif case(Indice.RETURN):
         dataframe = add_return(dataframe)
 
+    elif case(Indice.CANDLE_DIR):
+        dataframe["candle_dir"] = candle_direction(dataframe)
+
+    elif case(Indice.CANDLE_HEIGHT):
+        dataframe["candle_height"] = candle_height(dataframe)
+
+    elif case(Indice.STATS):
+        dataframe = add_stats_indicators(dataframe, 3)
+        dataframe = add_stats_indicators(dataframe, 5)
+        dataframe = add_stats_indicators(dataframe, 10)
+        dataframe = add_stats_indicators(dataframe, 21)
+        dataframe = add_stats_indicators(dataframe, 50)
+        dataframe = add_stats_indicators(dataframe, 100)
+
     else:
         raise Exception("Unknown indice")
 
@@ -432,12 +452,7 @@ def add_percent_growth(data: pd.DataFrame):  # add percent growth on close
 def add_SMA1(data: pd.DataFrame):  # add percent growth on close
     dataframe = data.copy()
 
-    dataframe['SMA1'] = (
-        dataframe['close'] +
-        dataframe['high'] +
-        dataframe['low'] +
-        dataframe['open']
-    )/4
+    dataframe['SMA1'] = (dataframe.high + dataframe.low) / 2
 
     return dataframe
 
@@ -482,3 +497,79 @@ def add_return(data: pd.DataFrame, offset: int = 1, colname: str = "return", dro
     dataframe[colname] = np.log(dataframe.close) - np.log(dataframe.shift(offset).close)
     dataframe.dropna(inplace=dropna)
     return dataframe
+
+
+def candle_direction(data: pd.DataFrame):
+    dataframe = data.copy()
+    return np.log(dataframe.close) - np.log(dataframe.open)
+
+
+def candle_height(data: pd.DataFrame):
+    dataframe = data.copy()
+    return np.log(dataframe.high) - np.log(dataframe.low)
+
+
+def add_stats_indicators(data: pd.DataFrame, rolling_window: int = 1):
+    dataframe = data.copy()
+    dataframe["p"] = (dataframe.high + dataframe.low) / 2
+    dataframe[f"kurtosis{rolling_window}"] = kurtosis(dataframe, "p", rolling_window)
+    dataframe[f"skewness{rolling_window}"] = skewness(dataframe, "p", rolling_window)
+    dataframe[f"median{rolling_window}"] = median(dataframe, "p", rolling_window)
+    dataframe[f"minimum{rolling_window}"] = minimum(dataframe, "p", rolling_window)
+    dataframe[f"maximum{rolling_window}"] = maximum(dataframe, "p", rolling_window)
+    dataframe[f"std{rolling_window}"] = standard_deviation(dataframe, "p", rolling_window)
+    dataframe[f"variance{rolling_window}"] = variance(dataframe, "p", rolling_window)
+    dataframe[f"quantile025_{rolling_window}"] = quantile_025(dataframe, "p", rolling_window)
+    dataframe[f"quantile075_{rolling_window}"] = quantile_075(dataframe, "p", rolling_window)
+    dataframe[f"mean{rolling_window}"] = mean(dataframe, "p", rolling_window)
+    return dataframe
+
+
+def kurtosis(data: pd.DataFrame, column_name: str = "close", rolling_window: int = 1):
+    dataframe = data.copy()
+    return dataframe[column_name].rolling(rolling_window).kurt()
+
+
+def skewness(data: pd.DataFrame, column_name: str = "close", rolling_window: int = 1):
+    dataframe = data.copy()
+    return dataframe[column_name].rolling(rolling_window).skew()
+
+
+def median(data: pd.DataFrame, column_name: str = "close", rolling_window: int = 1):
+    dataframe = data.copy()
+    return dataframe[column_name].rolling(rolling_window).median()
+
+
+def minimum(data: pd.DataFrame, column_name: str = "close", rolling_window: int = 1):
+    dataframe = data.copy()
+    return dataframe[column_name].rolling(rolling_window).min()
+
+
+def maximum(data: pd.DataFrame, column_name: str = "close", rolling_window: int = 1):
+    dataframe = data.copy()
+    return dataframe[column_name].rolling(rolling_window).max()
+
+
+def standard_deviation(data: pd.DataFrame, column_name: str = "close", rolling_window: int = 1):
+    dataframe = data.copy()
+    return dataframe[column_name].rolling(rolling_window).std()
+
+
+def variance(data: pd.DataFrame, column_name: str = "close", rolling_window: int = 1):
+    dataframe = data.copy()
+    return dataframe[column_name].rolling(rolling_window).var()
+
+
+def quantile_025(data: pd.DataFrame, column_name: str = "close", rolling_window: int = 1):
+    dataframe = data.copy()
+    return dataframe[column_name].rolling(rolling_window).quantile(0.25)
+
+
+def quantile_075(data: pd.DataFrame, column_name: str = "close", rolling_window: int = 1):
+    dataframe = data.copy()
+    return dataframe[column_name].rolling(rolling_window).quantile(0.75)
+
+
+def mean(data: pd.DataFrame, column_name: str = "close", rolling_window: int = 1):
+    dataframe = data.copy()
+    return dataframe[column_name].rolling(rolling_window).mean()
