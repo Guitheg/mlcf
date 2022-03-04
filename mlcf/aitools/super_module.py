@@ -436,5 +436,3 @@ class SuperModule(Module):
         x = self.transform_x(batch_inputs)
         x = x.to(self.device)
         return self(x).data
-    
-
