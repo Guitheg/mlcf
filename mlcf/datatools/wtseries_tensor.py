@@ -8,8 +8,8 @@ from torch import Tensor, tensor
 from mlcf.datatools.wtst import Partition, WTSTraining
 
 
-def select_features(self, x: Tensor, list_index_features):
-    return torch.index_select(x, 1, list_index_features)
+def select_features(x: Tensor, list_index_features: np.array):
+    return torch.index_select(x, 1, tensor(list_index_features))
 
 
 class WTSeriesTensor():

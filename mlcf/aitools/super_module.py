@@ -274,7 +274,7 @@ class SuperModule(Module):
 
     def validate(self,
                  dataloader: DataLoader,
-                 log: OrderedDict,
+                 log: OrderedDict = OrderedDict(),
                  validation_type: str = "validation") -> OrderedDict:
         """Run one epoch but in validation / evaluation mode
 
@@ -436,3 +436,5 @@ class SuperModule(Module):
         x = self.transform_x(batch_inputs)
         x = x.to(self.device)
         return self(x).data
+    
+
