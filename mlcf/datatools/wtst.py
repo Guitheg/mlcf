@@ -34,6 +34,14 @@ def get_enum_value(enum, ListEnum) -> str:
     return enum.value if isinstance(enum, ListEnum) else enum
 
 
+class WTSTColumnIndexException(Exception):
+    pass
+
+
+class WTSTFeaturesException(Exception):
+    pass
+
+
 class WTSTraining(object):
     def __init__(
         self,
@@ -144,25 +152,36 @@ class WTSTraining(object):
             *args, **kwargs
         )
 
-        self._add_wts_data(
-            input_ts_data=training_dataset[0],
-            target_ts_data=training_dataset[1],
+        self.add_wtseries(*training_dataset)
+
+    def add_wtseries(
+        self,
+        input_tr_data,
+        target_tr_data,
+        input_val_data,
+        target_val_data,
+        input_te_data,
+        target_te_date
+    ):
+        self.add_one_pair_wtsdata(
+            input_ts_data=input_tr_data,
+            target_ts_data=target_tr_data,
             partition=Partition.TRAIN
         )
 
-        self._add_wts_data(
-            input_ts_data=training_dataset[2],
-            target_ts_data=training_dataset[3],
+        self.add_one_pair_wtsdata(
+            input_ts_data=input_val_data,
+            target_ts_data=target_val_data,
             partition=Partition.VALIDATION
         )
 
-        self._add_wts_data(
-            input_ts_data=training_dataset[4],
-            target_ts_data=training_dataset[5],
+        self.add_one_pair_wtsdata(
+            input_ts_data=input_te_data,
+            target_ts_data=target_te_date,
             partition=Partition.TEST
         )
         if self.project:
-            self.project.log.debug(f"[WTST]- New WTST data: {self}")
+            self.project.log.debug(f"[WTST]- Add WTSeries data: {self}")
 
     def get(
         self,
@@ -284,6 +303,30 @@ class WTSTraining(object):
             + f"Validation: {self.len(Partition.VALIDATION)}, "
             + f"Test: {self.len(Partition.TEST)}"
         )
+
+    def check_wtsdata(self, wtsdata: WTSeries):
+        data = wtsdata.copy()
+
+        if self.index_column_has_been_set and data[0].index.name != self.index_column:
+            raise WTSTColumnIndexException(
+                f"The WTSeries index : {data[0].index.name} is not equal " +
+                f"to the WTSTraining index : {self.index_column}")
+
+        if self.features_has_been_set and list(data[0].columns) != self.features:
+            raise WTSTFeaturesException(
+                f"The WTSeries features : {list(data[0].columns)} are " +
+                f"not equals to the WTSTraining features : {self.features}")
+        return True
+
+    def add_one_pair_wtsdata(
+        self,
+        input_ts_data: WTSeries,
+        target_ts_data: WTSeries,
+        partition: Partition,
+    ):
+        assert self.check_wtsdata(input_ts_data)
+        assert self.check_wtsdata(target_ts_data)
+        self._add_wts_data(input_ts_data, target_ts_data, partition)
 
     def _add_wts_data(
         self,
