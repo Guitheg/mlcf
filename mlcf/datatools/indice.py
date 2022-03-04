@@ -152,6 +152,9 @@ class Indice(Enum):
     # volatility
     VOLATILITY = "VOLATILITY"
 
+    # return
+    RETURN = "RETURN"
+
     @classmethod
     def list_value(self):
         return [item.value for item in list(self)]
@@ -390,6 +393,9 @@ def add_indicator(data: pd.DataFrame, indice_name: Indice):
     elif case(Indice.PERCENTGROWTH):
         dataframe = add_percent_growth(dataframe)
 
+    elif case(Indice.RETURN):
+        dataframe = add_return(dataframe)
+
     else:
         raise Exception("Unknown indice")
 
@@ -471,4 +477,11 @@ def add_volatility(data: pd.DataFrame):
         for offset in volatility_offset_list:
             if ('growth'+str(offset)) in data:
                 dataframe.drop(('growth'+str(offset)), axis=1, inplace=True)
+    return dataframe
+
+
+def add_return(data: pd.DataFrame, offset: int = 1, colname: str = "return", dropna: bool = False):
+    dataframe = data.copy()
+    dataframe[colname] = np.log(dataframe.close) - np.log(dataframe.shift(offset).close)
+    dataframe.dropna(inplace=dropna)
     return dataframe

@@ -7,6 +7,8 @@ from mlcf.datatools.wtst import WTSTraining
 from mlcf.datatools.wtseries_tensor import WTSeriesTensor, Partition
 from torch import nn, sigmoid
 from pathlib import Path
+import random
+random.seed(0)
 
 
 @pytest.fixture

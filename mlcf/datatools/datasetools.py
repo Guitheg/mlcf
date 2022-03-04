@@ -63,7 +63,7 @@ def write_wtstdataset_from_raw_data(
     indices: List[Indice],
     preprocess: WTSeriesPreProcess,
     merge_pairs: bool,
-    *args, **kwargs
+    n_category: int
 ):
 
     dataset = WTSTrainingDataset(
@@ -90,33 +90,37 @@ def write_wtstdataset_from_raw_data(
     if merge_pairs:
         for i, tf in enumerate(rawdata_set):
             data_to_add = merge_dict_of_dataframe(rawdata_set[tf], index_column=index_column)
-            project.log.info(f"List features: {list(data_to_add.columns)}")
+            project.log.info(
+                f"List features: {list(data_to_add.columns)} " +
+                f"{'(the data will be balance)' if n_category > 1 else ''}")
             project.log.info(f"Dataset built at {i/len(rawdata_set):.0%}")
             dataset.add_time_serie(
                 data_to_add,
                 prop_tv=prop_tv,
                 prop_v=prop_v,
-                do_shuffle=False,
                 n_interval=n_interval,
                 offset=offset,
                 window_step=window_step,
-                preprocess=preprocess
+                preprocess=preprocess,
+                n_category=n_category
             )
     else:
         for i, tf in enumerate(rawdata_set):
             for j, pair in enumerate(rawdata_set[tf]):
-                project.log.info(f"List features: {list(rawdata_set[tf][pair].columns)}")
+                project.log.info(
+                    f"List features: {list(rawdata_set[tf][pair].columns)} " +
+                    f"{'(the data will be balance)' if n_category > 1 else ''}")
                 p = (i+((len(rawdata_set[tf])-1)*j)) / (len(rawdata_set)*len(rawdata_set[tf]))
                 project.log.info(f"Dataset built at {p:.0%}")
                 dataset.add_time_serie(
                     rawdata_set[tf][pair],
                     prop_tv=prop_tv,
                     prop_v=prop_v,
-                    do_shuffle=False,
                     n_interval=n_interval,
                     offset=offset,
                     window_step=window_step,
-                    preprocess=preprocess
+                    preprocess=preprocess,
+                    n_category=n_category
                 )
 
     project.log.debug(f"Dataset built:{dataset}")
