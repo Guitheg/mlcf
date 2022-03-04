@@ -4,6 +4,7 @@ import pytest
 from mlcf.envtools.hometools import MlcfHome
 from mlcf.aitools.super_module import SuperModule
 from mlcf.datatools.wtst import WTSTraining
+from mlcf.datatools.wtseries_tensor import WTSeriesTensor, Partition
 from torch import nn, sigmoid
 from pathlib import Path
 
@@ -55,6 +56,14 @@ def ts_data(btc_ohlcv):
 
 
 @pytest.fixture
+def ts_data_no_date(btc_ohlcv: pd.DataFrame):
+    btc_ohlcv_copy = btc_ohlcv.drop('date', axis=1)
+    ts_data = WTSTraining(20, features=btc_ohlcv_copy.columns)
+    ts_data.add_time_serie(btc_ohlcv_copy[0:3000])
+    return ts_data
+
+
+@pytest.fixture
 def eth_ts_data(eth_ohlcv):
     ts_data = WTSTraining(20, index_column="date")
     ts_data.add_time_serie(eth_ohlcv)
@@ -87,3 +96,9 @@ def mlp(ts_data):
         features=ts_data.ndim(),
         window_width=ts_data.input_width
     )
+
+
+@pytest.fixture
+def wts_tensor(ts_data_no_date):
+    test_tensor = WTSeriesTensor(ts_data=ts_data_no_date, partition=Partition.TRAIN)
+    return test_tensor

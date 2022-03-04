@@ -1,10 +1,15 @@
 import numpy as np
 from typing import Callable
+import torch
 from torch.utils.data.dataloader import DataLoader
-from torch import tensor
+from torch import Tensor, tensor
 
 # MLCF modules
 from mlcf.datatools.wtst import Partition, WTSTraining
+
+
+def select_features(self, x: Tensor, list_index_features):
+    return torch.index_select(x, 1, list_index_features)
 
 
 class WTSeriesTensor():
