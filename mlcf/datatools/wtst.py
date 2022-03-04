@@ -1,4 +1,5 @@
-from enum import Enum, unique
+from mlcf.utils import ListEnum
+from enum import unique
 from typing import Dict, List, Optional, Tuple, Union
 
 import pandas as pd
@@ -10,14 +11,14 @@ from mlcf.envtools.hometools import MlcfHome
 
 
 @unique
-class Partition(Enum):
+class Partition(ListEnum):
     TRAIN: str = "train"
     VALIDATION: str = "validation"
     TEST: str = "test"
 
 
 @unique
-class Field(Enum):
+class Field(ListEnum):
     INPUT: str = "input"
     TARGET: str = "target"
 
@@ -29,8 +30,8 @@ INPUT: str = Field.INPUT.value
 TARGET: str = Field.TARGET.value
 
 
-def get_enum_value(enum, Enum) -> str:
-    return enum.value if isinstance(enum, Enum) else enum
+def get_enum_value(enum, ListEnum) -> str:
+    return enum.value if isinstance(enum, ListEnum) else enum
 
 
 class WTSTraining(object):

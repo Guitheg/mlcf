@@ -1,4 +1,5 @@
-from enum import Enum, unique
+from mlcf.utils import ListEnum
+from enum import unique
 from functools import partial
 from typing import List
 
@@ -11,7 +12,7 @@ import talib.abstract as ta
 
 
 @unique
-class Indice(Enum):
+class Indice(ListEnum):
     ADX = "ADX"
 
     # Plus Directional Indicator / Movement
@@ -154,10 +155,6 @@ class Indice(Enum):
 
     # return
     RETURN = "RETURN"
-
-    @classmethod
-    def list_value(self):
-        return [item.value for item in list(self)]
 
 
 def switch_indice(match: Indice, value: Indice):
