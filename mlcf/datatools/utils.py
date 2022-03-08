@@ -57,7 +57,7 @@ def to_train_val_test(dataframe: pd.DataFrame,
     """
     data = dataframe.copy()
     train_data, test_val_data = split_pandas(data, prop_snd_elem=prop_tv)
-    test_data, val_data = split_pandas(test_val_data, prop_snd_elem=prop_v)
+    val_data, test_data = split_pandas(test_val_data, prop_snd_elem=1-prop_v)
     return train_data, val_data, test_data
 
 

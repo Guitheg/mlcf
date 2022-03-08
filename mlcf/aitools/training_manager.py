@@ -4,7 +4,7 @@ from os.path import join, isfile
 from pathlib import Path
 from typing import Dict, List
 from collections import OrderedDict
-from enum import Enum
+from mlcf.utils import ListEnum
 from datetime import datetime
 
 import torch
@@ -15,35 +15,19 @@ from mlcf.envtools.hometools import ProjectHome
 from mlcf.envtools.pathtools import create_path
 
 
-class InfofileColumns(Enum):
+class InfofileColumns(ListEnum):
     TRAINING: str = "Training name"
     MODEL: str = "Model name"
     OPTI: str = "Optimizer"
+    PARAM_OPTI: str = "Param optimizer"
     LOSS_FCT: str = "Loss function"
     N_EPOCH: str = "Number of trained epochs"
     LAST_SCORE: str = "Last evaluation loss"
     PATH_LAST_CHECKPOINT = "Last checkpoint filepath"
+    LOG_DIR = "Board log dir"
 
 
-TRAINING_NAME = InfofileColumns.TRAINING.value
-MODEL_NAME = InfofileColumns.MODEL.value
-OPTI_NAME = InfofileColumns.OPTI.value
-LOSS_FCT = InfofileColumns.LOSS_FCT.value
-N_EPOCH = InfofileColumns.N_EPOCH.value
-LAST_SCORE = InfofileColumns.LAST_SCORE.value
-PATH_LAST_CHECKPOINT = InfofileColumns.PATH_LAST_CHECKPOINT.value
-COLUMNS_INFOFILE: List[str] = [
-        TRAINING_NAME,
-        MODEL_NAME,
-        OPTI_NAME,
-        LOSS_FCT,
-        N_EPOCH,
-        LAST_SCORE,
-        PATH_LAST_CHECKPOINT
-    ]
-
-
-class TrainingHome(Enum):
+class TrainingHome(ListEnum):
     INFOFILE: str = "TrainingInfo.csv"
     HOME: str = "Training"
     CHECKPOINT: str = "checkpoints"
@@ -56,7 +40,7 @@ CHECKPOINT: str = TrainingHome.CHECKPOINT.value
 TENSORBOARD_LOGS_NAME: str = TrainingHome.TENSORBOARD_LOGS_NAME.value
 
 
-class CheckpointDict(Enum):
+class CheckpointDict(ListEnum):
     MODEL_STATE: str = "model_state"
     EPOCH: str = "epoch"
     LOSS: str = "logs"
@@ -70,8 +54,8 @@ OPTI_STATE = CheckpointDict.OPTI_STATE.value
 
 
 def get_empty_infofile() -> pd.DataFrame:
-    infofile = pd.DataFrame(columns=COLUMNS_INFOFILE)
-    infofile.set_index(TRAINING_NAME, inplace=True)
+    infofile = pd.DataFrame(columns=InfofileColumns.list_value())
+    infofile.set_index(InfofileColumns.TRAINING.value, inplace=True)
     return infofile
 
 
@@ -104,7 +88,9 @@ class TrainingManager(object):
 
     def load_infofile(self) -> pd.DataFrame:
         if isfile(self.infofile_path):
-            self.infofile: pd.DataFrame = pd.read_csv(self.infofile_path, index_col=TRAINING_NAME)
+            self.infofile: pd.DataFrame = pd.read_csv(
+                self.infofile_path,
+                index_col=InfofileColumns.TRAINING.value)
         else:
             self.infofile = get_empty_infofile()
         return self.infofile
@@ -112,8 +98,8 @@ class TrainingManager(object):
     def get_last_checkpoint_path(self) -> Path:
         if len(self.infofile) == 0:
             raise Exception("Infofile doesn't exist yet")
-
-        return self.infofile.loc[self.model.training_name][PATH_LAST_CHECKPOINT]
+        path = InfofileColumns.PATH_LAST_CHECKPOINT.value
+        return self.infofile.loc[self.model.training_name][path]
 
     def load_checkpoint(self, resume_training: bool = False) -> None:
         """Reload a checkpoint (resume the training or not following {resume_training})
@@ -175,17 +161,23 @@ class TrainingManager(object):
         checkpoint_name = f"checkpoint_{self.model.training_name}_{self.now}.pt"
         last_checkpoint_path = join(self.checkpoint_path, checkpoint_name)
 
-        update_dict = {
-            MODEL_NAME: self.model.model_name,
-            OPTI_NAME: self.model.optimizer.__class__.__name__,
-            LOSS_FCT: self.model.loss.__class__.__name__,
-            N_EPOCH: n_epoch,
-            LAST_SCORE: last_score,
-            PATH_LAST_CHECKPOINT: last_checkpoint_path
-        }
+        list_keys = InfofileColumns.list_value()
+        list_value = [
+            self.model.training_name,
+            self.model.model_name,
+            self.model.optimizer.__class__.__name__,
+            str(self.model.optimizer.state_dict()["param_groups"]),
+            self.model.loss.__class__.__name__,
+            n_epoch,
+            last_score,
+            last_checkpoint_path,
+            self.board.log_dir
+        ]
+
+        update_dict = {k: v for k, v in zip(list_keys, list_value)}
 
         self.infofile.loc[self.model.training_name] = update_dict
-        self.infofile.to_csv(self.infofile_path, index_label=TRAINING_NAME)
+        self.infofile.to_csv(self.infofile_path, index_label=InfofileColumns.TRAINING.value)
 
     def tensorboard_stream(self, log: OrderedDict, num_epoch: int) -> None:
         if self.exist():

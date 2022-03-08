@@ -26,8 +26,22 @@ def rawdata_eth_path(testdatadir):
 
 
 @pytest.fixture
+def rawdata_btc15m_path(testdatadir):
+    return Path(testdatadir / "user_data/data/binance/BTC_BUSD-15m.json")
+
+
+@pytest.fixture
 def btc_ohlcv(rawdata_btc_path):
     data = pd.read_json(rawdata_btc_path)
+    columns = ["date", "open", "high", "low", "close", "volume"]
+    data = pd.DataFrame(data.values, columns=columns)
+    data['date'] = pd.to_datetime(data["date"], unit="ms")
+    return data
+
+
+@pytest.fixture
+def btc15m_ohlcv(rawdata_btc15m_path):
+    data = pd.read_json(rawdata_btc15m_path)
     columns = ["date", "open", "high", "low", "close", "volume"]
     data = pd.DataFrame(data.values, columns=columns)
     data['date'] = pd.to_datetime(data["date"], unit="ms")

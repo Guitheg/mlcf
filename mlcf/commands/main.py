@@ -1,5 +1,6 @@
 from argparse import Namespace
-from enum import Enum, unique
+from mlcf.utils import ListEnum
+from enum import unique
 
 # MLCF modules
 from mlcf.commands import build_dataset, launch_machine_learning
@@ -10,14 +11,10 @@ from mlcf.datatools.indice import Indice
 
 
 @unique
-class Command(Enum):
+class Command(ListEnum):
     BUILD = "build-dataset"
     TRAIN = "train"
     VISUALIZE = "visualize"
-
-    @classmethod
-    def list_value(self):
-        return [item.value for item in list(self)]
 
 
 def run(mlcf: MlcfHome, args: Namespace):

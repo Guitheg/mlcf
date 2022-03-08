@@ -6,6 +6,18 @@ from numpy.lib.stride_tricks import sliding_window_view
 from random import shuffle
 
 
+class WTSwindowSizeException(Exception):
+    pass
+
+
+class WTSfeatureException(Exception):
+    pass
+
+
+class WTSemptyDataException(Exception):
+    pass
+
+
 def window_data(dataframe: pd.DataFrame,
                 window_width: int,
                 window_step: int = 1,
@@ -262,14 +274,14 @@ class WTSeries(Iterable):
         if len(data) != 0:
             if self.features_has_been_set:
                 if len(data.columns) != self.ndim():
-                    raise Exception("The number of features is supposed to be the same")
+                    raise WTSfeatureException("The number of features is supposed to be the same")
             data_to_add: List[pd.DataFrame] = window_data(data, self.width(), w_step)
             self.data.extend(data_to_add)
             if not self.features_has_been_set:
                 self._set_features(data.columns)
         else:
             if not ignore_data_empty:
-                raise Exception("Data is empty")
+                raise WTSemptyDataException("Data is empty")
 
     def add_one_window(self, window: pd.DataFrame, ignore_data_empty: bool = False):
         """Add a dataframe (a window) (its length = to the {window_width}) to the list of window:
@@ -288,16 +300,16 @@ class WTSeries(Iterable):
         if len(window) != 0:
             if self.features_has_been_set:
                 if len(window.columns) != self.ndim():
-                    raise Exception("The number of features is supposed to be the same")
+                    raise WTSfeatureException("The number of features is supposed to be the same")
             if len(window.index) != self.width():
-                raise Exception("The window size is supposed to be the same")
+                raise WTSwindowSizeException("The window size is supposed to be the same")
             data = window.copy()
             self.data.append(data)
             if not self.features_has_been_set:
                 self._set_features(data.columns)
         else:
             if not ignore_data_empty:
-                raise Exception("Data is empty")
+                raise WTSemptyDataException("Data is empty")
 
     def add_window_data(
         self,
@@ -319,15 +331,15 @@ class WTSeries(Iterable):
         if not window_data.is_empty():
             if self.features_has_been_set:
                 if window_data.ndim() != self.ndim():
-                    raise Exception("The number of features is supposed to be the same")
+                    raise WTSfeatureException("The number of features is supposed to be the same")
             if window_data.width() != self.width():
-                raise Exception("The window size is supposed to be the same")
+                raise WTSwindowSizeException("The window size is supposed to be the same")
             self.data.extend(window_data())
             if not self.features_has_been_set:
                 self._set_features(window_data.get_features())
         else:
             if not ignore_data_empty:
-                raise Exception("Data is empty")
+                raise WTSemptyDataException("Data is empty")
 
     def copy(self, filter: Optional[List[Union[bool, str]]] = None):
         wtseries_copy = WTSeries(self._window_width, raw_data=None, window_step=self.window_step)

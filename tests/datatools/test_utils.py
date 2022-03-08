@@ -45,8 +45,9 @@ def test_split_pandas(btc_ohlcv):
 def test_to_train_val_test(btc_ohlcv):
     train, val, test = to_train_val_test(btc_ohlcv.iloc[0:1000], prop_tv=0.2, prop_v=0.2)
     assert len(train) == 800 and len(val) == 40 and len(test) == 160
-    assert train.index[790] == 790 and test.index[0] == 800 and test.index[150] == 950
-    assert val.index[0] == 960
+    assert train.index[0] == 0 and train.index[799] == 799
+    assert val.index[0] == 800 and val.index[39] == 839
+    assert test.index[0] == 840 and test.index[159] == 999
 
 
 def test_split_in_interval(btc_ohlcv):

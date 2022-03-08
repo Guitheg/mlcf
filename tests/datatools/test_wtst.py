@@ -1,4 +1,11 @@
-from mlcf.datatools.wtst import Partition, WTSTraining
+import pytest
+from mlcf.datatools.utils import build_forecast_ts_training_dataset
+from mlcf.datatools.wtseries import WTSwindowSizeException
+from mlcf.datatools.wtst import (
+    Partition,
+    WTSTColumnIndexException,
+    WTSTFeaturesException,
+    WTSTraining)
 
 
 def test_WTSeriesTraining(btc_ohlcv):
@@ -33,3 +40,25 @@ def test_WTSeriesTraining_call(btc_ohlcv):
     ts_data.add_time_serie(btc_ohlcv.iloc[0:1000], prop_tv=0.2)
 
     assert ts_data(Partition.TRAIN) == ts_data("train")
+
+
+def test_WTSeriesTraining_add_wtsdata(btc_ohlcv):
+    wtsdata = build_forecast_ts_training_dataset(
+        btc_ohlcv[["close", "open"]].iloc[0:1000],
+        input_width=9,
+        prop_tv=0.2,
+        prop_v=0.2)
+    wtstraining = WTSTraining(input_width=9, target_width=1, features=["open"], index_column="date")
+    with pytest.raises(WTSTColumnIndexException):
+        wtstraining.add_wtseries(*wtsdata)
+
+    wtstraining = WTSTraining(input_width=9, target_width=1, features=["open"])
+    with pytest.raises(WTSTFeaturesException):
+        wtstraining.add_wtseries(*wtsdata)
+
+    wtstraining = WTSTraining(input_width=8, target_width=1)
+    with pytest.raises(WTSwindowSizeException):
+        wtstraining.add_wtseries(*wtsdata)
+
+    wtstraining = WTSTraining(input_width=9, target_width=1)
+    wtstraining.add_wtseries(*wtsdata)
