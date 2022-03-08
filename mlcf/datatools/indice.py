@@ -515,7 +515,8 @@ def candle_height(data: pd.DataFrame):
 def add_stats_indicators(data: pd.DataFrame, rolling_window: int = 1):
     dataframe = data.copy()
     dataframe["p"] = (dataframe.high + dataframe.low) / 2
-    dataframe[f"kurtosis{rolling_window}"] = kurtosis(dataframe, "p", rolling_window)
+    if rolling_window >= 4:
+        dataframe[f"kurtosis{rolling_window}"] = kurtosis(dataframe, "p", rolling_window)
     dataframe[f"skewness{rolling_window}"] = skewness(dataframe, "p", rolling_window)
     dataframe[f"median{rolling_window}"] = median(dataframe, "p", rolling_window)
     dataframe[f"minimum{rolling_window}"] = minimum(dataframe, "p", rolling_window)
@@ -530,6 +531,8 @@ def add_stats_indicators(data: pd.DataFrame, rolling_window: int = 1):
 
 def kurtosis(data: pd.DataFrame, column_name: str = "close", rolling_window: int = 1):
     dataframe = data.copy()
+    if rolling_window < 4:
+        raise Exception("Kurtosis should have a rolling window >= 4")
     return dataframe[column_name].rolling(rolling_window).kurt()
 
 

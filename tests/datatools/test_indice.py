@@ -35,3 +35,10 @@ def test_add_wbbands(btc15m_ohlcv):
     data = add_indicator(btc15m_ohlcv, Indice.W_BBANDS)
     data.dropna(inplace=True)
     assert len(data) == len(data[~data.isin([np.inf, -np.inf]).any(1)])
+
+
+def test_stats(btc15m_ohlcv):
+    data = add_indicator(btc15m_ohlcv, Indice.STATS)
+    data.dropna(inplace=True)
+    assert len(data) == len(data[~data.isin([np.inf, -np.inf]).any(1)])
+    assert len(data) != 0
