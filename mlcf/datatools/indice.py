@@ -200,6 +200,7 @@ def add_indicator(data: pd.DataFrame, indice_name: Indice):
         dataframe["kc_percent"] = (dataframe["close"] - dataframe["kc_lowerband"]) / (
             dataframe["kc_upperband"] - dataframe["kc_lowerband"]
         )
+        dataframe.loc[dataframe.kc_upperband == dataframe.kc_lowerband, "kc_percent"] = 0.5
         dataframe["kc_width"] = (
             dataframe["kc_upperband"] - dataframe["kc_lowerband"]
         ) / dataframe["kc_middleband"]
@@ -257,6 +258,7 @@ def add_indicator(data: pd.DataFrame, indice_name: Indice):
         dataframe["bb_percent"] = (dataframe["close"] - dataframe["bb_lowerband"]) / (
             dataframe["bb_upperband"] - dataframe["bb_lowerband"]
         )
+        dataframe.loc[dataframe.bb_upperband == dataframe.bb_lowerband, "bb_percent"] = 0.5
         dataframe["bb_width"] = (
             dataframe["bb_upperband"] - dataframe["bb_lowerband"]
         ) / dataframe["bb_middleband"]
@@ -271,6 +273,7 @@ def add_indicator(data: pd.DataFrame, indice_name: Indice):
         dataframe["wbb_percent"] = (dataframe["close"] - dataframe["wbb_lowerband"]) / (
             dataframe["wbb_upperband"] - dataframe["wbb_lowerband"]
         )
+        dataframe.loc[dataframe.wbb_upperband == dataframe.wbb_lowerband, "wbb_percent"] = 0.5
         dataframe["wbb_width"] = (
             dataframe["wbb_upperband"] - dataframe["wbb_lowerband"]
         ) / dataframe["wbb_middleband"]

@@ -1,4 +1,5 @@
 from mlcf.datatools.indice import add_indicators, add_indicator, Indice
+import numpy as np
 
 
 def test_add_indicator(btc_ohlcv):
@@ -16,3 +17,21 @@ def test_add_indicators(btc_ohlcv):
 def test_add_all_indicators(btc_ohlcv):
     list_indice = list(Indice)
     _ = add_indicators(btc_ohlcv, list_indice)
+
+
+def test_add_bbands(btc15m_ohlcv):
+    data = add_indicator(btc15m_ohlcv, Indice.BBANDS)
+    data.dropna(inplace=True)
+    assert len(data) == len(data[~data.isin([np.inf, -np.inf]).any(1)])
+
+
+def test_keltner_channel(btc15m_ohlcv):
+    data = add_indicator(btc15m_ohlcv, Indice.KELTNER)
+    data.dropna(inplace=True)
+    assert len(data) == len(data[~data.isin([np.inf, -np.inf]).any(1)])
+
+
+def test_add_wbbands(btc15m_ohlcv):
+    data = add_indicator(btc15m_ohlcv, Indice.W_BBANDS)
+    data.dropna(inplace=True)
+    assert len(data) == len(data[~data.isin([np.inf, -np.inf]).any(1)])
