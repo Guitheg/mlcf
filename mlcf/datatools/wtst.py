@@ -101,15 +101,15 @@ class WTSTraining(object):
         self.part_str: str
         self.set_partition(partition)
         if len(features) != 0:
-            self._set_features(features)
+            self.set_features(features)
         if index_column is not None:
-            self._set_index_column(index_column)
+            self.set_index_column(index_column)
 
-    def _set_features(self, features: List[str]):
+    def set_features(self, features: List[str]):
         self.features = list(features)
         self.features_has_been_set = True
 
-    def _set_index_column(self, index_column: str):
+    def set_index_column(self, index_column: str):
         self.index_column = index_column
         self.index_column_has_been_set = True
 
@@ -140,7 +140,7 @@ class WTSTraining(object):
             selected_data = data[self.features]
         else:
             selected_data = data
-            self._set_features(data.columns)
+            self.set_features(data.columns)
         if self.project:
             self.project.log.debug(
                 f"[WTST]- Data length {len(selected_data)} will be add to the WTST data."
