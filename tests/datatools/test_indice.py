@@ -1,6 +1,7 @@
 from mlcf.datatools.indice import add_indicators, add_indicator, Indice
 import numpy as np
 
+
 def test_add_indicator(btc_ohlcv):
     data = add_indicator(btc_ohlcv, Indice.ADX)
     assert len(data.columns) == 7
