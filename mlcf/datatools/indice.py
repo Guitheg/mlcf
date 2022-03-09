@@ -1,7 +1,8 @@
 from mlcf.utils import ListEnum
 from enum import unique
-from functools import partial
-from typing import List
+from typing import Callable, Dict, List, Set, Tuple
+
+from sklearn.preprocessing import MinMaxScaler
 
 # import pandas_ta as pta
 import mlcf.datatools.indice_tools as i_tools
@@ -11,15 +12,23 @@ import pandas_ta as _  # noqa
 import talib.abstract as ta
 
 
+def min_max_scale(series, minmax: Tuple[float, float], feature_range: Tuple[float, float] = (0, 1)):
+    mmsc = MinMaxScaler(feature_range=feature_range)
+    mmsc.fit([[minmax[0]], [minmax[1]]])
+    data = series.copy()
+    data.loc[:] = mmsc.transform(data.values.reshape(-1, 1)).reshape(-1)
+    return data
+
+
 @unique
 class Indice(ListEnum):
     ADX = "ADX"
 
     # Plus Directional Indicator / Movement
-    P_DIDM = "P_DIDM"
+    P_DIM = "P_DIM"
 
     # Minus Directional Indicator / Movement
-    M_DIDM = "M_DIDM"
+    M_DIM = "M_DIM"
 
     # Aroon, Aroon Oscillator
     AROON = "AROON"
@@ -40,8 +49,6 @@ class Indice(ListEnum):
     # Inverse Fisher transform on RSI: values [-1.0, 1.0] (https://goo.gl/2JGGoy)
     FISHER_RSI = "FISHER_RSI"
 
-    # Inverse Fisher transform on RSI normalized: values [0.0, 100.0] (https://goo.gl/2JGGoy)
-    FISHER_RSI_NORM = "FISHER_RSI_NORM"
     STOCH_SLOW = "STOCH_SLOW"
     STOCH_FAST = "STOCH_FAST"
 
@@ -75,63 +82,8 @@ class Indice(ListEnum):
     # Hilbert Transform Indicator - SineWave
     HT = "HT"
 
-    # -- Pattern Recognition - Bullish candlestick patterns --
-    # Hammer: values [0, 100]
-    HAMM = "HAMM"
-
-    # Inverted Hammer: values [0, 100]
-    IHAMM = "IHAMM"
-
-    # Dragonfly Doji: values [0, 100]
-    DRAGDOJI = "DRAGDOJI"
-
-    # Piercing Line: values [0, 100]
-    PIERCINGLINE = "PIERCINGLINE"
-
-    # Morningstar: values [0, 100]
-    MORNINGSTAR = "MORNINGSTAR"
-
-    # Three White Soldiers: values [0, 100]
-    TWSOLDIER = "TWSOLDIER"
-
-    # -- Pattern Recognition - Bearish candlestick patterns --
-    # Hanging Man: values [0, 100]
-    HANGMAN = "HANGMAN"
-
-    # Shooting Star: values [0, 100]
-    SHOOTSTAR = "SHOOTSTAR"
-
-    # Gravestone Doji: values [0, 100]
-    GRAVESTONE = "GRAVESTONE"
-
-    # Dark Cloud Cover: values [0, 100]
-    DARKCLOUD = "DARKCLOUD"
-
-    # Evening Doji Star: values [0, 100]
-    EVENDOJISTAR = "EVENDOJISTAR"
-
-    # Evening Star: values [0, 100]
-    EVENSTAR = "EVENSTAR"
-
-    # -- Pattern Recognition - Bullish/Bearish candlestick patterns --
-    # Three Line Strike: values [0, -100, 100]
-    TLSTRIKE = "TLSTRIKE"
-
-    # Spinning Top: values [0, -100, 100]
-    SPINTOP = "SPINTOP"
-
-    # Engulfing: values [0, -100, 100]
-    ENGULFING = "ENGULFING"
-
-    # Harami: values [0, -100, 100]
-    HARAMI = "HARAMI"
-
-    # Three Outside Up/Down: values [0, -100, 100]
-    THREEOUTUPDOWN = "THREEOUTUPDOWN"
-
-    # Three Inside Up/Down: values [0, -100, 100]
-    THREEINUPDOWN = "THREEINUPDOWN"
-    ###
+    # Pattern Recognition indicators
+    PATTERNS = "PATTERNS"
 
     # Heikin Ashi Strategy
     HEIKINASHI = "HEIKINASHI"
@@ -150,9 +102,6 @@ class Indice(ListEnum):
     # log of SMA1
     LNSMA1 = "LNSMA1"
 
-    # volatility
-    VOLATILITY = "VOLATILITY"
-
     # return
     RETURN = "RETURN"
 
@@ -167,300 +116,540 @@ def switch_indice(match: Indice, value: Indice):
     return match.value == value.value
 
 
-def add_indicator(data: pd.DataFrame, indice_name: Indice):
+def add_indicator(
+    data: pd.DataFrame,
+    indice_name: Indice,
+    standardize: bool = True,
+    list_to_std: Set[str] = set()
+):
     dataframe = data.copy()
 
-    case = partial(switch_indice, indice_name)
+    IndiceDict: Dict[str, Callable] = {
+        Indice.ADX.value: add_adx,
+        Indice.P_DIM.value: add_p_dim,
+        Indice.M_DIM.value: add_m_dim,
+        Indice.AROON.value: add_aroon,
+        Indice.AO.value: add_ao,
+        Indice.KELTNER.value: add_keltner,
+        Indice.UO.value: add_uo,
+        Indice.CCI.value: add_cci,
+        Indice.RSI.value: add_rsi,
+        Indice.FISHER_RSI.value: add_fisher_rsi,
+        Indice.STOCH_SLOW.value: add_stochastic_slow,
+        Indice.STOCH_FAST.value: add_stochastic_fast,
+        Indice.STOCH_RSI.value: add_stoch_rsi,
+        Indice.MACD.value: add_macd,
+        Indice.MFI.value: add_mfi,
+        Indice.ROC.value: add_roc,
+        Indice.BBANDS.value: add_bbands,
+        Indice.W_BBANDS.value: add_wbbands,
+        Indice.EMA.value: add_ema,
+        Indice.SMA.value: add_sma,
+        Indice.SAR.value: add_sar,
+        Indice.TEMA.value: add_tema,
+        Indice.HT.value: add_hilbert,
+        Indice.HEIKINASHI.value: add_heikinashi,
+        Indice.ICHIMOKU.value: add_ichimoku,
+        Indice.PATTERNS.value: add_pattern_recognition_indicators,
+        Indice.SMA1.value: add_SMA1,
+        Indice.LNSMA1.value: add_ln_SMA1,
+        Indice.PERCENTGROWTH.value: add_percent_growth,
+        Indice.RETURN.value: add_return,
+        Indice.CANDLE_DIR.value: add_candle_dir,
+        Indice.CANDLE_HEIGHT.value: add_candle_heigth,
+        Indice.STATS.value: add_stats_indicators_on_rolling_windows
+    }
 
-    if case(Indice.ADX):
-        dataframe["adx"] = ta.ADX(dataframe)
-
-    elif case(Indice.P_DIDM):
-        dataframe["plus_dm"] = ta.PLUS_DM(dataframe)
-        dataframe["plus_di"] = ta.PLUS_DI(dataframe)
-
-    elif case(Indice.M_DIDM):
-        dataframe["minus_dm"] = ta.MINUS_DM(dataframe)
-        dataframe["minus_di"] = ta.MINUS_DI(dataframe)
-
-    elif case(Indice.AROON):
-        aroon = ta.AROON(dataframe)
-        dataframe["aroonup"] = aroon["aroonup"]
-        dataframe["aroondown"] = aroon["aroondown"]
-        dataframe["aroonosc"] = ta.AROONOSC(dataframe)
-
-    elif case(Indice.AO):
-        dataframe["ao"] = i_tools.awesome_oscillator(dataframe)
-
-    elif case(Indice.KELTNER):
-        keltner = i_tools.keltner_channel(dataframe)
-        dataframe["kc_upperband"] = keltner["upper"]
-        dataframe["kc_lowerband"] = keltner["lower"]
-        dataframe["kc_middleband"] = keltner["mid"]
-        dataframe["kc_percent"] = (dataframe["close"] - dataframe["kc_lowerband"]) / (
-            dataframe["kc_upperband"] - dataframe["kc_lowerband"]
-        )
-        dataframe.loc[dataframe.kc_upperband == dataframe.kc_lowerband, "kc_percent"] = 0.5
-        dataframe["kc_width"] = (
-            dataframe["kc_upperband"] - dataframe["kc_lowerband"]
-        ) / dataframe["kc_middleband"]
-
-    elif case(Indice.UO):
-        dataframe["uo"] = ta.ULTOSC(dataframe)
-
-    elif case(Indice.CCI):
-        dataframe["cci"] = ta.CCI(dataframe)
-
-    elif case(Indice.RSI):
-        dataframe["rsi"] = ta.RSI(dataframe)
-
-    elif case(Indice.FISHER_RSI):
-        rsi = 0.1 * (dataframe["rsi"] - 50)
-        dataframe["fisher_rsi"] = (np.exp(2 * rsi) - 1) / (np.exp(2 * rsi) + 1)
-
-    elif case(Indice.FISHER_RSI_NORM):
-        dataframe["fisher_rsi_norma"] = 50 * (dataframe["fisher_rsi"] + 1)
-
-    elif case(Indice.STOCH_SLOW):
-        stoch = ta.STOCH(dataframe)
-        dataframe["slowd"] = stoch["slowd"]
-        dataframe["slowk"] = stoch["slowk"]
-
-    elif case(Indice.STOCH_FAST):
-        stoch_fast = ta.STOCHF(dataframe)
-        dataframe["fastd"] = stoch_fast["fastd"]
-        dataframe["fastk"] = stoch_fast["fastk"]
-
-    elif case(Indice.STOCH_RSI):
-        stoch_rsi = ta.STOCHRSI(dataframe)
-        dataframe["fastd_rsi"] = stoch_rsi["fastd"]
-        dataframe["fastk_rsi"] = stoch_rsi["fastk"]
-
-    elif case(Indice.MACD):
-        macd = ta.MACD(dataframe)
-        dataframe["macd"] = macd["macd"]
-        dataframe["macdsignal"] = macd["macdsignal"]
-        dataframe["macdhist"] = macd["macdhist"]
-
-    elif case(Indice.MFI):
-        dataframe["mfi"] = ta.MFI(dataframe)
-
-    elif case(Indice.ROC):
-        dataframe["roc"] = ta.ROC(dataframe)
-
-    elif case(Indice.BBANDS):
-        bollinger = i_tools.bollinger_bands(
-            i_tools.typical_price(dataframe), window=20, stds=2
-        )
-        dataframe["bb_lowerband"] = bollinger["lower"]
-        dataframe["bb_middleband"] = bollinger["mid"]
-        dataframe["bb_upperband"] = bollinger["upper"]
-        dataframe["bb_percent"] = (dataframe["close"] - dataframe["bb_lowerband"]) / (
-            dataframe["bb_upperband"] - dataframe["bb_lowerband"]
-        )
-        dataframe.loc[dataframe.bb_upperband == dataframe.bb_lowerband, "bb_percent"] = 0.5
-        dataframe["bb_width"] = (
-            dataframe["bb_upperband"] - dataframe["bb_lowerband"]
-        ) / dataframe["bb_middleband"]
-
-    elif case(Indice.W_BBANDS):
-        weighted_bollinger = i_tools.weighted_bollinger_bands(
-            i_tools.typical_price(dataframe), window=20, stds=2
-        )
-        dataframe["wbb_upperband"] = weighted_bollinger["upper"]
-        dataframe["wbb_lowerband"] = weighted_bollinger["lower"]
-        dataframe["wbb_middleband"] = weighted_bollinger["mid"]
-        dataframe["wbb_percent"] = (dataframe["close"] - dataframe["wbb_lowerband"]) / (
-            dataframe["wbb_upperband"] - dataframe["wbb_lowerband"]
-        )
-        dataframe.loc[dataframe.wbb_upperband == dataframe.wbb_lowerband, "wbb_percent"] = 0.5
-        dataframe["wbb_width"] = (
-            dataframe["wbb_upperband"] - dataframe["wbb_lowerband"]
-        ) / dataframe["wbb_middleband"]
-
-    elif case(Indice.EMA):
-        dataframe["ema3"] = ta.EMA(dataframe, timeperiod=3)
-        dataframe["ema5"] = ta.EMA(dataframe, timeperiod=5)
-        dataframe["ema10"] = ta.EMA(dataframe, timeperiod=10)
-        dataframe["ema21"] = ta.EMA(dataframe, timeperiod=21)
-        dataframe["ema50"] = ta.EMA(dataframe, timeperiod=50)
-        dataframe["ema100"] = ta.EMA(dataframe, timeperiod=100)
-
-    elif case(Indice.SMA):
-        dataframe["sma3"] = ta.SMA(dataframe, timeperiod=3)
-        dataframe["sma5"] = ta.SMA(dataframe, timeperiod=5)
-        dataframe["sma10"] = ta.SMA(dataframe, timeperiod=10)
-        dataframe["sma21"] = ta.SMA(dataframe, timeperiod=21)
-        dataframe["sma50"] = ta.SMA(dataframe, timeperiod=50)
-        dataframe["sma100"] = ta.SMA(dataframe, timeperiod=100)
-
-    elif case(Indice.SAR):
-        dataframe["sar"] = ta.SAR(dataframe)
-
-    elif case(Indice.TEMA):
-        dataframe["tema"] = ta.TEMA(dataframe, timeperiod=9)
-
-    elif case(Indice.HT):
-        hilbert = ta.HT_SINE(dataframe)
-        dataframe["htsine"] = hilbert["sine"]
-        dataframe["htleadsine"] = hilbert["leadsine"]
-
-    elif case(Indice.HAMM):
-        dataframe["CDLHAMMER"] = ta.CDLHAMMER(dataframe)
-
-    elif case(Indice.IHAMM):
-        dataframe["CDLINVERTEDHAMMER"] = ta.CDLINVERTEDHAMMER(dataframe)
-
-    elif case(Indice.DRAGDOJI):
-        dataframe["CDLDRAGONFLYDOJI"] = ta.CDLDRAGONFLYDOJI(dataframe)
-
-    elif case(Indice.PIERCINGLINE):
-        dataframe["CDLPIERCING"] = ta.CDLPIERCING(dataframe)
-
-    elif case(Indice.MORNINGSTAR):
-        dataframe["CDLMORNINGSTAR"] = ta.CDLMORNINGSTAR(dataframe)
-
-    elif case(Indice.TWSOLDIER):
-        dataframe["CDL3WHITESOLDIERS"] = ta.CDL3WHITESOLDIERS(dataframe)
-
-    elif case(Indice.HANGMAN):
-        dataframe["CDLHANGINGMAN"] = ta.CDLHANGINGMAN(dataframe)
-
-    elif case(Indice.SHOOTSTAR):
-        dataframe["CDLSHOOTINGSTAR"] = ta.CDLSHOOTINGSTAR(dataframe)
-
-    elif case(Indice.GRAVESTONE):
-        dataframe["CDLGRAVESTONEDOJI"] = ta.CDLGRAVESTONEDOJI(dataframe)
-
-    elif case(Indice.DARKCLOUD):
-        dataframe["CDLDARKCLOUDCOVER"] = ta.CDLDARKCLOUDCOVER(dataframe)
-
-    elif case(Indice.EVENDOJISTAR):
-        dataframe["CDLEVENINGDOJISTAR"] = ta.CDLEVENINGDOJISTAR(dataframe)
-
-    elif case(Indice.EVENSTAR):
-        dataframe["CDLEVENINGSTAR"] = ta.CDLEVENINGSTAR(dataframe)
-
-    elif case(Indice.TLSTRIKE):
-        dataframe["CDL3LINESTRIKE"] = ta.CDL3LINESTRIKE(dataframe)
-
-    elif case(Indice.SPINTOP):
-        dataframe["CDLSPINNINGTOP"] = ta.CDLSPINNINGTOP(dataframe)
-
-    elif case(Indice.ENGULFING):
-        dataframe["CDLENGULFING"] = ta.CDLENGULFING(dataframe)
-
-    elif case(Indice.HARAMI):
-        dataframe["CDLHARAMI"] = ta.CDLHARAMI(dataframe)
-
-    elif case(Indice.THREEOUTUPDOWN):
-        dataframe["CDL3OUTSIDE"] = ta.CDL3OUTSIDE(dataframe)
-
-    elif case(Indice.THREEINUPDOWN):
-        dataframe["CDL3INSIDE"] = ta.CDL3INSIDE(dataframe)  # values [0, -100, 100]
-
-    elif case(Indice.HEIKINASHI):
-        heikinashi = i_tools.heikinashi(dataframe)
-        dataframe["ha_open"] = heikinashi["open"]
-        dataframe["ha_close"] = heikinashi["close"]
-        dataframe["ha_high"] = heikinashi["high"]
-        dataframe["ha_low"] = heikinashi["low"]
-
-    elif case(Indice.ICHIMOKU):
-        ichimoku, ichimoku_forward = dataframe.ta.ichimoku(lookahead=False)
-        dataframe["ich_tenkan"] = ichimoku["ITS_9"]
-        dataframe["ich_kijun"] = ichimoku["IKS_26"]
-        dataframe["ich_spanA"] = ichimoku["ISA_9"]
-        dataframe["ich_spanB"] = ichimoku["ISB_26"]
-        dataframe["ich_chikou"] = dataframe["close"].shift(26)
-
-        # Warning: The use of shift(-26) is only to simulate the leading span A and B because they
-        # are in the future (so it's normal).
-        # 26 candles forward
-        # I duplicate spanA and spanB, shift it by -26 and add at the end leading span a and
-        # leading span b.
-
-        dataframe["ich_lead_spanA"] = pd.concat(
-            [ichimoku["ISA_9"], ichimoku_forward["ISA_9"]]
-        ).shift(-26)
-        dataframe["ich_lead_spanB"] = pd.concat(
-            [ichimoku["ISB_26"], ichimoku_forward["ISB_26"]]
-        ).shift(-26)
-
-    elif case(Indice.SMA1):
-        dataframe = add_SMA1(dataframe)
-
-    elif case(Indice.VOLATILITY):
-        dataframe = add_volatility(dataframe)
-
-    elif case(Indice.LNSMA1):
-        dataframe = add_ln_SMA1(dataframe)
-
-    elif case(Indice.PERCENTGROWTH):
-        dataframe = add_percent_growth(dataframe)
-
-    elif case(Indice.RETURN):
-        dataframe = add_return(dataframe)
-
-    elif case(Indice.CANDLE_DIR):
-        dataframe["candle_dir"] = candle_direction(dataframe)
-
-    elif case(Indice.CANDLE_HEIGHT):
-        dataframe["candle_height"] = candle_height(dataframe)
-
-    elif case(Indice.STATS):
-        dataframe = add_stats_indicators(dataframe, 3)
-        dataframe = add_stats_indicators(dataframe, 5)
-        dataframe = add_stats_indicators(dataframe, 10)
-        dataframe = add_stats_indicators(dataframe, 21)
-        dataframe = add_stats_indicators(dataframe, 50)
-        dataframe = add_stats_indicators(dataframe, 100)
-
-    else:
-        raise Exception("Unknown indice")
+    dataframe = IndiceDict[indice_name.value](
+        data=dataframe,
+        standardize=standardize,
+        list_to_std=list_to_std
+    )
 
     return dataframe
 
 
-def add_indicators(data: pd.DataFrame, list_indice: List[Indice], dropna: bool = True):
+def add_indicators(
+    data: pd.DataFrame,
+    list_indice: List[Indice],
+    dropna: bool = True,
+    standardize: bool = True,
+    list_to_std: Set[str] = set()
+):
     dataframe = data.copy()
 
     for indice in list_indice:
-        dataframe = add_indicator(dataframe, indice)
+        dataframe = add_indicator(dataframe, indice, standardize, list_to_std)
 
     dataframe.dropna(inplace=dropna)
     return dataframe
 
 
-def add_percent_growth(data: pd.DataFrame):  # add percent growth on close
+def add_adx(data: pd.DataFrame, standardize: bool = False, *args, **kwargs):
+    dataframe = data.copy()
+    adx = ta.ADX(data)
 
-    drop_SMA1 = False
-    if 'SMA1' not in data:
-        dataframe = add_SMA1(data.copy())
-        drop_SMA1 = True
-    else:
-        dataframe = data.copy()
+    if standardize:
+        adx = min_max_scale(adx, (0, 100)).round(8)
 
-    growth_offset_list = [1, 3, 5]
-
-    for offset in growth_offset_list:
-        SMA1_copy = dataframe['SMA1'].copy().shift(offset)
-        dataframe['growth'+str(offset)] = dataframe['SMA1'].div(SMA1_copy)
-
-    if drop_SMA1:
-        dataframe.drop(['SMA1'], axis=1, inplace=True)
+    dataframe["adx"] = adx
     return dataframe
 
 
-def add_SMA1(data: pd.DataFrame):  # add percent growth on close
+def add_p_dim(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[str] = set()):
+    dataframe = data.copy()
+    plus_dm = ta.PLUS_DM(dataframe)
+    plus_di = ta.PLUS_DI(dataframe)
+
+    if standardize:
+        plus_di = min_max_scale(plus_di, (0, 100)).round(8)
+        list_to_std.add("plus_dm")
+
+    dataframe["plus_dm"] = plus_dm
+    dataframe["plus_di"] = plus_di
+    return dataframe
+
+
+def add_m_dim(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[str] = set()):
+    dataframe = data.copy()
+    minus_dm = ta.MINUS_DM(dataframe)
+    minus_di = ta.MINUS_DI(dataframe)
+
+    if standardize:
+        minus_di = min_max_scale(minus_di, (0, 100)).round(8)
+        list_to_std.add("minus_dm")
+
+    dataframe["minus_dm"] = minus_dm
+    dataframe["minus_di"] = minus_di
+    return dataframe
+
+
+def add_aroon(data: pd.DataFrame, standardize: bool = False, *args, **kwargs):
+    dataframe = data.copy()
+    aroon = ta.AROON(dataframe)
+    aroonup = aroon["aroonup"]
+    aroondown = aroon["aroondown"]
+    aroonosc = ta.AROONOSC(dataframe)
+
+    if standardize:
+        aroonup = min_max_scale(aroonup, (0, 100)).round(8)
+        aroondown = min_max_scale(aroondown, (0, 100)).round(8)
+        aroonosc = min_max_scale(aroonosc, (-100, 100), feature_range=(-1, 1)).round(8)
+
+    dataframe["aroonup"] = aroonup
+    dataframe["aroondown"] = aroondown
+    dataframe["aroonosc"] = aroonosc
+    return dataframe
+
+
+def add_ao(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[str] = set()):
+    dataframe = data.copy()
+    ao = i_tools.awesome_oscillator(dataframe)
+
+    if standardize:
+        list_to_std.add("ao")
+
+    dataframe["ao"] = ao
+    return dataframe
+
+
+def add_keltner(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[str] = set()):
+    dataframe = data.copy()
+    keltner = i_tools.keltner_channel(dataframe)
+    keltner["percent"] = (dataframe["close"] - keltner["lower"]) / (
+        keltner["upper"] - keltner["lower"]
+    )
+    keltner.loc[keltner.upper == keltner.lower, "percent"] = 0.5
+    keltner["width"] = (
+        keltner["upper"] - keltner["lower"]
+    ) / keltner["mid"]
+
+    if standardize:
+        list_to_std.add("kc_upperband")
+        list_to_std.add("kc_lowerband")
+        list_to_std.add("kc_middleband")
+        list_to_std.add("kc_percent")
+        list_to_std.add("kc_width")
+
+    dataframe["kc_upperband"] = keltner["upper"]
+    dataframe["kc_lowerband"] = keltner["lower"]
+    dataframe["kc_middleband"] = keltner["mid"]
+    dataframe["kc_percent"] = keltner["percent"]
+    dataframe["kc_width"] = keltner["width"]
+    return dataframe
+
+
+def add_uo(data: pd.DataFrame, standardize: bool = False, *args, **kwargs):
+    dataframe = data.copy()
+    uo = ta.ULTOSC(dataframe)
+
+    if standardize:
+        uo = min_max_scale(uo, (0, 100))
+
+    dataframe["uo"] = uo
+    return dataframe
+
+
+def add_cci(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[str] = set()):
+    dataframe = data.copy()
+    cci = ta.CCI(dataframe)
+
+    if standardize:
+        list_to_std.add("cci")
+
+    dataframe["cci"] = cci
+    return dataframe
+
+
+def add_rsi(data: pd.DataFrame, standardize: bool = False, *args, **kwargs):
+    dataframe = data.copy()
+    rsi = ta.RSI(dataframe)
+
+    if standardize:
+        rsi = min_max_scale(rsi, (0, 100))
+
+    dataframe["rsi"] = rsi
+    return dataframe
+
+
+def add_fisher_rsi(data: pd.DataFrame, *args, **kwargs):
+    dataframe = data.copy()
+    rsi = 0.1 * (ta.RSI(dataframe) - 50)
+    dataframe["fisher_rsi"] = (np.exp(2 * rsi) - 1) / (np.exp(2 * rsi) + 1)
+    return dataframe
+
+
+def add_stochastic_slow(data: pd.DataFrame, standardize: bool = False, *args, **kwargs):
+    dataframe = data.copy()
+    stoch = ta.STOCH(dataframe)
+
+    if standardize:
+        stoch["slowd"] = min_max_scale(stoch["slowd"], (0, 100)).round(8)
+        stoch["slowk"] = min_max_scale(stoch["slowk"], (0, 100)).round(8)
+
+    dataframe["slowd"] = stoch["slowd"]
+    dataframe["slowk"] = stoch["slowk"]
+    return dataframe
+
+
+def add_stochastic_fast(data: pd.DataFrame, standardize: bool = False, *args, **kwargs):
+    dataframe = data.copy()
+    stoch_fast = ta.STOCHF(dataframe)
+
+    if standardize:
+        stoch_fast["fastd"] = min_max_scale(stoch_fast["fastd"], (0, 100)).round(8)
+        stoch_fast["fastk"] = min_max_scale(stoch_fast["fastk"], (0, 100)).round(8)
+
+    dataframe["fastd"] = stoch_fast["fastd"]
+    dataframe["fastk"] = stoch_fast["fastk"]
+    return dataframe
+
+
+def add_stoch_rsi(data: pd.DataFrame, standardize: bool = False, *args, **kwargs):
+    dataframe = data.copy()
+    stoch_rsi = ta.STOCHRSI(dataframe)
+
+    if standardize:
+        stoch_rsi["fastd"] = min_max_scale(stoch_rsi["fastd"], (0, 100)).round(8)
+        stoch_rsi["fastk"] = min_max_scale(stoch_rsi["fastk"], (0, 100)).round(8)
+
+    dataframe["fastd_rsi"] = stoch_rsi["fastd"]
+    dataframe["fastk_rsi"] = stoch_rsi["fastk"]
+    return dataframe
+
+
+def add_macd(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[str] = set()):
+    dataframe = data.copy()
+    macd = ta.MACD(dataframe)
+
+    if standardize:
+        list_to_std.add("macd")
+        list_to_std.add("macdsignal")
+        list_to_std.add("macdhist")
+
+    dataframe["macd"] = macd["macd"]
+    dataframe["macdsignal"] = macd["macdsignal"]
+    dataframe["macdhist"] = macd["macdhist"]
+    return dataframe
+
+
+def add_mfi(data: pd.DataFrame, standardize: bool = False, *args, **kwargs):
+    dataframe = data.copy()
+    mfi = ta.MFI(dataframe)
+
+    if standardize:
+        mfi = min_max_scale(mfi, (0, 100)).round(8)
+
+    dataframe["mfi"] = mfi
+    return dataframe
+
+
+def add_roc(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[str] = set()):
+    dataframe = data.copy()
+    roc = ta.ROC(dataframe)
+
+    if standardize:
+        list_to_std.add("roc")
+
+    dataframe["roc"] = roc
+    return dataframe
+
+
+def add_bbands(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[str] = set()):
+    dataframe = data.copy()
+    bollinger = i_tools.bollinger_bands(
+        i_tools.typical_price(dataframe), window=20, stds=2
+    )
+    bollinger["percent"] = (dataframe["close"] - bollinger["lower"]) / (
+        bollinger["upper"] - bollinger["lower"]
+    )
+    bollinger.loc[bollinger.upper == bollinger.lower, "percent"] = 0.5
+    bollinger["width"] = (
+        bollinger["upper"] - bollinger["lower"]
+    ) / bollinger["mid"]
+
+    if standardize:
+        list_to_std.add("bb_lowerband")
+        list_to_std.add("bb_middleband")
+        list_to_std.add("bb_upperband")
+        list_to_std.add("bb_percent")
+        list_to_std.add("bb_width")
+
+    dataframe["bb_lowerband"] = bollinger["lower"]
+    dataframe["bb_middleband"] = bollinger["mid"]
+    dataframe["bb_upperband"] = bollinger["upper"]
+    dataframe["bb_percent"] = bollinger["percent"]
+    dataframe["bb_width"] = bollinger["width"]
+    return dataframe
+
+
+def add_wbbands(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[str] = set()):
+    dataframe = data.copy()
+    weighted_bollinger = i_tools.weighted_bollinger_bands(
+        i_tools.typical_price(dataframe), window=20, stds=2
+    )
+    weighted_bollinger["percent"] = (dataframe["close"] - weighted_bollinger["lower"]) / (
+        weighted_bollinger["upper"] - weighted_bollinger["lower"]
+    )
+    weighted_bollinger.loc[weighted_bollinger.upper == weighted_bollinger.lower, "percent"] = 0.5
+    weighted_bollinger["width"] = (
+        weighted_bollinger["upper"] - weighted_bollinger["lower"]
+    ) / weighted_bollinger["mid"]
+
+    if standardize:
+        list_to_std.add("wbb_upperband")
+        list_to_std.add("wbb_lowerband")
+        list_to_std.add("wbb_middleband")
+        list_to_std.add("wbb_percent")
+        list_to_std.add("wbb_width")
+
+    dataframe["wbb_upperband"] = weighted_bollinger["upper"]
+    dataframe["wbb_lowerband"] = weighted_bollinger["lower"]
+    dataframe["wbb_middleband"] = weighted_bollinger["mid"]
+    dataframe["wbb_percent"] = weighted_bollinger["percent"]
+    dataframe["wbb_width"] = weighted_bollinger["width"]
+    return dataframe
+
+
+def add_ema(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[str] = set()):
+    dataframe = data.copy()
+    dataframe["ema3"] = ta.EMA(dataframe, timeperiod=3)
+    dataframe["ema5"] = ta.EMA(dataframe, timeperiod=5)
+    dataframe["ema10"] = ta.EMA(dataframe, timeperiod=10)
+    dataframe["ema21"] = ta.EMA(dataframe, timeperiod=21)
+    dataframe["ema50"] = ta.EMA(dataframe, timeperiod=50)
+    dataframe["ema100"] = ta.EMA(dataframe, timeperiod=100)
+
+    if standardize:
+        list_to_std.add("ema3")
+        list_to_std.add("ema5")
+        list_to_std.add("ema10")
+        list_to_std.add("ema21")
+        list_to_std.add("ema50")
+        list_to_std.add("ema100")
+
+    return dataframe
+
+
+def add_sma(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[str] = set()):
+    dataframe = data.copy()
+    dataframe["sma3"] = ta.SMA(dataframe, timeperiod=3)
+    dataframe["sma5"] = ta.SMA(dataframe, timeperiod=5)
+    dataframe["sma10"] = ta.SMA(dataframe, timeperiod=10)
+    dataframe["sma21"] = ta.SMA(dataframe, timeperiod=21)
+    dataframe["sma50"] = ta.SMA(dataframe, timeperiod=50)
+    dataframe["sma100"] = ta.SMA(dataframe, timeperiod=100)
+
+    if standardize:
+        list_to_std.add("sma3")
+        list_to_std.add("sma5")
+        list_to_std.add("sma10")
+        list_to_std.add("sma21")
+        list_to_std.add("sma50")
+        list_to_std.add("sma100")
+
+    return dataframe
+
+
+def add_sar(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[str] = set()):
     dataframe = data.copy()
 
-    dataframe['SMA1'] = (dataframe.high + dataframe.low) / 2
+    if standardize:
+        list_to_std.add("sar")
+
+    dataframe["sar"] = ta.SAR(dataframe)
+    return dataframe
+
+
+def add_tema(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[str] = set()):
+    dataframe = data.copy()
+    dataframe["tema"] = ta.TEMA(dataframe, timeperiod=9)
+
+    if standardize:
+        list_to_std.add("tema")
 
     return dataframe
 
 
-def add_ln_SMA1(data: pd.DataFrame):
+def add_hilbert(data: pd.DataFrame, *args, **kwargs):
+    dataframe = data.copy()
+    hilbert = ta.HT_SINE(dataframe)
+    dataframe["htsine"] = hilbert["sine"]
+    dataframe["htleadsine"] = hilbert["leadsine"]
+    return dataframe
+
+
+def add_heikinashi(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[str] = set()):
+    dataframe = data.copy()
+    heikinashi = i_tools.heikinashi(dataframe)
+    dataframe["ha_open"] = heikinashi["open"]
+    dataframe["ha_close"] = heikinashi["close"]
+    dataframe["ha_high"] = heikinashi["high"]
+    dataframe["ha_low"] = heikinashi["low"]
+
+    if standardize:
+        list_to_std.add("ha_open")
+        list_to_std.add("ha_close")
+        list_to_std.add("ha_high")
+        list_to_std.add("ha_low")
+
+    return dataframe
+
+
+def add_ichimoku(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[str] = set()):
+    dataframe = data.copy()
+    ichimoku, ichimoku_forward = dataframe.ta.ichimoku(lookahead=False)
+    dataframe["ich_tenkan"] = ichimoku["ITS_9"]
+    dataframe["ich_kijun"] = ichimoku["IKS_26"]
+    dataframe["ich_spanA"] = ichimoku["ISA_9"]
+    dataframe["ich_spanB"] = ichimoku["ISB_26"]
+    dataframe["ich_chikou"] = dataframe["close"].shift(26)
+
+    # Warning: The use of shift(-26) is only to simulate the leading span A and B because they
+    # are in the future (so it's normal).
+    # 26 candles forward
+    # I duplicate spanA and spanB, shift it by -26 and add at the end leading span a and
+    # leading span b.
+
+    dataframe["ich_lead_spanA"] = pd.concat(
+        [ichimoku["ISA_9"], ichimoku_forward["ISA_9"]]
+    ).shift(-26)
+    dataframe["ich_lead_spanB"] = pd.concat(
+        [ichimoku["ISB_26"], ichimoku_forward["ISB_26"]]
+    ).shift(-26)
+
+    if standardize:
+        list_to_std.add("ich_tenkan")
+        list_to_std.add("ich_kijun")
+        list_to_std.add("ich_spanA")
+        list_to_std.add("ich_spanB")
+        list_to_std.add("ich_chikou")
+        list_to_std.add("ich_lead_spanA")
+        list_to_std.add("ich_lead_spanB")
+
+    return dataframe
+
+
+def add_pattern_recognition_indicators(data: pd.DataFrame, *args, **kwargs):
+    dataframe = data.copy()
+
+    dataframe["CDLHAMMER"] = ta.CDLHAMMER(dataframe) / 100
+    dataframe["CDLINVERTEDHAMMER"] = ta.CDLINVERTEDHAMMER(dataframe) / 100
+    dataframe["CDLDRAGONFLYDOJI"] = ta.CDLDRAGONFLYDOJI(dataframe) / 100
+    dataframe["CDLPIERCING"] = ta.CDLPIERCING(dataframe) / 100
+    dataframe["CDLMORNINGSTAR"] = ta.CDLMORNINGSTAR(dataframe) / 100
+    dataframe["CDL3WHITESOLDIERS"] = ta.CDL3WHITESOLDIERS(dataframe) / 100
+    dataframe["CDLHANGINGMAN"] = ta.CDLHANGINGMAN(dataframe) / 100
+    dataframe["CDLSHOOTINGSTAR"] = ta.CDLSHOOTINGSTAR(dataframe) / 100
+    dataframe["CDLGRAVESTONEDOJI"] = ta.CDLGRAVESTONEDOJI(dataframe) / 100
+    dataframe["CDLDARKCLOUDCOVER"] = ta.CDLDARKCLOUDCOVER(dataframe) / 100
+    dataframe["CDLEVENINGDOJISTAR"] = ta.CDLEVENINGDOJISTAR(dataframe) / 100
+    dataframe["CDLEVENINGSTAR"] = ta.CDLEVENINGSTAR(dataframe) / 100
+    dataframe["CDL3LINESTRIKE"] = ta.CDL3LINESTRIKE(dataframe) / 100
+    dataframe["CDLSPINNINGTOP"] = ta.CDLSPINNINGTOP(dataframe) / 100
+    dataframe["CDLENGULFING"] = ta.CDLENGULFING(dataframe) / 100
+    dataframe["CDLHARAMI"] = ta.CDLHARAMI(dataframe) / 100
+    dataframe["CDL3OUTSIDE"] = ta.CDL3OUTSIDE(dataframe) / 100
+    dataframe["CDL3INSIDE"] = ta.CDL3INSIDE(dataframe) / 100  # values [0, -100, 100]
+
+    return dataframe
+
+
+def add_candle_dir(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[str] = set()):
+    dataframe = data.copy()
+    candle_dir = candle_direction(dataframe)
+
+    if standardize:
+        list_to_std.add("candle_dir")
+
+    dataframe["candle_dir"] = candle_dir
+    return dataframe
+
+
+def add_candle_heigth(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[str] = set()):
+    dataframe = data.copy()
+    candle_h = candle_height(dataframe)
+    if standardize:
+        list_to_std.add("candle_height")
+
+    dataframe["candle_height"] = candle_h
+    return dataframe
+
+
+def add_percent_growth(
+    data: pd.DataFrame,
+    list_period: List[int] = [1, 3, 5],
+    list_column: List[str] = ["open", "close", "low", "high", "volume"],
+    standardize: bool = False,
+    list_to_std: Set[str] = set()
+):
+    dataframe = data.copy()
+    for period in list_period:
+        new_name_column = list(map(lambda x: f"d{x}{period}", list_column))
+        dataframe[new_name_column] = dataframe[list_column].pct_change(period)
+        if standardize:
+            for col in new_name_column:
+                list_to_std.add(col)
+    return dataframe
+
+
+def add_SMA1(
+    data: pd.DataFrame,
+    standardize: bool = False,
+    list_to_std: Set[str] = set()
+):
+    dataframe = data.copy()
+    dataframe['SMA1'] = (dataframe.high + dataframe.low) / 2
+    if standardize:
+        list_to_std.add("SMA1")
+    return dataframe
+
+
+def add_ln_SMA1(
+    data: pd.DataFrame,
+    standardize: bool = False,
+    list_to_std: Set[str] = set()
+):
     drop_SMA1 = False
     if 'SMA1' not in data:
         dataframe = add_SMA1(data.copy())
@@ -472,33 +661,82 @@ def add_ln_SMA1(data: pd.DataFrame):
 
     if drop_SMA1:
         dataframe.drop('SMA1', axis=1, inplace=True)
+
+    if standardize:
+        list_to_std.add("lnSMA1")
     return dataframe
 
 
-def add_volatility(data: pd.DataFrame):
-
-    volatility_offset_list = [1, 3, 5]
-    drop_growth = False
-    if ('growth'+str(volatility_offset_list[0])) not in data:
-        dataframe = add_percent_growth(data.copy())
-        drop_growth = True
-    else:
-        dataframe = data.copy()
-
-    for offset in volatility_offset_list:
-        dataframe['volatility'+str(offset)] = np.log(dataframe['growth'+str(offset)])
-
-    if drop_growth:
-        for offset in volatility_offset_list:
-            if ('growth'+str(offset)) in data:
-                dataframe.drop(('growth'+str(offset)), axis=1, inplace=True)
-    return dataframe
-
-
-def add_return(data: pd.DataFrame, offset: int = 1, colname: str = "return", dropna: bool = False):
+def add_return(
+    data: pd.DataFrame,
+    offset: int = 1,
+    colname: str = "return",
+    dropna: bool = False,
+    standardize: bool = False,
+    list_to_std: Set[str] = set()
+):
     dataframe = data.copy()
     dataframe[colname] = np.log(dataframe.close) - np.log(dataframe.shift(offset).close)
     dataframe.dropna(inplace=dropna)
+    if standardize:
+        list_to_std.add(colname)
+    return dataframe
+
+
+def add_stats_indicators_on_rolling_windows(
+    data: pd.DataFrame,
+    standardize: bool = False,
+    list_to_std: Set[str] = set()
+):
+    dataframe = data.copy()
+    dataframe = add_stats_indicators(
+        dataframe, 3, standardize=standardize, list_to_std=list_to_std)
+    dataframe = add_stats_indicators(
+        dataframe, 5, standardize=standardize, list_to_std=list_to_std)
+    dataframe = add_stats_indicators(
+        dataframe, 10, standardize=standardize, list_to_std=list_to_std)
+    dataframe = add_stats_indicators(
+        dataframe, 21, standardize=standardize, list_to_std=list_to_std)
+    dataframe = add_stats_indicators(
+        dataframe, 50, standardize=standardize, list_to_std=list_to_std)
+    dataframe = add_stats_indicators(
+        dataframe, 100, standardize=standardize, list_to_std=list_to_std)
+    return dataframe
+
+
+def add_stats_indicators(
+    data: pd.DataFrame,
+    rolling_window: int = 1,
+    standardize: bool = False,
+    list_to_std: Set[str] = set()
+):
+    dataframe = data.copy()
+    dataframe = add_SMA1(dataframe, standardize, list_to_std)
+    if rolling_window >= 4:
+        dataframe[f"kurtosis{rolling_window}"] = kurtosis(dataframe, "SMA1", rolling_window)
+    dataframe[f"skewness{rolling_window}"] = skewness(dataframe, "SMA1", rolling_window)
+    dataframe[f"median{rolling_window}"] = median(dataframe, "SMA1", rolling_window)
+    dataframe[f"minimum{rolling_window}"] = minimum(dataframe, "SMA1", rolling_window)
+    dataframe[f"maximum{rolling_window}"] = maximum(dataframe, "SMA1", rolling_window)
+    dataframe[f"std{rolling_window}"] = standard_deviation(dataframe, "SMA1", rolling_window)
+    dataframe[f"variance{rolling_window}"] = variance(dataframe, "SMA1", rolling_window)
+    dataframe[f"quantile025_{rolling_window}"] = quantile_025(dataframe, "SMA1", rolling_window)
+    dataframe[f"quantile075_{rolling_window}"] = quantile_075(dataframe, "SMA1", rolling_window)
+    dataframe[f"mean{rolling_window}"] = mean(dataframe, "SMA1", rolling_window)
+
+    if standardize:
+        if f"kurtosis{rolling_window}" in list(dataframe.columns):
+            list_to_std.add(f"kurtosis{rolling_window}")
+        list_to_std.add(f"skewness{rolling_window}")
+        list_to_std.add(f"median{rolling_window}")
+        list_to_std.add(f"minimum{rolling_window}")
+        list_to_std.add(f"maximum{rolling_window}")
+        list_to_std.add(f"std{rolling_window}")
+        list_to_std.add(f"variance{rolling_window}")
+        list_to_std.add(f"quantile025_{rolling_window}")
+        list_to_std.add(f"quantile075_{rolling_window}")
+        list_to_std.add(f"mean{rolling_window}")
+
     return dataframe
 
 
@@ -510,23 +748,6 @@ def candle_direction(data: pd.DataFrame):
 def candle_height(data: pd.DataFrame):
     dataframe = data.copy()
     return np.log(dataframe.high) - np.log(dataframe.low)
-
-
-def add_stats_indicators(data: pd.DataFrame, rolling_window: int = 1):
-    dataframe = data.copy()
-    dataframe["p"] = (dataframe.high + dataframe.low) / 2
-    if rolling_window >= 4:
-        dataframe[f"kurtosis{rolling_window}"] = kurtosis(dataframe, "p", rolling_window)
-    dataframe[f"skewness{rolling_window}"] = skewness(dataframe, "p", rolling_window)
-    dataframe[f"median{rolling_window}"] = median(dataframe, "p", rolling_window)
-    dataframe[f"minimum{rolling_window}"] = minimum(dataframe, "p", rolling_window)
-    dataframe[f"maximum{rolling_window}"] = maximum(dataframe, "p", rolling_window)
-    dataframe[f"std{rolling_window}"] = standard_deviation(dataframe, "p", rolling_window)
-    dataframe[f"variance{rolling_window}"] = variance(dataframe, "p", rolling_window)
-    dataframe[f"quantile025_{rolling_window}"] = quantile_025(dataframe, "p", rolling_window)
-    dataframe[f"quantile075_{rolling_window}"] = quantile_075(dataframe, "p", rolling_window)
-    dataframe[f"mean{rolling_window}"] = mean(dataframe, "p", rolling_window)
-    return dataframe
 
 
 def kurtosis(data: pd.DataFrame, column_name: str = "close", rolling_window: int = 1):
@@ -562,6 +783,11 @@ def standard_deviation(data: pd.DataFrame, column_name: str = "close", rolling_w
 
 
 def variance(data: pd.DataFrame, column_name: str = "close", rolling_window: int = 1):
+    dataframe = data.copy()
+    return dataframe[column_name].rolling(rolling_window).var()
+
+
+def volatility(data: pd.DataFrame, column_name: str = "close", rolling_window: int = 1):
     dataframe = data.copy()
     return dataframe[column_name].rolling(rolling_window).var()
 
