@@ -17,3 +17,5 @@ geneticalgorithm2
 # https://www.freqtrade.io/en/stable/te
 ccxt==1.72.98
 TA-Lib==0.4.24
+
+sklearn
