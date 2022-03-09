@@ -48,7 +48,7 @@ def test_indicators_list_to_std(btc_ohlcv):
     list_indice = list(Indice)
     list_to_std = set()
     dataframe = add_indicators(btc_ohlcv, list_indice, standardize=True, list_to_std=list_to_std)
-    assert len(list_to_std) == 127
+    assert len(list_to_std) == 124
     assert (dataframe["adx"] >= 0).all() and (dataframe["adx"] <= 1).all()
     assert (dataframe["plus_di"] >= 0).all() and (dataframe["plus_di"] <= 1).all()
     assert (dataframe["minus_di"] >= 0).all() and (dataframe["minus_di"] <= 1).all()
