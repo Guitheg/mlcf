@@ -9,7 +9,6 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 import os
-from mlcf.datatools.indice import Indice
 from mlcf.datatools.preprocessing import Identity
 from mlcf.datatools.wtst_dataset import WTSTrainingDataset, \
     TS_DATA_ARCHDIR, is_dir_in_zipfile, iterdir_in_zipfile
@@ -90,11 +89,11 @@ def test_write_wtstdataset_from_raw_data(mlcf_home, eth_ts_data, testdatadir):
         index_column="date",
         prop_tv=0.2,
         prop_v=0.2,
-        indices=list(Indice),
+        indices=[],
         preprocess=Identity,
         merge_pairs=True,
         n_category=0,
-        standardize=False
+        standardize=True
     )
 
     dataset_path = mlcf_home.data_dir.joinpath("TestDataSet.wtst")
@@ -108,4 +107,6 @@ def test_write_wtstdataset_from_raw_data(mlcf_home, eth_ts_data, testdatadir):
         mlcf_home.data_dir.joinpath("TestDataSet.wtst"),
         index_column="date"
     )
-    assert np.all(np.array(dataset[0][0].index) == np.array(eth_ts_data("train")[0][0].index))
+    assert np.all(
+        pd.to_datetime(dataset[0][0].index) == pd.to_datetime(eth_ts_data("train")[0][0].index)
+    )

@@ -1,6 +1,6 @@
 from mlcf.utils import ListEnum
 from enum import unique
-from typing import List, Set, Tuple
+from typing import Callable, Dict, List, Set, Tuple
 
 from sklearn.preprocessing import MinMaxScaler
 
@@ -10,8 +10,6 @@ import numpy as np
 import pandas as pd
 import pandas_ta as _  # noqa
 import talib.abstract as ta
-
-from time import perf_counter
 
 
 def min_max_scale(series, minmax: Tuple[float, float], feature_range: Tuple[float, float] = (0, 1)):
@@ -126,7 +124,7 @@ def add_indicator(
 ):
     dataframe = data.copy()
 
-    IndiceDict = {
+    IndiceDict: Dict[str, Callable] = {
         Indice.ADX.value: add_adx,
         Indice.P_DIM.value: add_p_dim,
         Indice.M_DIM.value: add_m_dim,
@@ -192,7 +190,7 @@ def add_adx(data: pd.DataFrame, standardize: bool = False, *args, **kwargs):
     adx = ta.ADX(data)
 
     if standardize:
-        adx = min_max_scale(adx, (0, 100))
+        adx = min_max_scale(adx, (0, 100)).round(8)
 
     dataframe["adx"] = adx
     return dataframe
@@ -204,7 +202,7 @@ def add_p_dim(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[st
     plus_di = ta.PLUS_DI(dataframe)
 
     if standardize:
-        plus_di = min_max_scale(plus_di, (0, 100))
+        plus_di = min_max_scale(plus_di, (0, 100)).round(8)
         list_to_std.add("plus_dm")
 
     dataframe["plus_dm"] = plus_dm
@@ -218,7 +216,7 @@ def add_m_dim(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[st
     minus_di = ta.MINUS_DI(dataframe)
 
     if standardize:
-        minus_di = min_max_scale(minus_di, (0, 100))
+        minus_di = min_max_scale(minus_di, (0, 100)).round(8)
         list_to_std.add("minus_dm")
 
     dataframe["minus_dm"] = minus_dm
@@ -234,9 +232,9 @@ def add_aroon(data: pd.DataFrame, standardize: bool = False, *args, **kwargs):
     aroonosc = ta.AROONOSC(dataframe)
 
     if standardize:
-        aroonup = min_max_scale(aroonup, (0, 100))
-        aroondown = min_max_scale(aroondown, (0, 100))
-        aroonosc = min_max_scale(aroonosc, (-100, 100), feature_range=(-1, 1))
+        aroonup = min_max_scale(aroonup, (0, 100)).round(8)
+        aroondown = min_max_scale(aroondown, (0, 100)).round(8)
+        aroonosc = min_max_scale(aroonosc, (-100, 100), feature_range=(-1, 1)).round(8)
 
     dataframe["aroonup"] = aroonup
     dataframe["aroondown"] = aroondown
@@ -326,8 +324,8 @@ def add_stochastic_slow(data: pd.DataFrame, standardize: bool = False, *args, **
     stoch = ta.STOCH(dataframe)
 
     if standardize:
-        stoch["slowd"] = min_max_scale(stoch["slowd"], (0, 100))
-        stoch["slowk"] = min_max_scale(stoch["slowk"], (0, 100))
+        stoch["slowd"] = min_max_scale(stoch["slowd"], (0, 100)).round(8)
+        stoch["slowk"] = min_max_scale(stoch["slowk"], (0, 100)).round(8)
 
     dataframe["slowd"] = stoch["slowd"]
     dataframe["slowk"] = stoch["slowk"]
@@ -339,8 +337,8 @@ def add_stochastic_fast(data: pd.DataFrame, standardize: bool = False, *args, **
     stoch_fast = ta.STOCHF(dataframe)
 
     if standardize:
-        stoch_fast["fastd"] = min_max_scale(stoch_fast["fastd"], (0, 100))
-        stoch_fast["fastk"] = min_max_scale(stoch_fast["fastk"], (0, 100))
+        stoch_fast["fastd"] = min_max_scale(stoch_fast["fastd"], (0, 100)).round(8)
+        stoch_fast["fastk"] = min_max_scale(stoch_fast["fastk"], (0, 100)).round(8)
 
     dataframe["fastd"] = stoch_fast["fastd"]
     dataframe["fastk"] = stoch_fast["fastk"]
@@ -352,8 +350,8 @@ def add_stoch_rsi(data: pd.DataFrame, standardize: bool = False, *args, **kwargs
     stoch_rsi = ta.STOCHRSI(dataframe)
 
     if standardize:
-        stoch_rsi["fastd"] = min_max_scale(stoch_rsi["fastd"], (0, 100))
-        stoch_rsi["fastk"] = min_max_scale(stoch_rsi["fastk"], (0, 100))
+        stoch_rsi["fastd"] = min_max_scale(stoch_rsi["fastd"], (0, 100)).round(8)
+        stoch_rsi["fastk"] = min_max_scale(stoch_rsi["fastk"], (0, 100)).round(8)
 
     dataframe["fastd_rsi"] = stoch_rsi["fastd"]
     dataframe["fastk_rsi"] = stoch_rsi["fastk"]
@@ -380,18 +378,18 @@ def add_mfi(data: pd.DataFrame, standardize: bool = False, *args, **kwargs):
     mfi = ta.MFI(dataframe)
 
     if standardize:
-        mfi = min_max_scale(mfi, (0, 100))
+        mfi = min_max_scale(mfi, (0, 100)).round(8)
 
     dataframe["mfi"] = mfi
     return dataframe
 
 
-def add_roc(data: pd.DataFrame, standardize: bool = False, *args, **kwargs):
+def add_roc(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[str] = set()):
     dataframe = data.copy()
     roc = ta.ROC(dataframe)
 
     if standardize:
-        roc = min_max_scale(roc, (0, 100))
+        list_to_std.add("roc")
 
     dataframe["roc"] = roc
     return dataframe
@@ -506,8 +504,10 @@ def add_sar(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[str]
 def add_tema(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[str] = set()):
     dataframe = data.copy()
     dataframe["tema"] = ta.TEMA(dataframe, timeperiod=9)
+
     if standardize:
         list_to_std.add("tema")
+
     return dataframe
 
 

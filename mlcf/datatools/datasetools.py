@@ -89,7 +89,12 @@ def write_wtstdataset_from_raw_data(
             raw_data = read_ohlcv_json_rawdata(rawdata_dir.joinpath(filename))
             if indices:
                 project.log.info(f"Adding indicators: {[i.value for i in indices]}")
-                raw_data = add_indicators(raw_data, indices, standardize, list_to_std)
+                raw_data = add_indicators(
+                    raw_data,
+                    indices,
+                    dropna=True,
+                    standardize=standardize,
+                    list_to_std=list_to_std)
             if tf not in rawdata_set:
                 rawdata_set[tf] = {pair: raw_data}
             else:
