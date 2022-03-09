@@ -1,6 +1,6 @@
 from functools import reduce
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Set
 import pandas as pd
 
 from mlcf.datatools.indice import Indice, add_indicators
@@ -63,7 +63,8 @@ def write_wtstdataset_from_raw_data(
     indices: List[Indice],
     preprocess: WTSeriesPreProcess,
     merge_pairs: bool,
-    n_category: int
+    n_category: int,
+    standardize: bool
 ):
 
     dataset = WTSTrainingDataset(
@@ -74,6 +75,13 @@ def write_wtstdataset_from_raw_data(
         project=project
     )
 
+    list_to_std: Set[str] = set()
+    if standardize:
+        list_to_std.add("open")
+        list_to_std.add("close")
+        list_to_std.add("low")
+        list_to_std.add("high")
+        list_to_std.add("volume")
     rawdata_set: Dict[str, Dict[str, pd.DataFrame]] = {}
     for pair in pairs:
         for tf in timeframes:
@@ -81,7 +89,7 @@ def write_wtstdataset_from_raw_data(
             raw_data = read_ohlcv_json_rawdata(rawdata_dir.joinpath(filename))
             if indices:
                 project.log.info(f"Adding indicators: {[i.value for i in indices]}")
-                raw_data = add_indicators(raw_data, indices)
+                raw_data = add_indicators(raw_data, indices, standardize, list_to_std)
             if tf not in rawdata_set:
                 rawdata_set[tf] = {pair: raw_data}
             else:
@@ -102,7 +110,8 @@ def write_wtstdataset_from_raw_data(
                 offset=offset,
                 window_step=window_step,
                 preprocess=preprocess,
-                n_category=n_category
+                n_category=n_category,
+                list_to_std=list(list_to_std)
             )
     else:
         for i, tf in enumerate(rawdata_set):
@@ -120,7 +129,8 @@ def write_wtstdataset_from_raw_data(
                     offset=offset,
                     window_step=window_step,
                     preprocess=preprocess,
-                    n_category=n_category
+                    n_category=n_category,
+                    list_to_std=list(list_to_std)
                 )
 
     project.log.debug(f"Dataset built:{dataset}")

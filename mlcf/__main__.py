@@ -159,6 +159,11 @@ def main():
         action="store_true"
     )
     command_build.add_argument(
+        "--standardize",
+        help="Standardize all the given dimension of the dataset",
+        action="store_true"
+    )
+    command_build.add_argument(
         "--n-category",
         help="Give a number of category in order to balance number of returns category in the"
         + " training part of the dataset.",

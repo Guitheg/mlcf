@@ -28,6 +28,7 @@ def build_dataset(
     preprocess: WTSeriesPreProcess,
     merge_pairs: bool,
     n_category: int,
+    standardize: bool,
     *args,
     **kwargs
 ):
@@ -49,7 +50,8 @@ def build_dataset(
         indices=indices,
         preprocess=preprocess,
         merge_pairs=merge_pairs,
-        n_category=n_category
+        n_category=n_category,
+        standardize=standardize
     )
     del args
     del kwargs
