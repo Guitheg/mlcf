@@ -129,11 +129,13 @@ def test_continous_value_to_discrete_category(btc_ohlcv):
     new_data = countinous_value_to_discrete_category(data, RETURN_COLNAME, 10)
     assert np.all(data == new_data[data.columns])
     value_counts = new_data.category.value_counts()
-    assert value_counts[0] == 1698 and value_counts[10] == 1829
+    assert value_counts[0] == 1730 and value_counts[10] == 1815
     assert np.all(
-        new_data[RETURN_COLNAME][new_data.category == 0] < -new_data[RETURN_COLNAME].std())
+        new_data[RETURN_COLNAME][new_data.category == 0]
+        < -new_data[RETURN_COLNAME].std() + new_data[RETURN_COLNAME].mean())
     assert np.all(
-        new_data[RETURN_COLNAME][new_data.category == 10] > new_data[RETURN_COLNAME].std())
+        new_data[RETURN_COLNAME][new_data.category == 10]
+        > new_data[RETURN_COLNAME].std() + new_data[RETURN_COLNAME].mean())
 
 
 def test_balanced_category_tag(btc_ohlcv):
@@ -142,8 +144,8 @@ def test_balanced_category_tag(btc_ohlcv):
     new_data = countinous_value_to_discrete_category(data, RETURN_COLNAME, 10)
     tagged_data = balanced_category_tag(new_data, "category")
     value_counts = tagged_data.category[tagged_data.tag].value_counts()
-    assert value_counts[10] == 1763
-    assert value_counts[1] == 732
+    assert value_counts[10] == 1772
+    assert value_counts[1] == 747
     assert np.all(data == tagged_data[data.columns])
 
 

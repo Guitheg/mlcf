@@ -619,7 +619,7 @@ def add_candle_heigth(data: pd.DataFrame, standardize: bool = False, list_to_std
 def add_percent_growth(
     data: pd.DataFrame,
     list_period: List[int] = [1, 3, 5],
-    list_column: List[str] = ["open", "close", "low", "high", "volume"],
+    list_column: List[str] = ["open", "close", "low", "high"],
     standardize: bool = False,
     list_to_std: Set[str] = set()
 ):
@@ -676,7 +676,7 @@ def add_return(
     list_to_std: Set[str] = set()
 ):
     dataframe = data.copy()
-    dataframe[colname] = np.log(dataframe.close) - np.log(dataframe.shift(offset).close)
+    dataframe[colname] = dataframe.close / dataframe.shift(offset).close
     dataframe.dropna(inplace=dropna)
     if standardize:
         list_to_std.add(colname)
