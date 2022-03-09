@@ -25,6 +25,17 @@ class ProjectHome:
             home_name=home_name, home_directory=self.dir
         )
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.exit()
+
+        if exc_type is not None:
+            raise Exception(exc_value, traceback)
+
+        return True
+
     def get_dir(self):
         return self.dir
 
@@ -116,4 +127,3 @@ def init_project(
 def close_project(logger: Logger, id_prog: str):
     logger.info("###########| **END** %s |###########", id_prog)
     shutdown()
-    sys.exit(0)
