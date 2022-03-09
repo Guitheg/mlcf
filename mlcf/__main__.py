@@ -224,9 +224,8 @@ def main():
     )
     args = parser.parse_args()
 
-    mlcf = MlcfHome(home_directory=args.userdir, create_userdir=args.create_userdir)
-    run(mlcf, args)
-    mlcf.exit()
+    with MlcfHome(home_directory=args.userdir, create_userdir=args.create_userdir) as mlcf:
+        run(mlcf, args)
 
 
 if __name__ == "__main__":

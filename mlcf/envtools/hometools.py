@@ -1,6 +1,5 @@
 import platform
 import shutil
-import sys
 from logging import Logger, shutdown
 from pathlib import Path
 from typing import Tuple
