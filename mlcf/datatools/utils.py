@@ -8,7 +8,7 @@ from mlcf.datatools.preprocessing import Identity
 from mlcf.datatools.indice import add_return
 import random
 
-RETURN_COLNAME = "dclose"
+RETURN_COLNAME = "return_close"
 
 
 def split_pandas(dataframe: pd.DataFrame,
