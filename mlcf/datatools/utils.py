@@ -8,7 +8,7 @@ from mlcf.datatools.preprocessing import Identity
 from mlcf.datatools.indice import add_return
 import random
 
-RETURN_COLNAME = "dclose"
+RETURN_COLNAME = "return_close"
 
 
 def split_pandas(dataframe: pd.DataFrame,
@@ -163,7 +163,7 @@ def countinous_value_to_discrete_category(
     """
     data = dataframe.copy()
     if not bounds:
-        bounds = (-data[column].std(), data[column].std())
+        bounds = (-data[column].std(), data[column].std()) + data[column].mean()
     bins = np.linspace(bounds[0], bounds[1], n_bins)
     data[new_columns_name] = pd.cut(data[column], bins).cat.codes
     data[new_columns_name] += 1
