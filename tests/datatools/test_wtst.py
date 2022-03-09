@@ -19,7 +19,7 @@ def test_WTSeriesTraining_balance(btc_ohlcv):
     import random
     random.seed(0)
     ts_data.add_time_serie(btc_ohlcv.iloc[0:1000], prop_tv=0.2, n_category=10)
-    assert len(ts_data) == 515
+    assert len(ts_data) == 523
 
 
 def test_WTSeriesTraining_copy(btc_ohlcv):
