@@ -353,32 +353,37 @@ The datatools library provides :
 - ### Indice  
     Available indices:  
     - ADX
-    - Plus Directional Indicator / Movement
-    - Minus Directional Indicator / Movement
-    - Aroon, Aroon Oscillator
-    - Awesome Oscillator
-    - Keltner Channel
-    - Ultimate Oscillator
-    - Commodity Channel Index
+    - Plus Directional Indicator / Movement (P_DIM)
+    - Minus Directional Indicator / Movement (M_DIM)
+    - Aroon, Aroon Oscillator (AROON)
+    - Awesome Oscillator (AO)
+    - Keltner Channel (KC)
+    - Ultimate Oscillator (UO)
+    - Commodity Channel Index (CCI)
     - RSI
-    - Inverse Fisher transform on RSI
-    - Inverse Fisher transform on RSI normalized
-    - Stochastic RSI
+    - Inverse Fisher transform on RSI (FISHER_RSI)
+    - Stochastic RSI (STOCH_SLOW)
+    - STOCH_FAST
+    - STOCH_SLOW
     - MACD
     - MFI
     - ROC
-    - Bollinger Bands
-    - Bollinger Bands - Weighted
-    - EMA - Exponential Moving Average
-    - SMA - Simple Moving Average
-    - Parabolic SAR
-    - TEMA - Triple Exponential Moving Average
-    - Hilbert Transform Indicator - SineWave
-    - Percent growth (return)
-    - SMA1
-    - Log of SMA1
-    - Volatility
-    - And other... (pattern recognition)
+    - Bollinger Bands (BBANDS)
+    - Bollinger Bands - Weighted (W_BBANDS)
+    - EMA - Exponential Moving Average (EMA)
+    - SMA - Simple Moving Average (SMA)
+    - Parabolic SAR (SAR)
+    - TEMA - Triple Exponential Moving Average (TEMA)
+    - Hilbert Transform Indicator - SineWave (HT)
+    - Percent growth (return) (PERCENTGROWTH)
+    - SMA1 (SMA1)
+    - Log of SMA1 (LNSMA1)
+    - Return (RETURN)
+    - Candle direction (CANDLE_DIR)
+    - Candle height (CANDLE_HEIGHT)
+    - Stats : variance, standard deviation, median, mean, min, max, kurtosis, skewness (STATS)
+    - Pattern Recognition Indicators (PATTERNS)
+
 - ### datasetools  
     Available function to handle WTSTrainingDataset:  
     - 
