@@ -12,7 +12,6 @@ import os
 from mlcf.datatools.preprocessing import Identity
 from mlcf.datatools.wtst_dataset import WTSTrainingDataset, \
     TS_DATA_ARCHDIR, is_dir_in_zipfile, iterdir_in_zipfile
-from mlcf.datatools.indice import Indice
 
 
 def test_read_ohlcv_json_rawdata(btc_ohlcv, rawdata_btc_path):
