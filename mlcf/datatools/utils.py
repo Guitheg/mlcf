@@ -1,6 +1,7 @@
 from typing import Callable, List, Tuple, Union
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import StandardScaler
 # MLCF modules
 from mlcf.datatools.wtseries import WTSeries
 from mlcf.datatools.preprocessing import Identity
@@ -378,6 +379,34 @@ def generate_windows_from_splited_interval_data(
     return (train_input, train_target, val_input, val_target, test_input, test_target)
 
 
+def standardize(
+    splited_interval_data:
+        Tuple[
+            List[pd.DataFrame],
+            List[pd.DataFrame],
+            List[pd.DataFrame]
+        ],
+    list_to_std: List[str]
+):
+    if list_to_std:
+        sc = StandardScaler()
+        for train, val, test in zip(*splited_interval_data):
+            if not train.empty:
+                sc.partial_fit(train[list_to_std])
+
+        for train, val, test in zip(*splited_interval_data):
+            if not train.empty:
+                train[list_to_std] = sc.transform(train[list_to_std])
+
+            if not val.empty:
+                val[list_to_std] = sc.transform(val[list_to_std])
+
+            if not test.empty:
+                test[list_to_std] = sc.transform(test[list_to_std])
+
+    return splited_interval_data
+
+
 def build_forecast_ts_training_dataset(
     dataframe: pd.DataFrame,
     input_width: int,
@@ -391,6 +420,7 @@ def build_forecast_ts_training_dataset(
     n_category: int = 0,
     bounds: Tuple[float, float] = None,
     max_count: int = None,
+    list_to_std: List[str] = []
 ) -> Tuple[WTSeries, WTSeries, WTSeries, WTSeries, WTSeries, WTSeries]:
     """ From a time serie dataframe, build a forecast training dataset:
     -> ({n_interval} > 1): divide the dataframe in {n_interval} intervals
@@ -439,6 +469,8 @@ def build_forecast_ts_training_dataset(
         List[pd.DataFrame],
         List[pd.DataFrame]
     ] = train_val_test_list_data(list_interval_data_df, prop_tv=prop_tv, prop_v=prop_v)
+
+    splited_interval_data = standardize(splited_interval_data, list_to_std)
 
     train_intervals_tagged, tag_name = balance_category_by_tagging(
         splited_interval_data[0],

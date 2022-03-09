@@ -6,7 +6,8 @@ install_requirements = [
     "geneticalgorithm2",
     "TA-Lib",
     "ritl",
-    "pandas-ta"
+    "pandas-ta",
+    "sklearn"
 ]
 
 setup(

@@ -3,7 +3,7 @@ from mlcf.aitools.super_module import SuperModule, select_list_index_columns
 from torch.optim import SGD
 from torch.nn import L1Loss
 
-from mlcf.aitools.metrics import L2
+from mlcf.aitools.metrics import mae
 
 
 def test_list_index_columns():
@@ -19,7 +19,7 @@ def test_super_module(mlp, mlcf_home, ts_data):
     module.init(
         loss=L1Loss(),
         optimizer=SGD(module.parameters(), lr=0.1),
-        metrics=[L2],
+        metrics=[mae],
         training_name="test_training",
         project=mlcf_home
     )

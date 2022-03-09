@@ -92,7 +92,8 @@ def test_write_wtstdataset_from_raw_data(mlcf_home, eth_ts_data, testdatadir):
         indices=[],
         preprocess=Identity,
         merge_pairs=True,
-        n_category=0
+        n_category=0,
+        standardize=True
     )
 
     dataset_path = mlcf_home.data_dir.joinpath("TestDataSet.wtst")
@@ -106,4 +107,6 @@ def test_write_wtstdataset_from_raw_data(mlcf_home, eth_ts_data, testdatadir):
         mlcf_home.data_dir.joinpath("TestDataSet.wtst"),
         index_column="date"
     )
-    assert np.all(np.array(dataset[0][0]) == np.array(eth_ts_data("train")[0][0]))
+    assert np.all(
+        pd.to_datetime(dataset[0][0].index) == pd.to_datetime(eth_ts_data("train")[0][0].index)
+    )
