@@ -163,7 +163,8 @@ def countinous_value_to_discrete_category(
     """
     data = dataframe.copy()
     if not bounds:
-        bounds = (-data[column].std(), data[column].std()) + data[column].mean()
+        mean = data[column].mean()
+        bounds = (mean - data[column].std(), mean + data[column].std())
     bins = np.linspace(bounds[0], bounds[1], n_bins)
     data[new_columns_name] = pd.cut(data[column], bins).cat.codes
     data[new_columns_name] += 1
