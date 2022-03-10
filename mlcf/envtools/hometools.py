@@ -1,6 +1,6 @@
 import platform
 import shutil
-from logging import Logger, shutdown
+from logging import Logger
 from pathlib import Path
 from typing import Tuple
 
@@ -125,4 +125,7 @@ def init_project(
 
 def close_project(logger: Logger, id_prog: str):
     logger.info("###########| **END** %s |###########", id_prog)
-    shutdown()
+    handlers = logger.handlers[:]
+    for handler in handlers:
+        handler.close()
+        logger.removeHandler(handler)
