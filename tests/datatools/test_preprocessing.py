@@ -4,29 +4,24 @@ import numpy as np
 import pandas as pd
 
 
-def init_data():
-    data = np.arange(1000)
-    columns = ["value"]
-    data = pd.DataFrame(data, columns=columns)
-    return data
-
-
-data = init_data()
-
-
-def test_Identity():
-    wtseries = WTSeries(10, data.iloc[0:1000])
+def test_Identity(btc_ohlcv):
+    btc_ohlcv.set_index("date", inplace=True)
+    wtseries = WTSeries(10, btc_ohlcv.iloc[0:1000])
     preprocess = Identity(wtseries)
     prep_data = preprocess()
     for i in range(len(wtseries)):
         assert np.all(prep_data[i] == wtseries[i])
 
 
-def test_AutoNormalize():
-    wtseries = WTSeries(10, data.iloc[0:1000])
+def test_AutoNormalize(btc15m_ohlcv):
+    btc15m_ohlcv.set_index("date", inplace=True)
+    wtseries = WTSeries(10, btc15m_ohlcv.iloc[0:100])
     preprocess = AutoNormalize(wtseries)
     prep_data = preprocess()
-    for i in range(len(wtseries)):
-        y = ((wtseries[i] - wtseries[i].mean()) / wtseries[i].std()).round(6)
-        assert np.all(prep_data[i] == y)
+    y = [
+        ((w - w.mean()) / w.std()) for w in wtseries
+        if not ((w - w.mean()) / w.std()).isnull().values.any()]
+    assert len(y) == len(prep_data)
+    for i, _ in enumerate(y):
+        assert np.all(prep_data[i].round(3) == y[i].round(3))
         assert isinstance(prep_data[i], pd.DataFrame)
