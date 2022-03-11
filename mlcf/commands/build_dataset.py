@@ -29,6 +29,8 @@ def build_dataset(
     merge_pairs: bool,
     n_category: int,
     standardize: bool,
+    selected_columns: List[str],
+    unselected_columns: List[str],
     *args,
     **kwargs
 ):
@@ -51,7 +53,9 @@ def build_dataset(
         preprocess=preprocess,
         merge_pairs=merge_pairs,
         n_category=n_category,
-        standardize=standardize
+        standardize=standardize,
+        selected_columns=selected_columns,
+        unselected_columns=unselected_columns
     )
     del args
     del kwargs

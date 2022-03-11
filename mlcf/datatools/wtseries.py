@@ -21,6 +21,7 @@ class WTSemptyDataException(Exception):
 def window_data(dataframe: pd.DataFrame,
                 window_width: int,
                 window_step: int = 1,
+                selected_columns: List[str] = None,
                 balance_tag: str = None) -> List[pd.DataFrame]:
     """
     Window the data given a {window_width} and a {window_step}.
@@ -52,17 +53,12 @@ def window_data(dataframe: pd.DataFrame,
     windowed_data_shape: Tuple[int, int, int] = (n_windows, window_width, n_columns)
     windowed_data = np.reshape(windowed_data, newshape=windowed_data_shape)
 
-    if balance_tag:
-        columns: List[str] = list(data.columns)[:-3]
-    else:
-        columns = data.columns
-
     # Make list of dataframe
     list_windows: List[pd.DataFrame] = [
         pd.DataFrame(
-            window[:, :-3] if balance_tag else window,
+            window,
             index=data.index[idx*window_step: (idx*window_step)+window_width],
-            columns=columns)
+            columns=data.columns)[selected_columns if selected_columns else data.columns]
         for idx, window in enumerate(windowed_data)
         if not balance_tag or data.loc[data.index[(idx*window_step)+window_width-1], balance_tag]
     ]
@@ -74,9 +70,10 @@ class WTSeries(Iterable):
 
     def __init__(self,
                  window_width: int,
-                 raw_data: pd.DataFrame = None,
+                 raw_data: Optional[pd.DataFrame] = None,
+                 features: Optional[List[str]] = None,
                  window_step: int = 1,
-                 tag_name: str = None,
+                 tag_name: Optional[str] = None,
                  *args, **kwargs):
         """A Window Data is a list of DataFrame (windows) extract from a raw DataFrame.
         A slinding window has been apply to the raw DataFrame and every dataframe windows has been
@@ -97,7 +94,8 @@ class WTSeries(Iterable):
         self.index = 0
         self._window_width: int = window_width
         self.features_has_been_set = False
-        self.features: List[str] = [""]
+        if features:
+            self.set_features(features)
         self.window_step = window_step
 
         if raw_data is not None:
@@ -105,8 +103,10 @@ class WTSeries(Iterable):
                 raw_data,
                 self.width(),
                 window_step,
-                tag_name)
-            self._set_features(raw_data.columns)
+                selected_columns=features,
+                balance_tag=tag_name)
+            if not self.features_has_been_set:
+                self.set_features(raw_data.columns)
         else:
             self.data = []
         if not self.is_empty() and len(self.data[0].index) != self.width():
@@ -121,7 +121,7 @@ class WTSeries(Iterable):
         """
         return len(self.data)
 
-    def _set_features(self, features: List[str]) -> None:
+    def set_features(self, features: List[str]) -> None:
         """Set the features (the columns, the dimension) of the data.
 
         Args:
@@ -278,7 +278,7 @@ class WTSeries(Iterable):
             data_to_add: List[pd.DataFrame] = window_data(data, self.width(), w_step)
             self.data.extend(data_to_add)
             if not self.features_has_been_set:
-                self._set_features(data.columns)
+                self.set_features(data.columns)
         else:
             if not ignore_data_empty:
                 raise WTSemptyDataException("Data is empty")
@@ -306,7 +306,7 @@ class WTSeries(Iterable):
             data = window.copy()
             self.data.append(data)
             if not self.features_has_been_set:
-                self._set_features(data.columns)
+                self.set_features(data.columns)
         else:
             if not ignore_data_empty:
                 raise WTSemptyDataException("Data is empty")
@@ -336,7 +336,7 @@ class WTSeries(Iterable):
                 raise WTSwindowSizeException("The window size is supposed to be the same")
             self.data.extend(window_data())
             if not self.features_has_been_set:
-                self._set_features(window_data.get_features())
+                self.set_features(window_data.get_features())
         else:
             if not ignore_data_empty:
                 raise WTSemptyDataException("Data is empty")
