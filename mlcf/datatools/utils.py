@@ -311,7 +311,8 @@ def generate_windows_from_splited_interval_data(
     target_width: int,
     window_step: int,
     preprocess=Identity,
-    tag_name: str = None
+    features: List[str] = None,
+    tag_name: str = None,
 ) -> Tuple[WTSeries, WTSeries, WTSeries, WTSeries, WTSeries, WTSeries]:
 
     window_width: int = input_width + offset + target_width
@@ -330,7 +331,8 @@ def generate_windows_from_splited_interval_data(
                 raw_data=train,
                 window_width=window_width,
                 window_step=window_step,
-                tag_name=tag_name
+                tag_name=tag_name,
+                features=features
             )
         )
 
@@ -338,7 +340,8 @@ def generate_windows_from_splited_interval_data(
             WTSeries(
                 raw_data=val,
                 window_width=window_width,
-                window_step=window_step
+                window_step=window_step,
+                features=features
             )
         )
 
@@ -346,7 +349,8 @@ def generate_windows_from_splited_interval_data(
             WTSeries(
                 raw_data=test,
                 window_width=window_width,
-                window_step=window_step
+                window_step=window_step,
+                features=features
             )
         )
 
@@ -460,7 +464,7 @@ def build_forecast_ts_training_dataset(
             validation part targets,  test part inputs and test part targets
     """
     data = dataframe.copy()
-
+    features = list(data.columns)
     # Divide data in N interval
     list_interval_data_df: List[pd.DataFrame] = split_in_interval(data, n_interval=n_interval)
 
@@ -493,7 +497,8 @@ def build_forecast_ts_training_dataset(
         target_width=target_width,
         window_step=window_step,
         preprocess=preprocess,
-        tag_name=tag_name
+        tag_name=tag_name,
+        features=features
     )
     (train_input, train_target, val_input, val_target, test_input, test_target) = windows
 
