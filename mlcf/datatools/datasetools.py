@@ -92,11 +92,14 @@ def write_wtstdataset_from_raw_data(
                     standardize=standardize,
                     list_to_std=list_to_std)
 
+            # set selected columns and set features of the dataset
             if not selected_columns:
                 selected_columns = list(
-                    set(list(raw_data.columns)) - set(unselected_columns)
+                    set(list(raw_data.columns)) - set(unselected_columns) - set([index_column])
                 )
-            raw_data = raw_data[selected_columns]
+            if not dataset.features_has_been_set:
+                dataset.set_features(selected_columns)
+
             if tf not in rawdata_set:
                 rawdata_set[tf] = {pair: raw_data}
             else:

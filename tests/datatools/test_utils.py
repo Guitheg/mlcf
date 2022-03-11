@@ -170,7 +170,12 @@ def test_window_data_tag(btc_ohlcv):
         offset=0,
         sample_function=lambda x, k: x[:k]
     )
-    list_windows = window_data(tagged_data[0], window_width=10, window_step=1, balance_tag=tag)
+    list_windows = window_data(
+        tagged_data[0],
+        window_width=10,
+        window_step=1,
+        selected_columns=["close", "open"],
+        balance_tag=tag)
     data = tagged_data[0]
     assert np.all(data.loc[33:42, ["close", "open"]] == list_windows[0])
 

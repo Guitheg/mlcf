@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 import os
+from mlcf.datatools.indice import Indice
 from mlcf.datatools.preprocessing import Identity
 from mlcf.datatools.wtst_dataset import WTSTrainingDataset, \
     TS_DATA_ARCHDIR, is_dir_in_zipfile, iterdir_in_zipfile
@@ -75,6 +76,8 @@ def test_iterdir_in_zipfile(tmp_path):
 
 
 def test_write_wtstdataset_from_raw_data(mlcf_home, eth_ts_data, testdatadir):
+    import random
+    random.seed(0)
     write_wtstdataset_from_raw_data(
         project=mlcf_home,
         rawdata_dir=Path(testdatadir / "user_data/data/binance"),
@@ -89,10 +92,10 @@ def test_write_wtstdataset_from_raw_data(mlcf_home, eth_ts_data, testdatadir):
         index_column="date",
         prop_tv=0.2,
         prop_v=0.2,
-        indices=[],
+        indices=[Indice.MACD],
         preprocess=Identity,
         merge_pairs=True,
-        n_category=0,
+        n_category=5,
         standardize=True,
         unselected_columns=["volume"]
     )
@@ -108,8 +111,11 @@ def test_write_wtstdataset_from_raw_data(mlcf_home, eth_ts_data, testdatadir):
         mlcf_home.data_dir.joinpath("TestDataSet.wtst"),
         index_column="date"
     )
-    assert np.all(
-        pd.to_datetime(dataset[0][0].index) == pd.to_datetime(eth_ts_data("train")[0][0].index)
-    )
 
-    assert len(list(dataset[0][0].columns)) == 4
+    print(dataset)
+    assert np.all(
+        pd.to_datetime(dataset[0][0].index) == pd.to_datetime(eth_ts_data[189][0].index)
+    )
+    assert len(dataset) == 18
+
+    assert len(list(dataset[0][0].columns)) == 7
