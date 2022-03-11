@@ -170,6 +170,7 @@ usage: mlcf_home build-dataset [-h] --rawdata-dir RAWDATA_DIR --dataset-name
                                [--indices INDICE [INDICE ...]]
                                [--preprocess FUNCTION NAME] [--merge-pairs]
                                [--standardize] [--n-category N_CATEGORY]
+                               [--unselected-columns {open,low,high,close,volume} [{open,low,high,close,volume} ...]]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -218,6 +219,9 @@ optional arguments:
                         Give a number of category in order to balance number
                         of returns category in the training part of the
                         dataset.
+  --unselected-columns {open,low,high,close,volume} [{open,low,high,close,volume} ...]
+                        List of unselected features. (such as 'low' price for
+                        example)
 ```
 usage example:
 

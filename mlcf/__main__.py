@@ -170,6 +170,23 @@ def main():
         type=int,
         default=0
     )
+    command_build.add_argument(
+        "--selected-columns",
+        help="List of the selected features (Default is all)",
+        type=str,
+        choices=["open", "low", "high", "close", "volume"],
+        nargs="+",
+        default=[],
+    )
+    command_build.add_argument(
+        "--unselected-columns",
+        help="List of unselected features. (such as 'low' price for example)",
+        type=str,
+        choices=["open", "low", "high", "close", "volume"],
+        nargs="+",
+        default=[]
+    )
+
     # Train arguments
     command_train = subcommands.add_parser(
         Command.TRAIN.value, help="Neural Network training command"

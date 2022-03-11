@@ -64,7 +64,9 @@ def write_wtstdataset_from_raw_data(
     preprocess: WTSeriesPreProcess,
     merge_pairs: bool,
     n_category: int,
-    standardize: bool
+    standardize: bool,
+    selected_columns: List[str] = [],
+    unselected_columns: List[str] = []
 ):
 
     dataset = WTSTrainingDataset(
@@ -76,12 +78,6 @@ def write_wtstdataset_from_raw_data(
     )
 
     list_to_std: Set[str] = set()
-    if standardize:
-        list_to_std.add("open")
-        list_to_std.add("close")
-        list_to_std.add("low")
-        list_to_std.add("high")
-        list_to_std.add("volume")
     rawdata_set: Dict[str, Dict[str, pd.DataFrame]] = {}
     for pair in pairs:
         for tf in timeframes:
@@ -95,10 +91,25 @@ def write_wtstdataset_from_raw_data(
                     dropna=True,
                     standardize=standardize,
                     list_to_std=list_to_std)
+
+            if not selected_columns:
+                selected_columns = list(
+                    set(list(raw_data.columns)) - set(unselected_columns)
+                )
+            raw_data = raw_data[selected_columns]
             if tf not in rawdata_set:
                 rawdata_set[tf] = {pair: raw_data}
             else:
                 rawdata_set[tf][pair] = raw_data
+
+    if standardize:
+        list_to_std.add("open")
+        list_to_std.add("close")
+        list_to_std.add("low")
+        list_to_std.add("high")
+        list_to_std.add("volume")
+
+    list_to_std = list_to_std & set(selected_columns)
 
     if merge_pairs:
         for i, tf in enumerate(rawdata_set):
