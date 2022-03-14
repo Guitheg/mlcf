@@ -119,3 +119,6 @@ def test_write_wtstdataset_from_raw_data(mlcf_home, eth_ts_data, testdatadir):
     assert len(dataset) == 18
 
     assert len(list(dataset[0][0].columns)) == 7
+
+    dataset.set_selected_features(["close"])
+    assert len(list(dataset[0][0].columns)) == 1

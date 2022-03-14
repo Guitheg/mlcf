@@ -183,6 +183,9 @@ class WTSTrainingDataset(WTSTraining):
             )
             if self.index_column:
                 window_targets.set_index(self.index_column, inplace=True)
+        selected_features = self.selected_features if self.selected_features else self.features
+        if selected_features:
+            return window_inputs[selected_features], window_targets[selected_features]
         return window_inputs, window_targets
 
     def len(self, part: Union[str, Partition] = None) -> int:

@@ -65,8 +65,8 @@ class WTSTraining(object):
             index_column (str, optional): the name of the column we want to index the data. In
             general it's "Date". Defaults to None.
         """
-        self._init(features, partition, index_column)
 
+        self._init(features, partition, index_column)
         self.input_width: int = input_width
         self.target_width: int = target_width
 
@@ -94,6 +94,7 @@ class WTSTraining(object):
         }
 
     def _init(self, features, partition, index_column):
+        self.selected_features: Optional[List[str]] = None
         self.features_has_been_set = False
         self.index_column_has_been_set = False
         self.index_column: str = ""
@@ -104,6 +105,9 @@ class WTSTraining(object):
             self.set_features(features)
         if index_column is not None:
             self.set_index_column(index_column)
+
+    def set_selected_features(self, selected_features):
+        self.selected_features = selected_features
 
     def set_features(self, features: List[str]):
         self.features = list(features)
@@ -197,7 +201,8 @@ class WTSTraining(object):
         idx: int
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         inputs, targets = self()
-        return inputs[idx], targets[idx]
+        selected_features = self.selected_features if self.selected_features else self.features
+        return inputs[idx][selected_features], targets[idx][selected_features]
 
     def __call__(
         self,
