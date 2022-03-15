@@ -57,8 +57,8 @@ def get_window_from_zipfile(
     idx: int,
     part_str: str,
     field_str: str,
-    index_column: str,
-    features: List[str]
+    index_column: Optional[str] = None,
+    selected_features: Optional[List[str]] = None
 ) -> pd.DataFrame:
     with zipf.open(str(get_arch_path(
         packet=str((idx // NUMBER_OF_WINDOWS)*NUMBER_OF_WINDOWS),
@@ -67,6 +67,10 @@ def get_window_from_zipfile(
         field_str=field_str))
     ) as dataframe_file:
         window = pd.read_csv(dataframe_file)
+        if index_column:
+            window.set_index(index_column, inplace=True)
+        if selected_features:
+            window = window[selected_features]
     return window
 
 
@@ -109,7 +113,8 @@ class WTSTrainingDataset(WTSTraining):
                             int(str(file).split("_")[-2]) for file
                             in iterdir_in_zipfile(zipf, data_dir)
                         ]) + 1
-                        inputs, targets = self[0]
+                        inputs: pd.DataFrame = self[0][0]
+                        targets: pd.DataFrame = self[0][1]
                         features = inputs.columns
                         input_width = len(inputs)
                         target_width = len(targets)
@@ -131,58 +136,49 @@ class WTSTrainingDataset(WTSTraining):
     def set_start_idx(self, idx: int):
         self.start_idx = idx
 
-    def get(
-        self,
-        part: Union[str, Partition],
-        field: Union[str, Field]
-    ) -> WTSeries:
-        part_str = get_enum_value(part, Partition)
-        field_str = get_enum_value(field, Field)
-        wtseries = WTSeries(
-            window_width=self.input_width if field_str == "input" else self.target_width
-        )
-        with z.ZipFile(self.dataset_path, "r") as zipf:
-            for idx in range(self.start_idx, self.start_idx+NUMBER_OF_WINDOWS):
-                wtseries.add_one_window(
-                    get_window_from_zipfile(
-                        zipf=zipf,
-                        idx=idx,
-                        part_str=part_str,
-                        field_str=field_str,
-                        index_column=self.index_column,
-                        features=self.features
-                    )
-                )
-        self.set_start_idx(self.start_idx+NUMBER_OF_WINDOWS)
-        return wtseries
-
     def __getitem__(
         self,
-        idx: int
-    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        key: Union[int, slice]
+    ) -> Union[Tuple[pd.DataFrame, pd.DataFrame], Tuple[List[pd.DataFrame], List[pd.DataFrame]]]:
         window_inputs: pd.DataFrame
         window_targets: pd.DataFrame
-        with z.ZipFile(self.dataset_path, "r") as zipf:
-            window_inputs = get_window_from_zipfile(
-                zipf=zipf,
-                idx=idx,
-                part_str=self.part_str,
-                field_str=Field.INPUT.value,
-                index_column=self.index_column,
-                features=self.features
-            )
-            if self.index_column:
-                window_inputs.set_index(self.index_column, inplace=True)
-            window_targets = get_window_from_zipfile(
-                zipf=zipf,
-                idx=idx,
-                part_str=self.part_str,
-                field_str=Field.TARGET.value,
-                index_column=self.index_column,
-                features=self.features
-            )
-            if self.index_column:
-                window_targets.set_index(self.index_column, inplace=True)
+        if isinstance(key, int):
+            with z.ZipFile(self.dataset_path, "r") as zipf:
+                window_inputs = get_window_from_zipfile(
+                    zipf=zipf,
+                    idx=key,
+                    part_str=self.part_str,
+                    field_str=Field.INPUT.value,
+                    index_column=self.index_column,
+                    selected_features=self.selected_features
+                )
+                window_targets = get_window_from_zipfile(
+                    zipf=zipf,
+                    idx=key,
+                    part_str=self.part_str,
+                    field_str=Field.TARGET.value,
+                    index_column=self.index_column,
+                    selected_features=self.selected_features
+                )
+        elif isinstance(key, slice):
+            start, stop, step = key.indices(len(self))
+            with z.ZipFile(self.dataset_path, "r") as zipf:
+                window_inputs = [get_window_from_zipfile(
+                    zipf=zipf,
+                    idx=idx,
+                    part_str=self.part_str,
+                    field_str=Field.INPUT.value,
+                    index_column=self.index_column,
+                    selected_features=self.selected_features
+                ) for idx in range(start, stop, step)]
+                window_targets = [get_window_from_zipfile(
+                    zipf=zipf,
+                    idx=idx,
+                    part_str=self.part_str,
+                    field_str=Field.TARGET.value,
+                    index_column=self.index_column,
+                    selected_features=self.selected_features
+                ) for idx in range(start, stop, step)]
         return window_inputs, window_targets
 
     def len(self, part: Union[str, Partition] = None) -> int:
