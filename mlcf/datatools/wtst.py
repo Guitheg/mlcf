@@ -187,21 +187,18 @@ class WTSTraining(object):
         if self.project:
             self.project.log.debug(f"[WTST]- Add WTSeries data: {self}")
 
-    def _get(
-        self,
-        idx: int
-    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        inputs, targets = self.ts_data[self.part_str][INPUT], self.ts_data[self.part_str][TARGET]
-        return inputs[idx], targets[idx]
-
     def __getitem__(
         self,
-        idx: int
-    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        inputs, targets = self._get(idx)
+        key: Union[int, slice]
+    ) -> Union[Tuple[pd.DataFrame, pd.DataFrame], Tuple[List[pd.DataFrame], List[pd.DataFrame]]]:
+        inputs = self.ts_data[self.part_str][INPUT][key]
+        targets = self.ts_data[self.part_str][TARGET][key]
         selected_features = self.selected_features if self.selected_features else self.features
         if selected_features:
-            return inputs[selected_features], targets[selected_features]
+            if isinstance(key, slice):
+                return (
+                    [elem[selected_features] for elem in inputs],
+                    [elem[selected_features] for elem in targets])
         return inputs, targets
 
     def __call__(
