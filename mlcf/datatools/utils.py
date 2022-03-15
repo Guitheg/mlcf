@@ -5,7 +5,7 @@ from sklearn.preprocessing import StandardScaler
 # MLCF modules
 from mlcf.datatools.wtseries import WTSeries
 from mlcf.datatools.preprocessing import Identity
-from mlcf.datatools.indice import add_return
+from mlcf.datatools.indice import LIST_STD_ONLY_ST, add_return
 import random
 
 RETURN_COLNAME = "return_close"
@@ -394,20 +394,36 @@ def standardize(
     list_to_std: List[str]
 ):
     if list_to_std:
-        sc = StandardScaler()
-        for train, val, test in zip(*splited_interval_data):
-            if not train.empty:
-                sc.partial_fit(train[list_to_std])
+        list_std_mean_st = list(set(list_to_std) - LIST_STD_ONLY_ST)
+        list_std_st = list(set(list_to_std) & LIST_STD_ONLY_ST)
+
+        sc_mean_st = StandardScaler()
+        sc_st = StandardScaler(with_mean=False)
 
         for train, val, test in zip(*splited_interval_data):
             if not train.empty:
-                train[list_to_std] = sc.transform(train[list_to_std])
+                if list_std_mean_st:
+                    sc_mean_st.partial_fit(train[list_std_mean_st])
+                if list_std_st:
+                    sc_st.partial_fit(train[list_std_st])
 
+        for train, val, test in zip(*splited_interval_data):
+            if not train.empty:
+                if list_std_mean_st:
+                    train[list_std_mean_st] = sc_mean_st.transform(train[list_std_mean_st])
+                if list_std_st:
+                    train[list_std_mean_st] = sc_st.transform(train[list_std_st])
             if not val.empty:
-                val[list_to_std] = sc.transform(val[list_to_std])
+                if list_std_mean_st:
+                    val[list_std_mean_st] = sc_mean_st.transform(val[list_std_mean_st])
+                if list_std_st:
+                    val[list_std_mean_st] = sc_st.transform(val[list_std_st])
 
             if not test.empty:
-                test[list_to_std] = sc.transform(test[list_to_std])
+                if list_std_mean_st:
+                    test[list_std_mean_st] = sc_mean_st.transform(test[list_std_mean_st])
+                if list_std_st:
+                    test[list_std_mean_st] = sc_st.transform(test[list_std_st])
 
     return splited_interval_data
 

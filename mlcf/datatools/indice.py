@@ -12,6 +12,23 @@ import pandas_ta as _  # noqa
 import talib.abstract as ta
 
 
+LIST_STD_ONLY_ST = set([
+    "dopen1",
+    "dopen3",
+    "dopen5",
+    "dclose1",
+    "dclose3",
+    "dclose5",
+    "dlow1",
+    "dlow3",
+    "dlow5",
+    "dhigh1",
+    "dhigh3",
+    "dhigh5",
+    "return"
+])
+
+
 def min_max_scale(series, minmax: Tuple[float, float], feature_range: Tuple[float, float] = (0, 1)):
     mmsc = MinMaxScaler(feature_range=feature_range)
     mmsc.fit([[minmax[0]], [minmax[1]]])
