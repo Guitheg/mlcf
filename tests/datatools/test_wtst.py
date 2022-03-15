@@ -2,10 +2,12 @@ import pytest
 from mlcf.datatools.utils import build_forecast_ts_training_dataset
 from mlcf.datatools.wtseries import WTSwindowSizeException
 from mlcf.datatools.wtst import (
+    Field,
     Partition,
     WTSTColumnIndexException,
     WTSTFeaturesException,
     WTSTraining)
+import numpy as np
 
 
 def test_WTSeriesTraining(btc_ohlcv):
@@ -38,8 +40,8 @@ def test_WTSeriesTraining_copy(btc_ohlcv):
 def test_WTSeriesTraining_call(btc_ohlcv):
     ts_data = WTSTraining(9, index_column="date")
     ts_data.add_time_serie(btc_ohlcv.iloc[0:1000], prop_tv=0.2)
-
-    assert ts_data(Partition.TRAIN) == ts_data("train")
+    ts_data("test")
+    assert np.all(ts_data.ts_data[Partition.TEST.value][Field.INPUT.value][0] == ts_data[0][0])
 
 
 def test_WTSeriesTraining_add_wtsdata(btc_ohlcv):

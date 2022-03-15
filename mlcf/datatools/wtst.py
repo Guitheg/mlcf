@@ -222,7 +222,10 @@ class WTSTraining(object):
         return self.len()
 
     def len(self, part: Union[str, Partition] = None) -> int:
-        inputs, _ = self(part)
+        if part:
+            inputs = self.ts_data[get_enum_value(part, Partition)][INPUT]
+        else:
+            inputs = self.ts_data[self.part_str][INPUT]
         return len(inputs)
 
     def width(self) -> Tuple[int, int]:
@@ -328,6 +331,7 @@ class WTSTraining(object):
             partition (Partition): the name of the part: 'train', 'validation' or 'test'
             do_shuffle (bool, optional): perform a shuffle if True. Defaults to False.
         """
-        inputs, targets = self(partition)
+        inputs = self.ts_data[get_enum_value(partition, Partition)][INPUT]
+        targets = self.ts_data[get_enum_value(partition, Partition)][TARGET]
         inputs.add_window_data(input_ts_data, ignore_data_empty=True)
         targets.add_window_data(target_ts_data, ignore_data_empty=True)
