@@ -203,8 +203,8 @@ class WTSTraining(object):
 
     def __call__(
         self,
-        part: Union[Partition, str] = None
-    ) -> Tuple[WTSeries, WTSeries]:
+        part: Union[Partition, str]
+    ):
         """change the partition
 
         Args:

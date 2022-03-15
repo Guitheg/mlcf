@@ -57,8 +57,8 @@ def get_window_from_zipfile(
     idx: int,
     part_str: str,
     field_str: str,
-    index_column: str,
-    selected_features: List[str]
+    index_column: Optional[str] = None,
+    selected_features: Optional[List[str]] = None
 ) -> pd.DataFrame:
     with zipf.open(str(get_arch_path(
         packet=str((idx // NUMBER_OF_WINDOWS)*NUMBER_OF_WINDOWS),
@@ -113,7 +113,8 @@ class WTSTrainingDataset(WTSTraining):
                             int(str(file).split("_")[-2]) for file
                             in iterdir_in_zipfile(zipf, data_dir)
                         ]) + 1
-                        inputs, targets = self[0]
+                        inputs: pd.DataFrame = self[0][0]
+                        targets: pd.DataFrame = self[0][1]
                         features = inputs.columns
                         input_width = len(inputs)
                         target_width = len(targets)
