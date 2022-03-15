@@ -65,8 +65,8 @@ class WTSTraining(object):
             index_column (str, optional): the name of the column we want to index the data. In
             general it's "Date". Defaults to None.
         """
-        self._init(features, partition, index_column)
 
+        self._init(features, partition, index_column)
         self.input_width: int = input_width
         self.target_width: int = target_width
 
@@ -94,6 +94,7 @@ class WTSTraining(object):
         }
 
     def _init(self, features, partition, index_column):
+        self.selected_features: Optional[List[str]] = None
         self.features_has_been_set = False
         self.index_column_has_been_set = False
         self.index_column: str = ""
@@ -104,6 +105,9 @@ class WTSTraining(object):
             self.set_features(features)
         if index_column is not None:
             self.set_index_column(index_column)
+
+    def set_selected_features(self, selected_features):
+        self.selected_features = selected_features
 
     def set_features(self, features: List[str]):
         self.features = list(features)
@@ -183,62 +187,42 @@ class WTSTraining(object):
         if self.project:
             self.project.log.debug(f"[WTST]- Add WTSeries data: {self}")
 
-    def get(
-        self,
-        part: Union[str, Partition],
-        field: Union[str, Field]
-    ) -> WTSeries:
-        part_str = get_enum_value(part, Partition)
-        field_str = get_enum_value(field, Field)
-        return self.ts_data[part_str][field_str]
-
     def __getitem__(
         self,
-        idx: int
-    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        inputs, targets = self()
-        return inputs[idx], targets[idx]
+        key: Union[int, slice]
+    ) -> Union[Tuple[pd.DataFrame, pd.DataFrame], Tuple[List[pd.DataFrame], List[pd.DataFrame]]]:
+        inputs = self.ts_data[self.part_str][INPUT][key]
+        targets = self.ts_data[self.part_str][TARGET][key]
+        selected_features = self.selected_features if self.selected_features else self.features
+        if selected_features:
+            if isinstance(key, slice):
+                return (
+                    [elem[selected_features] for elem in inputs],
+                    [elem[selected_features] for elem in targets])
+        return inputs, targets
 
     def __call__(
         self,
-        part: Union[Partition, str] = None
-    ) -> Tuple[WTSeries, WTSeries]:
-        """return the time series data (a dict format) if None arguments has been filled.
-        If part is filled, return the partition (train, validation, or test) (with a dict format).
-        If field is filled, return the field (input or target) window data
+        part: Union[Partition, str]
+    ):
+        """change the partition
 
         Args:
-            part (Partition, optional): The partition ("train", "validation" or "test") we want to
-            return.
+            part (Partition, optional): The partition ("train", "validation" or "test") we want
+            to set
             Defaults to None.
-            field (Field, optional): The field ("input", or "target") we want to return.
-            Defaults to None.
-
-        Raises:
-            Exception: You should fill part if field is filled
-
-        Returns:
-            Union[Dict, Dict[WTSeries], WTSeries]:
-            A dict of Dict of window data (all the time series data),
-            or a dict of window data (a part 'train', 'validation' or 'test'),
-            or a window data (a field 'input', 'target')
         """
-        if part is not None:
-            part_str = get_enum_value(part, Partition)
-            return (
-                self.get(part_str, Field.INPUT.value),
-                self.get(part_str, Field.TARGET.value)
-            )
-        return (
-            self.get(self.part_str, Field.INPUT.value),
-            self.get(self.part_str, Field.TARGET.value)
-        )
+
+        self.set_partition(part)
 
     def __len__(self) -> int:
         return self.len()
 
     def len(self, part: Union[str, Partition] = None) -> int:
-        inputs, _ = self(part)
+        if part:
+            inputs = self.ts_data[get_enum_value(part, Partition)][INPUT]
+        else:
+            inputs = self.ts_data[self.part_str][INPUT]
         return len(inputs)
 
     def width(self) -> Tuple[int, int]:
@@ -344,6 +328,7 @@ class WTSTraining(object):
             partition (Partition): the name of the part: 'train', 'validation' or 'test'
             do_shuffle (bool, optional): perform a shuffle if True. Defaults to False.
         """
-        inputs, targets = self(partition)
+        inputs = self.ts_data[get_enum_value(partition, Partition)][INPUT]
+        targets = self.ts_data[get_enum_value(partition, Partition)][TARGET]
         inputs.add_window_data(input_ts_data, ignore_data_empty=True)
         targets.add_window_data(target_ts_data, ignore_data_empty=True)

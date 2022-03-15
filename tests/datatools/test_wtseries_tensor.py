@@ -1,4 +1,4 @@
-from mlcf.datatools.wtst import Partition, WTSTraining
+from mlcf.datatools.wtst import Partition, WTSTraining, Field
 from mlcf.datatools.wtseries_tensor import WTSeriesTensor
 import numpy as np
 
@@ -13,9 +13,11 @@ def test_WTSeriesTensor(btc_ohlcv):
     assert ts_data.len(Partition.TEST) == 411
     for i in range(len(dataset)):
         inp, tar = dataset[i]
-        inputs, targets = ts_data(Partition.TRAIN)
+        inputs = ts_data.ts_data[Partition.TRAIN.value][Field.INPUT.value]
+        targets = ts_data.ts_data[Partition.TRAIN.value][Field.TARGET.value]
         assert np.all(np.array(inp) == np.array(inputs[i].astype(np.float32)))
         assert np.all(np.array(tar) == np.array(targets[i].astype(np.float32)))
-    inputs, targets = ts_data(Partition.TRAIN)
+    inputs = ts_data.ts_data[Partition.TRAIN.value][Field.INPUT.value]
+    targets = ts_data.ts_data[Partition.TRAIN.value][Field.TARGET.value]
     assert dataset.x_size() == inputs.size()[1:3]
     assert dataset.y_size() == targets.size()[1:3]

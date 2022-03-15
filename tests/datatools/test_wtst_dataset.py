@@ -119,3 +119,43 @@ def test_write_wtstdataset_from_raw_data(mlcf_home, eth_ts_data, testdatadir):
     assert len(dataset) == 18
 
     assert len(list(dataset[0][0].columns)) == 7
+
+    dataset.set_selected_features(["close"])
+    assert len(list(dataset[0][0].columns)) == 1
+
+
+def test_WTSeriesTrainingDataset_get(mlcf_home, eth_ts_data, testdatadir):
+    import random
+    random.seed(0)
+    write_wtstdataset_from_raw_data(
+        project=mlcf_home,
+        rawdata_dir=Path(testdatadir / "user_data/data/binance"),
+        dataset_name="TestDataSet",
+        pairs=["ETH/BUSD"],
+        timeframes=["1h"],
+        input_width=20,
+        target_width=1,
+        offset=0,
+        window_step=1,
+        n_interval=1,
+        index_column="date",
+        prop_tv=0.2,
+        prop_v=0.2,
+        indices=[Indice.MACD],
+        preprocess=Identity,
+        merge_pairs=True,
+        n_category=5,
+        standardize=True,
+        unselected_columns=["volume"]
+    )
+    dataset = WTSTrainingDataset(
+        mlcf_home.data_dir.joinpath("TestDataSet.wtst"),
+        index_column="date"
+    )
+    inp, targ = dataset[0:5]
+    assert len(inp) == 5 and isinstance(inp[0], pd.DataFrame)
+    assert len(targ) == 5 and isinstance(targ[0], pd.DataFrame)
+    dataset.set_selected_features(["close"])
+    inp, targ = dataset[0:5]
+    assert list(inp[0].columns) == ["close"]
+    assert list(targ[0].columns) == ["close"]
