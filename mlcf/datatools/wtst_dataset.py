@@ -131,32 +131,7 @@ class WTSTrainingDataset(WTSTraining):
     def set_start_idx(self, idx: int):
         self.start_idx = idx
 
-    def get(
-        self,
-        part: Union[str, Partition],
-        field: Union[str, Field]
-    ) -> WTSeries:
-        part_str = get_enum_value(part, Partition)
-        field_str = get_enum_value(field, Field)
-        wtseries = WTSeries(
-            window_width=self.input_width if field_str == "input" else self.target_width
-        )
-        with z.ZipFile(self.dataset_path, "r") as zipf:
-            for idx in range(self.start_idx, self.start_idx+NUMBER_OF_WINDOWS):
-                wtseries.add_one_window(
-                    get_window_from_zipfile(
-                        zipf=zipf,
-                        idx=idx,
-                        part_str=part_str,
-                        field_str=field_str,
-                        index_column=self.index_column,
-                        features=self.features
-                    )
-                )
-        self.set_start_idx(self.start_idx+NUMBER_OF_WINDOWS)
-        return wtseries
-
-    def __getitem__(
+    def _get(
         self,
         idx: int
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -183,9 +158,6 @@ class WTSTrainingDataset(WTSTraining):
             )
             if self.index_column:
                 window_targets.set_index(self.index_column, inplace=True)
-        selected_features = self.selected_features if self.selected_features else self.features
-        if selected_features:
-            return window_inputs[selected_features], window_targets[selected_features]
         return window_inputs, window_targets
 
     def len(self, part: Union[str, Partition] = None) -> int:

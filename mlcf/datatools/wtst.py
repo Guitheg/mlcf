@@ -187,57 +187,36 @@ class WTSTraining(object):
         if self.project:
             self.project.log.debug(f"[WTST]- Add WTSeries data: {self}")
 
-    def get(
+    def _get(
         self,
-        part: Union[str, Partition],
-        field: Union[str, Field]
-    ) -> WTSeries:
-        part_str = get_enum_value(part, Partition)
-        field_str = get_enum_value(field, Field)
-        return self.ts_data[part_str][field_str]
+        idx: int
+    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        inputs, targets = self.ts_data[self.part_str][INPUT], self.ts_data[self.part_str][TARGET]
+        return inputs[idx], targets[idx]
 
     def __getitem__(
         self,
         idx: int
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        inputs, targets = self()
+        inputs, targets = self._get(idx)
         selected_features = self.selected_features if self.selected_features else self.features
-        return inputs[idx][selected_features], targets[idx][selected_features]
+        if selected_features:
+            return inputs[selected_features], targets[selected_features]
+        return inputs, targets
 
     def __call__(
         self,
         part: Union[Partition, str] = None
     ) -> Tuple[WTSeries, WTSeries]:
-        """return the time series data (a dict format) if None arguments has been filled.
-        If part is filled, return the partition (train, validation, or test) (with a dict format).
-        If field is filled, return the field (input or target) window data
+        """change the partition
 
         Args:
-            part (Partition, optional): The partition ("train", "validation" or "test") we want to
-            return.
+            part (Partition, optional): The partition ("train", "validation" or "test") we want
+            to set
             Defaults to None.
-            field (Field, optional): The field ("input", or "target") we want to return.
-            Defaults to None.
-
-        Raises:
-            Exception: You should fill part if field is filled
-
-        Returns:
-            Union[Dict, Dict[WTSeries], WTSeries]:
-            A dict of Dict of window data (all the time series data),
-            or a dict of window data (a part 'train', 'validation' or 'test'),
-            or a window data (a field 'input', 'target')
         """
-        if part is not None:
-            part_str = get_enum_value(part, Partition)
-            return (
-                self.get(part_str, Field.INPUT.value),
-                self.get(part_str, Field.TARGET.value)
-            )
-        return (
-            self.get(self.part_str, Field.INPUT.value),
-            self.get(self.part_str, Field.TARGET.value)
-        )
+
+        self.set_partition(part)
 
     def __len__(self) -> int:
         return self.len()
