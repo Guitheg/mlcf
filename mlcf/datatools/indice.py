@@ -12,6 +12,26 @@ import pandas_ta as _  # noqa
 import talib.abstract as ta
 
 
+LIST_STD_ONLY_ST = set([
+    "dopen1",
+    "dopen3",
+    "dopen5",
+    "dclose1",
+    "dclose3",
+    "dclose5",
+    "dlow1",
+    "dlow3",
+    "dlow5",
+    "dhigh1",
+    "dhigh3",
+    "dhigh5",
+    "return",
+    "dplus_dm",
+    "dsma3",
+    "dSMA1"
+])
+
+
 def min_max_scale(series, minmax: Tuple[float, float], feature_range: Tuple[float, float] = (0, 1)):
     mmsc = MinMaxScaler(feature_range=feature_range)
     mmsc.fit([[minmax[0]], [minmax[1]]])
@@ -204,9 +224,11 @@ def add_p_dim(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[st
     if standardize:
         plus_di = min_max_scale(plus_di, (0, 100)).round(8)
         list_to_std.add("plus_dm")
+        list_to_std.add("dplus_dm")
 
     dataframe["plus_dm"] = plus_dm
     dataframe["plus_di"] = plus_di
+    dataframe["dplus_dm"] = dataframe["plus_dm"].pct_change(1)
     return dataframe
 
 
@@ -474,6 +496,7 @@ def add_ema(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[str]
 def add_sma(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[str] = set()):
     dataframe = data.copy()
     dataframe["sma3"] = ta.SMA(dataframe, timeperiod=3)
+    dataframe["dsma3"] = dataframe["sma3"].pct_change(1)
     dataframe["sma5"] = ta.SMA(dataframe, timeperiod=5)
     dataframe["sma10"] = ta.SMA(dataframe, timeperiod=10)
     dataframe["sma21"] = ta.SMA(dataframe, timeperiod=21)
@@ -482,6 +505,7 @@ def add_sma(data: pd.DataFrame, standardize: bool = False, list_to_std: Set[str]
 
     if standardize:
         list_to_std.add("sma3")
+        list_to_std.add("dsma3")
         list_to_std.add("sma5")
         list_to_std.add("sma10")
         list_to_std.add("sma21")
@@ -639,9 +663,11 @@ def add_SMA1(
     list_to_std: Set[str] = set()
 ):
     dataframe = data.copy()
-    dataframe['SMA1'] = (dataframe.high + dataframe.low) / 2
+    dataframe["SMA1"] = (dataframe.high + dataframe.low) / 2
+    dataframe["dSMA1"] = dataframe["SMA1"].pct_change(1)
     if standardize:
         list_to_std.add("SMA1")
+        list_to_std.add("dSMA1")
     return dataframe
 
 
