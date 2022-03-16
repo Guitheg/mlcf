@@ -124,7 +124,7 @@ def test_write_wtstdataset_from_raw_data(mlcf_home, eth_ts_data, testdatadir):
     assert len(list(dataset[0][0].columns)) == 1
 
 
-def test_WTSeriesTrainingDataset_get(mlcf_home, eth_ts_data, testdatadir):
+def test_WTSeriesTrainingDataset_get(mlcf_home, testdatadir):  # and std only st
     import random
     random.seed(0)
     write_wtstdataset_from_raw_data(
@@ -141,7 +141,7 @@ def test_WTSeriesTrainingDataset_get(mlcf_home, eth_ts_data, testdatadir):
         index_column="date",
         prop_tv=0.2,
         prop_v=0.2,
-        indices=[Indice.MACD],
+        indices=[Indice.MACD, Indice.PERCENTGROWTH],
         preprocess=Identity,
         merge_pairs=True,
         n_category=5,
