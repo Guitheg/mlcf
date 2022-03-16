@@ -13,6 +13,8 @@ import talib.abstract as ta
 
 
 LIST_STD_ONLY_ST = set([
+    "candle_dir",
+    "candle_height",
     "dopen1",
     "dopen3",
     "dopen5",
