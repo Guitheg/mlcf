@@ -412,18 +412,18 @@ def standardize(
                 if list_std_mean_st:
                     train[list_std_mean_st] = sc_mean_st.transform(train[list_std_mean_st])
                 if list_std_st:
-                    train[list_std_mean_st] = sc_st.transform(train[list_std_st])
+                    train[list_std_st] = sc_st.transform(train[list_std_st])
             if not val.empty:
                 if list_std_mean_st:
                     val[list_std_mean_st] = sc_mean_st.transform(val[list_std_mean_st])
                 if list_std_st:
-                    val[list_std_mean_st] = sc_st.transform(val[list_std_st])
+                    val[list_std_st] = sc_st.transform(val[list_std_st])
 
             if not test.empty:
                 if list_std_mean_st:
                     test[list_std_mean_st] = sc_mean_st.transform(test[list_std_mean_st])
                 if list_std_st:
-                    test[list_std_mean_st] = sc_st.transform(test[list_std_st])
+                    test[list_std_st] = sc_st.transform(test[list_std_st])
 
     return splited_interval_data
 
