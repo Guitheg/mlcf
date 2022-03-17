@@ -3,12 +3,11 @@ from typing import Callable
 import torch
 from torch.utils.data.dataloader import DataLoader
 from torch import Tensor, tensor
-
 # MLCF modules
 from mlcf.datatools.wtst import Partition, WTSTraining
 
 
-def select_features(x: Tensor, list_index_features: np.array):
+def select_features(x: Tensor, list_index_features):
     return torch.index_select(x, 1, tensor(list_index_features))
 
 
