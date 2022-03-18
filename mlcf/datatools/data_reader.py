@@ -11,6 +11,7 @@ __all__ = [
     "OHLCVUncompatibleFileException",
     "UncompatibleFileException",
     "NoFileException",
+    "NoDirectoryException",
     "read_ohlcv_json_from_file",
     "read_ohlcv_json_from_dir",
     "read_json_file"]
@@ -103,7 +104,7 @@ def read_json_file(
         index_name (Optional[str], optional): The column name which will be set as the new index.
         Defaults to None.
         col_names (Optional[List[str]], optional): The exhaustive list of column name of the data.
-        Defaults to None.
+        If there are an index column, it should be there too. Defaults to None.
         columns_to_time (Optional[List[str]], optional): A dict of column to convert to time
         such as : Dict(key: column name, value: time unit). example : {'date': 'ms'}.
         Defaults to None.
