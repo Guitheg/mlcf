@@ -157,7 +157,7 @@ def split_pandas(
     data: pd.DataFrame,
     prop_snd_elem: float = 0.5
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    """Split (from indexes) a dataframe in two dataframes which keep the same columns.
+    """Split a dataframe in two dataframes which keep the same columns.
     The {prop_snd_elem} is the proportion of row for the second element.
 
     Args:
@@ -195,6 +195,25 @@ def split_train_val_test(
     prop_val_test: float,
     prop_val: float = 0.0
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """Split the dataframe in train, val, test part.
+    The {prop_val_test} value give the proportion of rows of the val and test union part.
+    So the proportion of raw of the train part is : 1-{prop_val_test}.
+    The {prop_val} value give the proportion of val part amoung the test part. So the proportion
+    of rows of the val part is : {prop_val_test}*{prop_val}. And the proportion of rows of the
+    test part is : {prop_val_test}*(1-{prop_val}).
+
+    Args:
+        data (pd.DataFrame): The dataframe we want to split in 3 part : (train, val, test)
+        prop_val_test (float): The val and test union part proportion. The proportion of train is
+        equal to : 1-{prop_val_test}.
+        prop_val (float, optional): The val part proportion amoung the test part. The proportion of
+        val part is : {prop_val_test}*{prop_val}. The proportion of test part is :
+        {prop_val_test}*(1-{prop_val}). Defaults to 0.0.
+
+    Returns:
+        Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: Return a tuple of respectively
+        the train dataframe, the val dataframe and the test dataframe.
+    """
     dataframe = data.copy()
     train_data, test_val_data = split_pandas(dataframe, prop_snd_elem=prop_val_test)
     val_data, test_data = split_pandas(test_val_data, prop_snd_elem=1-prop_val)
