@@ -175,4 +175,3 @@ def test_split_train_val_test(
     assert train.index.name == val.index.name
     assert train.index.name == test.index.name
     assert data[data_selection].index.name == train.index.name
-

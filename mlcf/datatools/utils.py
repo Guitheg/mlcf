@@ -195,19 +195,19 @@ def split_train_val_test(
     prop_val_test: float,
     prop_val: float = 0.0
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """Split the dataframe in train, val, test part.
-    The {prop_val_test} value give the proportion of rows of the val and test union part.
-    So the proportion of raw of the train part is : 1-{prop_val_test}.
-    The {prop_val} value give the proportion of val part amoung the test part. So the proportion
-    of rows of the val part is : {prop_val_test}*{prop_val}. And the proportion of rows of the
-    test part is : {prop_val_test}*(1-{prop_val}).
+    """It splits the dataframe in train, val, and test set.
+    The {prop_val_test} value defines the proportion of val and test rows.
+    So the proportion of train rows: 1-{prop_val_test}.
+    The {prop_val} value defines the proportion of val rows amoung the test set.
+    So the proportion of val rows: {prop_val_test}*{prop_val}.
+    Finally, the proportion of test rows : {prop_val_test}*(1-{prop_val}).
 
     Args:
-        data (pd.DataFrame): The dataframe we want to split in 3 part : (train, val, test)
-        prop_val_test (float): The val and test union part proportion. The proportion of train is
-        equal to : 1-{prop_val_test}.
-        prop_val (float, optional): The val part proportion amoung the test part. The proportion of
-        val part is : {prop_val_test}*{prop_val}. The proportion of test part is :
+        data (pd.DataFrame): The dataframe we want to split in 3 set: (train, val, test)
+        prop_val_test (float): The val and test rows proportion. The proportion of train is
+        equal to: 1-{prop_val_test}.
+        prop_val (float, optional): The val set proportion amoung the test set. The proportion of
+        val rows is : {prop_val_test}*{prop_val}. The proportion of test part is :
         {prop_val_test}*(1-{prop_val}). Defaults to 0.0.
 
     Returns:
