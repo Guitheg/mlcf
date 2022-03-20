@@ -1,6 +1,5 @@
-"""Data reader module.
-This module allows to read data from file to convert it into pandas.DataFrame
-"""
+"""Data Reader Module
+This module reads data from a file and converts it into pandas.DataFrame."""
 
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -35,18 +34,19 @@ class NoDirectoryException(Exception):
 
 def read_ohlcv_json_from_file(path: Path) -> pd.DataFrame:
     """
-    Read a OHLCV Json file give by {path} and return a data frame.
-    The OHLCV Json File must respect the format : {column -> {index -> value}}
+    This function reads a OHLCV JSON file given by a {path} and returns a pandas.DataFrame.
+    The OHLCV JSON file must respect the following format: {column -> {index -> value}}.
 
     Args:
-        path (Path): The file path to the OHLCV JSON file.
+        path (Path): The file path to the OHLCV JSON file
 
     Raises:
-        OHLCVUncompatibleFileException: Raise this exception if the given file hasn't a OHLCV data.
-        NoFileException: If the path lead to any file
+        OHLCVUncompatibleFileException: Raises this exception if the given file doesn't have OHLCV
+        data.
+        NoFileException: If the file is not found in the given path
 
     Returns:
-        pd.DataFrame: return the data frame built from the OHLCV data's json file.
+        pd.DataFrame: A pandas.DataFrame built from the JSON file of OHLCV data
     """
 
     try:
@@ -57,7 +57,7 @@ def read_ohlcv_json_from_file(path: Path) -> pd.DataFrame:
             columns_to_time={'date': 'ms'}
         )
     except UncompatibleFileException:
-        raise OHLCVUncompatibleFileException("This file hasn't OHLCV data")
+        raise OHLCVUncompatibleFileException("This file doesn't have OHLCV data")
     return data
 
 
@@ -65,25 +65,28 @@ def read_ohlcv_json_from_dir(
     directory: Path,
     pair: str,
     timeframe: str,
-    filename_format: str = "{pair}-{tf}.json",
+    filename_format: str = "{pair}-{timeframe}.json",
 ) -> pd.DataFrame:
-    """Given a directory, a pair and a timeframe returns the data of the finded OHLCV JSON file
+    """
+    Given a {directory}, this function returns the data in the OHLCV JSON file corresponding to the
+    {pair} and the {timeframe}.
 
     Args:
-        directory (Path): Directory where the pairs are stored.
-        pair (str): The wanted pair.
-        timeframe (str): The wanted timeframe
-        filename_format (str, optional): The filename string fromat. Defaults to "{pair}-{tf}.json".
+        directory (Path): Directory where OHLCV JSON files are stored
+        pair (str): The desired pair
+        timeframe (str): The desired timeframe
+        filename_format (str, optional): Filename in String format. "{pair}-{timeframe}.json"
+        by default
 
     Raises:
-        NoDirectoryException: If the path lead to any directory
+        NoDirectoryException: If the directory is not found in the given path
 
     Returns:
-        pd.DataFrame: return the data frame built from the OHLCV data's json file.
+        pd.DataFrame: A pandas.DataFrame built from the JSON file of OHLCV data
     """
     if not directory.is_dir():
-        raise NoDirectoryException(f"The path {directory} lead to any directory")
-    file_path = directory.joinpath(filename_format.format(pair=pair, tf=timeframe))
+        raise NoDirectoryException(f"The {directory} of given path isn't found")
+    file_path = directory.joinpath(filename_format.format(pair=pair, timeframe=timeframe))
     return read_ohlcv_json_from_file(file_path)
 
 
@@ -93,38 +96,41 @@ def read_json_file(
     col_names: Optional[List[str]] = None,
     columns_to_time: Optional[Dict[str, str]] = None
 ) -> pd.DataFrame:
-    """Read a JSON file to return a DataFrame. We can give an {index_name} to set the index on
-    the {index_name} column. We can provide the column_names if the header is not provided in the
-    JSON file. The size of columns_names list must be equal to the number of columns of the data in
-    the file.
-    The JSON file must respect the format: {column -> {index -> value}}
+    """
+    This function reads a JSON file and returns a pandas.DataFrame. {index_name} specifies the
+    desired column to use as an index. {col_names} determines the header if it is not provided in
+    JSON. The size of {col_names} must be equal to the number of columns of data in the file.
+    Moreover, the function is order sensitive; thus, the columns in {col_names} must be provided in
+    the correct order. The JSON file must have the following format: {column -> {index -> value}}.
 
     Args:
-        file_path (Path): The file path to the JSON file.
+        file_path (Path): The file path to the JSON file
         index_name (Optional[str], optional): The column name which will be set as the new index.
         Defaults to None.
-        col_names (Optional[List[str]], optional): The exhaustive list of column name of the data.
-        If there are an index column, it should be there too. Defaults to None.
-        columns_to_time (Optional[List[str]], optional): A dict of column to convert to time
+        col_names (Optional[List[str]], optional): The exhaustive list of column names of data.
+        {col_names} must contain the column that is chosen as the new index. Defaults to None.
+        columns_to_time (Optional[List[str]], optional): A dictionary that contains a pair of column
+        name and time unit. It is used to determine which time unit is used to interpret the
+        timestamp values of a column.
         such as : Dict(key: column name, value: time unit). example : {'date': 'ms'}.
         Defaults to None.
 
     Raises:
-        NoFileException: If the path lead to any file
-        UncompatibleFileException: If len(col_names) != data.shape[1]
+        NoFileException: If the file is not found in the given path
+        UncompatibleFileException: If len({col_names}) != {data}.shape[1]
 
     Returns:
-        pd.DataFrame: return the data frame built from the data's json file.
+        pd.DataFrame: A pandas.DataFrame built from the JSON file of OHLCV data
     """
     if not file_path.is_file():
-        raise NoFileException(f"The path {file_path} lead to any file")
+        raise NoFileException(f"The file is not found in the given path: {file_path}")
     data = pd.read_json(file_path).values
 
     if col_names:
         if len(col_names) != data.shape[1]:
             raise UncompatibleFileException(
-                "The column names list hast not the same size" +
-                f"of the number of column of the data: ({len(col_names)} != {data.shape[1]}")
+                "The list of column names doesn't have the same size as " +
+                f"the number of column in JSON file data: ({len(col_names)} != {data.shape[1]}")
         df_data = pd.DataFrame(data, columns=col_names)
     else:
         df_data = pd.DataFrame(data)
