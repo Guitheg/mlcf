@@ -3,6 +3,7 @@ import pytest
 from pathlib import Path
 
 import random
+from mlcf.datatools.data_intervals import DataInIntervals
 
 from mlcf.datatools.data_reader import read_ohlcv_json_from_file
 random.seed(0)
