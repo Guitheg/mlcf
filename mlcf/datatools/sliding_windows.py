@@ -1,7 +1,7 @@
 """_summary_
 """
 
-from typing import Callable, Dict, List, Optional, Union, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 import numpy as np

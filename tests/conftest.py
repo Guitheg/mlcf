@@ -3,7 +3,6 @@ import pytest
 from pathlib import Path
 
 import random
-from mlcf.datatools.data_intervals import DataInIntervals
 
 from mlcf.datatools.data_reader import read_ohlcv_json_from_file
 random.seed(0)
@@ -37,3 +36,10 @@ def uncompatible_file_path(testdatadir):
 @pytest.fixture
 def ohlcv_btc(rawdata_btc_path):
     return read_ohlcv_json_from_file(rawdata_btc_path)
+
+
+@pytest.fixture
+def ohlcvr_btc(ohlcv_btc):
+    dataframe = ohlcv_btc.copy()
+    dataframe["return"] = dataframe["close"].pct_change(1)
+    return dataframe.dropna()

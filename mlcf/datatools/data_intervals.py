@@ -1,5 +1,7 @@
-"""__summary__
-"""
+"""Data Interval Module
+This is a data structure that divides the input data into n intervals and applies certain function
+to each of these intervals. It provides a data structure to tag (True or False) rows according to
+certain conditions."""
 
 from functools import reduce
 from typing import Callable, Dict, List, Optional, Tuple
@@ -12,7 +14,11 @@ from mlcf.datatools.utils import split_train_val_test
 from mlcf.datatools.standardize_fct import StandardisationFct, standardize
 
 __all__ = [
-
+    "AnyStepTag",
+    "HaveAlreadyAStepTag",
+    "TagCreator",
+    "LabelBalanceTag",
+    "DataInIntervals"
 ]
 
 
@@ -25,35 +31,83 @@ class HaveAlreadyAStepTag(Exception):
 
 
 class TagCreator():
+    """This class is called to tag (True or False) rows according to certain conditions by
+    returning a pandas.Series with the tag values. The other tag creaters are inherited from this
+    parent class and overwrite the "__call__" function. The __call__ function that is implemented
+    in this class will tag True by default."""
     def __call__(
         self,
         data: pd.DataFrame,
-        columns: List[str],
+        column: str,
         *args, **kwargs
     ) -> pd.Series:
-        return pd.Series([True]*len(data[columns]))
+        """
+        This function returns a pandas.Series with the tag values (True or False) for every row.
+        It returns True by default. It must be overwritten in an inherited class to change its
+        behaviour.
+
+        Args:
+            data (pandas.DataFrame): pandas.DataFrame on which the row values are evaluated to
+            determine the tag values
+            column (List[str]): The relevant column on which the values are evaluated to
+            determine the tag values
+
+        Returns:
+            pandas.Series: A pandas.Series with True tag values for every row
+        """
+        return pd.Series([True]*len(data[column]))
 
 
-class BalanceTag(TagCreator):
+class LabelBalanceTag(TagCreator):
+    """This class is called to slice the histogram of labeled values according to the {max_count}
+    parameter. It aims to limit the height of the histogram and to make the histogram more uniform
+    by tagging False the values that are not taken into account in the construction of the
+    histogram."""
     def __call__(
         self,
         data: pd.DataFrame,
-        columns: List[str],
+        column: str,
         max_count: int = None,
         sample_function: Callable = random.sample,
         *args, **kwargs
     ) -> pd.Series:
-        dataframe = data.loc[data["step_tag"]].copy()
-        idx_cat = dataframe[columns].value_counts().index
-        value_count = dataframe[columns].value_counts()
+        """
+        This function tags False the values that are not taken into account in the construction
+        of the histogram of the relevant {column} values of {data}. This way, the histogram will
+        be more uniform and limited in height by {max_count}.
+
+        Args:
+            data (pandas.DataFrame): pandas.DataFrame on which the row values are evaluated to
+            determine the tag values
+            column (List[str]): The relevant column on which the values are evaluated to
+            determine the tag values
+            max_count (int, optional): The maximum height of the histogram. If it is not specified,
+            it will be defined as the average of extreme values of the histogram.
+            sample_function (Callable, optional): The function allowing to set True or False tags
+            while keeping the desired proportion. By default, it is set as random.sample.
+
+        Returns:
+            pandas.Series: It returns a pandas.Series where the proportion of False tagged values
+            make the histogram of the given column more uniform
+        """
+        if "step_tag" not in data:
+            dataframe = data.copy()
+            tag_col = pd.Series([True]*len(dataframe), index=dataframe.index)
+        else:
+            dataframe = data.loc[data["step_tag"]].copy()
+            tag_col = data["step_tag"]
+        value_count = dataframe[column].value_counts()
         if not max_count:
-            max_count = np.mean([value_count[min(idx_cat)], value_count[max(idx_cat)]]).astype(int)
-        tag_col = data["step_tag"]
-        for idx in sorted(value_count.index):
+            if "-inf" in value_count and "+inf" in value_count:
+                max_count = np.mean([value_count["-inf"], value_count["+inf"]]).astype(int)
+            else:
+                max_count = np.mean(value_count).astype(int)
+
+        for idx in value_count.index:
             if value_count[idx] > max_count:
                 tag_col.loc[
                     sorted(sample_function(
-                        list(dataframe[dataframe[columns] == idx].index),
+                        list(dataframe[dataframe[column] == idx].index),
                         k=value_count[idx]-max_count)
                     )
                 ] = False
@@ -84,6 +138,15 @@ class DataInIntervals():
             "test": self.test_intervals
         }
         self.step_tag: int = 0
+
+    def get(self, set_name: str):
+        if set_name not in self.intervals:
+            raise ValueError(
+                f"{set_name} is not a set name. Choose between {list(self.intervals.keys())}")
+        return self.intervals[set_name]
+
+    def __call__(self, set_name: str):
+        return self.get(set_name)
 
     @classmethod
     def create_list_interval(
@@ -166,10 +229,10 @@ class DataInIntervals():
 
     def add_tag(
         self,
+        tag_creator: TagCreator,
         tag_name: str,
         list_partitions: List[str],
-        columns: List[str],
-        tag_creator: TagCreator,
+        column: str,
         *args, **kwargs
     ):
         if not self.step_tag:
@@ -178,10 +241,10 @@ class DataInIntervals():
             for interval in self.intervals[partition]:
                 interval[tag_name] = tag_creator(
                     data=interval,
-                    columns=columns,
+                    column=column,
                     *args,
                     **kwargs
-                )
+                ).values
 
     def data_windowing(
         self,
