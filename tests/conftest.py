@@ -3,8 +3,12 @@ import pytest
 from pathlib import Path
 
 import random
+import numpy as np
+from mlcf.datatools.data_intervals import LabelBalanceTag
 
 from mlcf.datatools.data_reader import read_ohlcv_json_from_file
+from mlcf.datatools.indicators.indicators_fct import add_adx
+from mlcf.datatools.utils import labelize
 random.seed(0)
 
 
@@ -43,3 +47,36 @@ def ohlcvr_btc(ohlcv_btc):
     dataframe = ohlcv_btc.copy()
     dataframe["return"] = dataframe["close"].pct_change(1)
     return dataframe.dropna()
+
+
+@pytest.fixture
+def ohlcvra_btc(ohlcvr_btc):
+    dataframe = add_adx(ohlcvr_btc)
+    return dataframe.dropna()
+
+
+@pytest.fixture
+def ohlcvrl_btc(ohlcvr_btc):
+    mean = ohlcvr_btc["return"].mean()
+    std = ohlcvr_btc["return"].std()
+    return labelize(
+        ohlcvr_btc,
+        "return",
+        10,
+        (mean - std, mean + std),
+        label_col_name="label"
+    )
+
+
+@pytest.fixture
+def get_btc_tagged_data(ohlcvrl_btc):
+    def fct(window_step):
+        data = ohlcvrl_btc.copy()
+        array = np.zeros(len(data), dtype=bool)
+        array[::window_step] = True
+        data["step_tag"] = array
+        label_creator = LabelBalanceTag()
+        balanced_label = label_creator(data, "label", 200, lambda li, k: li[:k])
+        data["balance_tag"] = balanced_label
+        return data
+    return fct

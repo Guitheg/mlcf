@@ -151,17 +151,8 @@ def test_add_tag_exception(ohlcv_btc):
         (2, LabelBalanceTag(), {"max_count": 100}, 412, 412)
     ]
 )
-def test_add_tag(ohlcvr_btc, test_step, tag_creator, test_input, expected_a, expected_b):
+def test_add_tag(ohlcvrl_btc, test_step, tag_creator, test_input, expected_a, expected_b):
     tag_name = "balance_tag"
-    mean = ohlcvr_btc["return"].mean()
-    std = ohlcvr_btc["return"].std()
-    ohlcvrl_btc = labelize(
-        ohlcvr_btc,
-        "return",
-        10,
-        (mean - std, mean + std),
-        label_col_name="label"
-    )
     data_intervals = DataInIntervals(ohlcvrl_btc, n_intervals=10)
     data_intervals.add_step_tag(test_step)
     data_intervals.add_tag(

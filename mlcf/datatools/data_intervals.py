@@ -95,7 +95,7 @@ class LabelBalanceTag(TagCreator):
             tag_col = pd.Series([True]*len(dataframe), index=dataframe.index)
         else:
             dataframe = data.loc[data["step_tag"]].copy()
-            tag_col = data["step_tag"]
+            tag_col = data["step_tag"].copy()
         value_count = dataframe[column].value_counts()
         if not max_count:
             if "-inf" in value_count and "+inf" in value_count:
