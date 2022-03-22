@@ -70,14 +70,14 @@ from numpy.lib.stride_tricks import sliding_window_view
 def test_data_windowing(get_btc_tagged_data, test_input, expected):
     data = get_btc_tagged_data(test_input["window_step"])
 
-    list_windows = data_windowing(data, **test_input)
-    assert len(list_windows) == expected["length"]
+    multi_dataframe_windows = data_windowing(data, **test_input)
+    assert len(multi_dataframe_windows.groupby(level="WindowIndex").size()) == expected["length"]
     if "selected_columns" in test_input:
-        assert list(list_windows[0].columns) == test_input["selected_columns"]
+        assert list(multi_dataframe_windows.columns) == test_input["selected_columns"]
     if "std_by_feature" in test_input:
         for feature in test_input["std_by_feature"]:
-            assert np.round(list_windows[0][feature].mean(), 4) == 0.0
-            assert np.round(list_windows[1][feature].std(), 2) == 1.0
+            assert np.round(multi_dataframe_windows.loc[0, feature].mean(), 4) == 0.0
+            assert np.round(multi_dataframe_windows.loc[0, feature].std(), 2) == 1.0
 
 
 @pytest.mark.parametrize(

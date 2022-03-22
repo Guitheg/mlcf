@@ -30,10 +30,19 @@ class StandardisationFct():
     def partial_fit(self, data: pd.Series):
         pass
 
-    def transform(self, data: pd.Series) -> pd.Series:
-        series = data.copy()
-        series.loc[:] = self.std.transform(np.reshape(series.values, (-1, 1))).reshape(-1)
-        return series
+    def fit(self, data: Union[np.ndarray, pd.DataFrame]):
+        pass
+
+    def transform(
+        self,
+        data: Union[np.ndarray, pd.DataFrame, pd.Series]
+    ) -> Union[np.ndarray, pd.DataFrame, pd.Series]:
+        if isinstance(data, pd.Series):
+            series = data.copy()
+            series.loc[:] = self.std.transform(np.reshape(series.values, (-1, 1))).reshape(-1)
+            return series
+        elif isinstance(data, pd.DataFrame) or isinstance(data, np.ndarray):
+            return self.std.transform(data)
 
     def copy(self):
         return self.__class__(*self.args, **self.kwargs)
@@ -49,6 +58,9 @@ class ClassicStd(StandardisationFct):
 
     def partial_fit(self, data: pd.Series):
         self.std.partial_fit(np.reshape(data.values, (-1, 1)))
+
+    def fit(self, data: Union[np.ndarray, pd.DataFrame]):
+        self.std.fit(data)
 
 
 class MinMaxStd(StandardisationFct):

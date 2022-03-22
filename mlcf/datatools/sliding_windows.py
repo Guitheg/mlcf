@@ -7,8 +7,8 @@ from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 import numpy as np
 from multiprocessing import Pool, cpu_count
-from time import perf_counter
 from mlcf.datatools.standardize_fct import StandardisationFct, standardize_fit_transform
+from time import perf_counter
 
 
 __all__ = [
@@ -51,8 +51,7 @@ def _build_standardize_window(window_idx, data, selected_columns, std_by_feature
     )
 
 
-# TODO: (opti) parrallelize ?
-# TODO: (opti) optimization of the standardization: memory of the previous window
+# TODO: (opti) parrallelize standardization ?
 def data_windowing(
     dataframe: pd.DataFrame,
     window_width: int,
@@ -61,74 +60,65 @@ def data_windowing(
     predicate_row_selection: Optional[Callable] = None,
     std_by_feature: Optional[Dict[str, StandardisationFct]] = None
 ) -> List[pd.DataFrame]:
-    # t0 = perf_counter()
     data = dataframe.copy()
     data_columns = list(data.columns)
     data["__index"] = np.arange(len(data))
     if len(data) == 0 or len(data) < window_width:
         return [pd.DataFrame(columns=data_columns).rename_axis(data.index.name)]
-    # t1 = perf_counter()
+
     # Slid window on all data
     windowed_data: np.ndarray = sliding_window_view(
         data,
         window_shape=(window_width, len(data.columns))
-    )
-    # t2 = perf_counter()
+    ).copy()
+
     # Reshape windowed data
     windowed_data_shape: Tuple[int, int, int] = (-1, window_width, len(data.columns))
     windowed_data = np.reshape(windowed_data, newshape=windowed_data_shape)
-    # t3 = perf_counter()
     index_data = windowed_data[:, :, list(data.columns).index("__index")]
-    # t4 = perf_counter()
-    # Select rows
+
+    # Select rows and windows
     if predicate_row_selection is None:
         windowed_data = windowed_data[::window_step]
     else:
-        # windowed_data = windowed_data[[
-        #     predicate_row_selection(data, list(idx))
-        #     for idx in index_data
-        # ]]
         predicate = partial(predicate_row_selection, data)
         with Pool(processes=cpu_count()) as pl:
             windowed_data = windowed_data[pl.map(predicate, [idx for idx in index_data])]
-    # t5 = perf_counter()
-    # Select columns and rows
+    index_data = windowed_data[:, :, list(data.columns).index("__index")]
+
+    # Set the indexes
+    index_time = index_data.reshape(-1)
+    index_window = np.mgrid[0: windowed_data.shape[0]: 1, 0:window_width: 1][0].reshape(-1)
+    array = np.array([index_window, index_time])
+    tuples = list(zip(*array))
+    indexes = pd.MultiIndex.from_tuples(
+        tuples,
+        names=["WindowIndex", "TimeIndex"]
+    )
+
+    # Select columns
     if selected_columns is None:
         selected_columns = data_columns
     idx_selected_columns = [data_columns.index(col) for col in selected_columns]
-    windowed_data = windowed_data[:, :, idx_selected_columns]
-    # t6 = perf_counter()
-    # Make list of window (dataframe)
-    build_standardize_window = partial(
-        _build_standardize_window,
-        data=data,
-        selected_columns=selected_columns,
-        std_by_feature=std_by_feature)
-    with Pool(processes=cpu_count()) as pl:
-        list_windows: List[pd.DataFrame] = pl.map(
-            build_standardize_window,
-            zip(windowed_data, index_data)
-        )
 
-    # list_windows: List[pd.DataFrame] = [
-    #     standardize_fit_transform(
-    #         fit_transform_data=pd.DataFrame(
-    #             window,
-    #             index=data.iloc[idx].index,
-    #             columns=selected_columns
-    #         ),
-    #         std_by_feature=std_by_feature,
-    #         std_fct_save=False
-    #     ) for window, idx in zip(windowed_data, index_data)
-    # ]
-    # t7 = perf_counter()
-    # total = t7 - t0
-    # init = t1 - t0
-    # sliding = t2 - t1
-    # reshape = t3 - t2
-    # index = t4 - t3
-    # rows = t5 - t4
-    # col = t6 - t5
-    # win = t7 - t6
-    # print(init, sliding, reshape, index, rows, col, win, total)
-    return list_windows
+    # Standardization
+    if std_by_feature:
+        for feature, std_object in std_by_feature.items():
+            datafit = windowed_data[:, :, data_columns.index(feature)].T
+            std_object.fit(datafit)
+            windowed_data[:, :, data_columns.index(feature)] = std_object.transform(datafit).T
+    windowed_data = windowed_data[:, :, idx_selected_columns]
+
+    # Make list of window (dataframe)
+    multi_dataframe_windows = pd.DataFrame(
+        windowed_data.reshape(-1, len(selected_columns)),
+        index=indexes,
+        columns=selected_columns)
+
+    multi_dataframe_windows.index = multi_dataframe_windows.index.set_levels(
+        [
+            multi_dataframe_windows.index.levels[0],
+            pd.to_datetime(data.iloc[multi_dataframe_windows.index.levels[1]].index)
+        ]
+    )
+    return multi_dataframe_windows
