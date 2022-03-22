@@ -135,23 +135,23 @@ def test_add_tag_exception(ohlcv_btc):
     data_intervals = DataInIntervals(ohlcv_btc, n_intervals=10)
     with pytest.raises(AnyStepTag):
         data_intervals.add_tag(
-            LabelBalanceTag,
+            LabelBalanceTag(),
             tag_name="balance_tag",
             list_partitions=["train"],
             column="volume")
 
 
 @pytest.mark.parametrize(
-    "test_step, tag_creator, test_input, expected_a, expected_b",
+    "test_step, tag_creator, expected_a, expected_b",
     [
-        (1, TagCreator(), {}, 1228, 1228),
-        (2, TagCreator(), {}, 1228, 614),
-        (1, LabelBalanceTag(), {}, 768, 768),
-        (2, LabelBalanceTag(), {}, 373, 373),
-        (2, LabelBalanceTag(), {"max_count": 100}, 412, 412)
+        (1, TagCreator(), 1228, 1228),
+        (2, TagCreator(), 1228, 614),
+        (1, LabelBalanceTag(), 768, 768),
+        (2, LabelBalanceTag(), 373, 373),
+        (2, LabelBalanceTag(max_count=200), 512, 512)
     ]
 )
-def test_add_tag(ohlcvrl_btc, test_step, tag_creator, test_input, expected_a, expected_b):
+def test_add_tag(ohlcvrl_btc, test_step, tag_creator, expected_a, expected_b):
     tag_name = "balance_tag"
     data_intervals = DataInIntervals(ohlcvrl_btc, n_intervals=10)
     data_intervals.add_step_tag(test_step)
@@ -159,8 +159,7 @@ def test_add_tag(ohlcvrl_btc, test_step, tag_creator, test_input, expected_a, ex
         tag_creator,
         tag_name=tag_name,
         list_partitions=["train"],
-        column="label",
-        **test_input
+        column="label"
     )
     df = data_intervals("train")[0]
     assert len(df.loc[df[tag_name]]) == expected_a
@@ -184,8 +183,8 @@ def test_label_balance_tag(n_labels, max_count, expected, ohlcvr_btc):
         bounds=(mean - std, mean + std),
         label_col_name="label"
     )
-    label_creator = LabelBalanceTag()
-    balanced_label = label_creator(ohlcvrl_btc, "label", max_count)
+    label_creator = LabelBalanceTag(max_count)
+    balanced_label = label_creator(ohlcvrl_btc, "label")
     assert list(balanced_label.value_counts()) == expected
     assert list(ohlcvrl_btc.loc[balanced_label.values, "label"].value_counts()) == \
         [max_count] * (n_labels + 2)

@@ -63,12 +63,22 @@ class LabelBalanceTag(TagCreator):
     parameter. It aims to limit the height of the histogram and to make the histogram more uniform
     by tagging False the values that are not taken into account in the construction of the
     histogram."""
+    def __init__(self, max_count: Optional[int] = None, sample_function: Callable = random.sample):
+        """Define the LabelBalanceTag by giving a max_count and a sample_function.
+
+        Args:
+            max_count (int, optional): The maximum height of the histogram. If it is not specified,
+            it will be defined as the average of extreme values of the histogram.
+            sample_function (Callable, optional): The function allowing to set True or False tags
+            while keeping the desired proportion. By default, it is set as random.sample.
+        """
+        self.max_count: Optional[int] = max_count
+        self.sample_function = sample_function
+
     def __call__(
         self,
         data: pd.DataFrame,
         column: str,
-        max_count: int = None,
-        sample_function: Callable = random.sample,
         *args, **kwargs
     ) -> pd.Series:
         """
@@ -81,10 +91,6 @@ class LabelBalanceTag(TagCreator):
             determine the tag values
             column (List[str]): The relevant column on which the values are evaluated to
             determine the tag values
-            max_count (int, optional): The maximum height of the histogram. If it is not specified,
-            it will be defined as the average of extreme values of the histogram.
-            sample_function (Callable, optional): The function allowing to set True or False tags
-            while keeping the desired proportion. By default, it is set as random.sample.
 
         Returns:
             pandas.Series: It returns a pandas.Series where the proportion of False tagged values
@@ -97,16 +103,18 @@ class LabelBalanceTag(TagCreator):
             dataframe = data.loc[data["step_tag"]].copy()
             tag_col = data["step_tag"].copy()
         value_count = dataframe[column].value_counts()
-        if not max_count:
+        if not self.max_count:
             if "-inf" in value_count and "+inf" in value_count:
                 max_count = np.mean([value_count["-inf"], value_count["+inf"]]).astype(int)
             else:
                 max_count = np.mean(value_count).astype(int)
+        else:
+            max_count = self.max_count
 
         for idx in value_count.index:
             if value_count[idx] > max_count:
                 tag_col.loc[
-                    sorted(sample_function(
+                    sorted(self.sample_function(
                         list(dataframe[dataframe[column] == idx].index),
                         k=value_count[idx]-max_count)
                     )

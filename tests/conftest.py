@@ -75,8 +75,8 @@ def get_btc_tagged_data(ohlcvrl_btc):
         array = np.zeros(len(data), dtype=bool)
         array[::window_step] = True
         data["step_tag"] = array
-        label_creator = LabelBalanceTag()
-        balanced_label = label_creator(data, "label", 200, lambda li, k: li[:k])
+        label_creator = LabelBalanceTag(200, lambda li, k: li[:k])
+        balanced_label = label_creator(data, "label")
         data["balance_tag"] = balanced_label
         return data
     return fct
