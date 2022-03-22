@@ -14,9 +14,12 @@ from numpy.lib.stride_tricks import sliding_window_view
 @pytest.mark.parametrize(
     "test_input, expected",
     [
-        ({"window_width": 20, "window_step": 1}, {"length": 15328}),
-        ({"window_width": 300, "window_step": 1}, {"length": 15048}),
-        ({"window_width": 300, "window_step": 2}, {"length": 7524}),
+        ({"window_width": 20, "window_step": 1},
+         {"length": 15328, "first_window": lambda data: data["return"].iloc[0:20].values}),
+        ({"window_width": 300, "window_step": 1},
+         {"length": 15048, "first_window": lambda data: data["return"].iloc[0:300].values}),
+        ({"window_width": 300, "window_step": 2},
+         {"length": 7524, "first_window": lambda data: data["return"].iloc[0:300].values}),
         (
             {
                 "window_width": 300,
@@ -24,7 +27,8 @@ from numpy.lib.stride_tricks import sliding_window_view
                 "selected_columns": ["close", "return"]
             },
             {
-                "length": 7524
+                "length": 7524,
+                "first_window": lambda data: data["return"].iloc[0:300].values
             }
         ),
         (
@@ -35,7 +39,8 @@ from numpy.lib.stride_tricks import sliding_window_view
                 "std_by_feature": {"close": ClassicStd()}
             },
             {
-                "length": 7524
+                "length": 7524,
+                "first_window": lambda data: data["return"].iloc[0:300].values
             }
         ),
         (
@@ -47,7 +52,8 @@ from numpy.lib.stride_tricks import sliding_window_view
                 "predicate_row_selection": partial(predicate_windows_step, step_tag_name="step_tag")
             },
             {
-                "length": 7524
+                "length": 7524,
+                "first_window": lambda data: data["return"].iloc[1:301].values
             }
         ),
         (
@@ -62,7 +68,8 @@ from numpy.lib.stride_tricks import sliding_window_view
                     balance_tag_name="balance_tag")
             },
             {
-                "length": 2400
+                "length": 2400,
+                "first_window": lambda data: data["return"].iloc[959:1259].values
             }
         )
     ]
@@ -72,6 +79,8 @@ def test_data_windowing(get_btc_tagged_data, test_input, expected):
 
     multi_dataframe_windows = data_windowing(data, **test_input)
     assert len(multi_dataframe_windows.groupby(level="WindowIndex").size()) == expected["length"]
+    assert np.all(
+        multi_dataframe_windows.loc[0, "return"].values == expected["first_window"](data))
     if "selected_columns" in test_input:
         assert list(multi_dataframe_windows.columns) == test_input["selected_columns"]
     if "std_by_feature" in test_input:
@@ -124,7 +133,7 @@ def test_data_windowing(get_btc_tagged_data, test_input, expected):
         )
     ]
 )
-def test_predicate_balance_tag(get_btc_tagged_data, predicate, test_input, expected):
+def test_predicate_tag(get_btc_tagged_data, predicate, test_input, expected):
     # Data preprocess --
     data = get_btc_tagged_data(test_input["window_step"])
     data["__index"] = np.arange(len(data))

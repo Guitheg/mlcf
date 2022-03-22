@@ -7,8 +7,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 import numpy as np
 from multiprocessing import Pool, cpu_count
-from mlcf.datatools.standardize_fct import StandardisationFct, standardize_fit_transform
-from time import perf_counter
+from mlcf.datatools.standardize_fct import StandardisationFct
 
 
 __all__ = [
@@ -38,19 +37,6 @@ def predicate_balance_tag(
     )
 
 
-def _build_standardize_window(window_idx, data, selected_columns, std_by_feature):
-    window, idx = window_idx
-    return standardize_fit_transform(
-        fit_transform_data=pd.DataFrame(
-            window,
-            index=data.iloc[idx].index,
-            columns=selected_columns
-        ),
-        std_by_feature=std_by_feature,
-        std_fct_save=False
-    )
-
-
 # TODO: (opti) parrallelize standardization ?
 def data_windowing(
     dataframe: pd.DataFrame,
@@ -67,14 +53,17 @@ def data_windowing(
         return [pd.DataFrame(columns=data_columns).rename_axis(data.index.name)]
 
     # Slid window on all data
-    windowed_data: np.ndarray = sliding_window_view(
+    windowed_data = sliding_window_view(
         data,
         window_shape=(window_width, len(data.columns))
-    ).copy()
+    ).reshape((-1, window_width, len(data.columns)))
+    if not windowed_data.flags["WRITEABLE"]:
+        windowed_data = windowed_data.copy()
 
     # Reshape windowed data
     windowed_data_shape: Tuple[int, int, int] = (-1, window_width, len(data.columns))
     windowed_data = np.reshape(windowed_data, newshape=windowed_data_shape)
+
     index_data = windowed_data[:, :, list(data.columns).index("__index")]
 
     # Select rows and windows
@@ -87,14 +76,10 @@ def data_windowing(
     index_data = windowed_data[:, :, list(data.columns).index("__index")]
 
     # Set the indexes
-    index_time = index_data.reshape(-1)
-    index_window = np.mgrid[0: windowed_data.shape[0]: 1, 0:window_width: 1][0].reshape(-1)
-    array = np.array([index_window, index_time])
-    tuples = list(zip(*array))
-    indexes = pd.MultiIndex.from_tuples(
-        tuples,
-        names=["WindowIndex", "TimeIndex"]
-    )
+    window_index = np.mgrid[
+        0: windowed_data.shape[0]: 1,
+        0:window_width: 1
+    ][0].reshape(-1, 1)
 
     # Select columns
     if selected_columns is None:
@@ -107,14 +92,13 @@ def data_windowing(
             datafit = windowed_data[:, :, data_columns.index(feature)].T
             std_object.fit(datafit)
             windowed_data[:, :, data_columns.index(feature)] = std_object.transform(datafit).T
-    windowed_data = windowed_data[:, :, idx_selected_columns]
-
+    windowed_data = windowed_data[:, :, idx_selected_columns+[list(data.columns).index("__index")]]
     # Make list of window (dataframe)
-    multi_dataframe_windows = pd.DataFrame(
-        windowed_data.reshape(-1, len(selected_columns)),
-        index=indexes,
-        columns=selected_columns)
 
+    multi_dataframe_windows = pd.DataFrame(
+        np.concatenate([windowed_data.reshape(-1, len(selected_columns)+1), window_index], axis=1),
+        columns=selected_columns + ["TimeIndex", "WindowIndex"]
+    ).set_index(["WindowIndex", "TimeIndex"])
     multi_dataframe_windows.index = multi_dataframe_windows.index.set_levels(
         [
             multi_dataframe_windows.index.levels[0],
