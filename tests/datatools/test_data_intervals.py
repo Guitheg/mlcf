@@ -1,9 +1,17 @@
 
-from cgi import test
+
+from functools import partial
 import pytest
 import pandas as pd
 import numpy as np
-from mlcf.datatools.data_intervals import AnyStepTag, DataInIntervals, HaveAlreadyAStepTag, LabelBalanceTag, TagCreator
+from mlcf.datatools.data_intervals import (
+    AnyStepTag,
+    DataInIntervals,
+    HaveAlreadyAStepTag,
+    LabelBalanceTag,
+    TagCreator
+)
+from mlcf.datatools.sliding_windows import predicate_windows_step
 from mlcf.datatools.standardize_fct import ClassicStd, MinMaxStd
 from mlcf.datatools.utils import labelize
 
@@ -81,23 +89,65 @@ def test_data_in_intervals(ohlcv_btc, test_input, train_set, val_set, test_set):
     assert not data_in_intervals.step_tag
 
 
-# Test if the intervals are well standardized.
-#
-# @pytest.mark.parametrize(
-#     "std_by_feature, test_input, mean, std, maxi, mini",
-#     [
-#         ({}, {"n_intervals": 5}, 0.0, 1.0, 2.0, -2.0),
-#         ({"close": ClassicStd()}, {"n_intervals": 5}, 0.0, 1.0, 2.0, -2.0),
-#         ({"close": MinMaxStd()}, {"n_intervals": 5}, 0.0, 1.0, 2.0, -2.0),
-#         ({"close": MinMaxStd()}, {"n_intervals": 5}, 0.0, 1.0, 2.0, -2.0),
-#     ]
-# )
-# def test_standardize(std_by_feature, test_input, mean, std, maxi, mini, ohlcv_btc):
-#     data_intervals = DataInIntervals(ohlcv_btc, **test_input)
-#     data_intervals.standardize(std_by_feature)
-#     for key in std_by_feature:
-#         for set_name, set in data_intervals.intervals.items():
-#             for interval in set:
+@pytest.mark.parametrize(
+    "n_intervals, test_input",
+    [
+        (
+            4,
+            {
+                "window_width": 100,
+                "selected_columns": ["close", "return", "adx"],
+                "std_by_feature": {
+                    "close": ClassicStd(),
+                    "return": ClassicStd(with_mean=False),
+                    "adx": MinMaxStd(minmax=(0, 100))
+                }
+            }
+        ),
+        (
+            4,
+            {
+                "window_width": 10,
+                "selected_columns": ["close", "return", "adx"],
+                "std_by_feature": {
+                    "close": ClassicStd(),
+                    "return": ClassicStd(with_mean=False),
+                    "adx": MinMaxStd(minmax=(0, 100))
+                }
+            },
+        ),
+        (
+            4,
+            {
+                "window_width": 100,
+                "selected_columns": ["close", "return", "adx"],
+                "std_by_feature": {
+                    "close": ClassicStd(),
+                    "return": ClassicStd(with_mean=False),
+                    "adx": MinMaxStd(minmax=(0, 100))
+                },
+                "predicate_row_selection": partial(
+                    predicate_windows_step,
+                    step_tag_name="step_tag")
+            },
+        ),
+    ]
+)
+def test_data_windowing(ohlcvra_btc, n_intervals, test_input):
+    data = ohlcvra_btc.iloc[:1000]
+    data_intervals = DataInIntervals(data, n_intervals=n_intervals)
+    data_intervals.add_step_tag(1)
+    dataset = data_intervals.data_windowing(**test_input)
+
+    for key in dataset:
+        assert len(dataset[key].groupby(level="WindowIndex").size()) == \
+            (len(data_intervals.intervals[key][0]) - test_input["window_width"] + 1) * n_intervals
+
+    for key in dataset:
+        np.all(
+            dataset[key].loc[0].index.values ==
+            data_intervals.intervals[key][0]
+            .iloc[:test_input["window_width"]][test_input["selected_columns"]].index.values)
 
 
 def test_add_step_tag_exception_1(ohlcv_btc):

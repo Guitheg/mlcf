@@ -70,7 +70,19 @@ class MinMaxStd(StandardisationFct):
         feature_range: Tuple[float, float] = (0, 1)
     ):
         super(MinMaxStd, self).__init__(MinMaxScaler, feature_range=feature_range)
-        self.std.fit([[minmax[0]], [minmax[1]]])
+        self.minmax = minmax
+
+    def partial_fit(self, data: pd.Series):
+        if self.minmax:
+            self.std.partial_fit([[self.minmax[0]], [self.minmax[1]]])
+        else:
+            self.std.partial_fit(np.reshape(data.values, (-1, 1)))
+
+    def fit(self, data: Union[np.ndarray, pd.DataFrame]):
+        if self.minmax:
+            self.std.fit(np.array([[self.minmax[0], self.minmax[1]]]*data.shape[-1]).T)
+        else:
+            self.std.fit(data)
 
 
 def copy_std_feature_dict(std_by_feature: Dict[str, StandardisationFct]):

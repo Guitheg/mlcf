@@ -3,12 +3,12 @@ This is a data structure that divides the input data into n intervals and applie
 to each of these intervals. It provides a data structure to tag (True or False) rows according to
 certain conditions."""
 
-from functools import reduce
+from functools import partial
 from typing import Callable, Dict, List, Optional, Tuple
 import pandas as pd
 import numpy as np
 import random
-from mlcf.datatools.sliding_windows import data_windowing
+from mlcf.datatools.sliding_windows import data_windowing, predicate_windows_step
 
 from mlcf.datatools.utils import split_train_val_test
 from mlcf.datatools.standardize_fct import StandardisationFct, standardize
@@ -260,21 +260,39 @@ class DataInIntervals():
         selected_columns: Optional[List[str]] = None,
         predicate_row_selection: Optional[Callable] = None,
         std_by_feature: Optional[Dict[str, StandardisationFct]] = None
-    ) -> Tuple[List[pd.DataFrame], List[pd.DataFrame], List[pd.DataFrame]]:
-        data_windowed: Dict[str, List[pd.DataFrame]] = {
-            key: reduce(
-                    list.__add__,
-                    [
-                        data_windowing(
-                            dataframe=interval,
-                            window_width=window_width,
-                            window_step=self.step_tag,
-                            selected_columns=selected_columns,
-                            predicate_row_selection=predicate_row_selection,
-                            std_by_feature=std_by_feature
-                        )
-                        for interval in intervals
-                    ]
-                )
-            for key, intervals in self.intervals.items()}
+    ) -> Dict[str, pd.DataFrame]:
+        window_step = self.step_tag
+        if self.step_tag and predicate_row_selection is None:
+            predicate_row_selection = partial(
+                predicate_windows_step,
+                step_tag_name="step_tag")
+        if not self.step_tag and predicate_row_selection:
+            raise AnyStepTag(
+                "There are any step tag. We need a step tag to use a predicate")
+        if not self.step_tag and predicate_row_selection is None:
+            window_step = 1
+
+        data_windowed: Dict[str, List[pd.DataFrame]] = {}
+        for key, intervals in self.intervals.items():
+            for idx_interval, interval in enumerate(intervals):
+                if len(interval) >= window_width:
+                    windows = data_windowing(
+                        dataframe=interval,
+                        window_width=window_width,
+                        window_step=window_step,
+                        selected_columns=selected_columns,
+                        predicate_row_selection=predicate_row_selection,
+                        std_by_feature=std_by_feature
+                    )
+                    windows.index = windows.index.set_levels(
+                        [
+                            (
+                                windows.index.levels[0] + idx_interval*len(windows.index.levels[0])
+                            ).astype(int),
+                            windows.index.levels[1]
+                        ])
+                    if key in data_windowed:
+                        data_windowed[key] = pd.concat([data_windowed[key], windows])
+                    else:
+                        data_windowed[key] = windows
         return data_windowed

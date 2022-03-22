@@ -17,6 +17,10 @@ __all__ = [
 ]
 
 
+class DataEmptyException(Exception):
+    pass
+
+
 def predicate_windows_step(
     data,
     idx: List[int],
@@ -50,7 +54,7 @@ def data_windowing(
     data_columns = list(data.columns)
     data["__index"] = np.arange(len(data))
     if len(data) == 0 or len(data) < window_width:
-        return [pd.DataFrame(columns=data_columns).rename_axis(data.index.name)]
+        raise DataEmptyException("The given data is empty or too small for the window width.")
 
     # Slid window on all data
     windowed_data = sliding_window_view(
@@ -70,9 +74,7 @@ def data_windowing(
     if predicate_row_selection is None:
         windowed_data = windowed_data[::window_step]
     else:
-        predicate = partial(predicate_row_selection, data)
-        with Pool(processes=cpu_count()) as pl:
-            windowed_data = windowed_data[pl.map(predicate, [idx for idx in index_data])]
+        windowed_data = windowed_data[[predicate_row_selection(data, idx) for idx in index_data]]
     index_data = windowed_data[:, :, list(data.columns).index("__index")]
 
     # Set the indexes
@@ -96,7 +98,11 @@ def data_windowing(
     # Make list of window (dataframe)
 
     multi_dataframe_windows = pd.DataFrame(
-        np.concatenate([windowed_data.reshape(-1, len(selected_columns)+1), window_index], axis=1),
+        np.concatenate(
+            [
+                windowed_data.reshape(-1, len(selected_columns)+1),
+                window_index.astype(int)
+            ], axis=1),
         columns=selected_columns + ["TimeIndex", "WindowIndex"]
     ).set_index(["WindowIndex", "TimeIndex"])
     multi_dataframe_windows.index = multi_dataframe_windows.index.set_levels(

@@ -15,50 +15,50 @@ from numpy.lib.stride_tricks import sliding_window_view
     "test_input, expected",
     [
         ({"window_width": 20, "window_step": 1},
-         {"length": 15328, "first_window": lambda data: data["return"].iloc[0:20].values}),
-        ({"window_width": 300, "window_step": 1},
-         {"length": 15048, "first_window": lambda data: data["return"].iloc[0:300].values}),
-        ({"window_width": 300, "window_step": 2},
-         {"length": 7524, "first_window": lambda data: data["return"].iloc[0:300].values}),
+         {"length": 14328, "first_window": lambda data: data["return"].iloc[0:20].values}),
+        ({"window_width": 30, "window_step": 1},
+         {"length": 14318, "first_window": lambda data: data["return"].iloc[0:30].values}),
+        ({"window_width": 30, "window_step": 2},
+         {"length": 7159, "first_window": lambda data: data["return"].iloc[0:30].values}),
         (
             {
-                "window_width": 300,
+                "window_width": 30,
                 "window_step": 2,
                 "selected_columns": ["close", "return"]
             },
             {
-                "length": 7524,
-                "first_window": lambda data: data["return"].iloc[0:300].values
+                "length": 7159,
+                "first_window": lambda data: data["return"].iloc[0:30].values
             }
         ),
         (
             {
-                "window_width": 300,
+                "window_width": 30,
                 "window_step": 2,
                 "selected_columns": ["close", "return"],
                 "std_by_feature": {"close": ClassicStd()}
             },
             {
-                "length": 7524,
-                "first_window": lambda data: data["return"].iloc[0:300].values
+                "length": 7159,
+                "first_window": lambda data: data["return"].iloc[0:30].values
             }
         ),
         (
             {
-                "window_width": 300,
+                "window_width": 30,
                 "window_step": 2,
                 "selected_columns": ["close", "return"],
                 "std_by_feature": {"close": ClassicStd()},
                 "predicate_row_selection": partial(predicate_windows_step, step_tag_name="step_tag")
             },
             {
-                "length": 7524,
-                "first_window": lambda data: data["return"].iloc[1:301].values
+                "length": 7159,
+                "first_window": lambda data: data["return"].iloc[1:31].values
             }
         ),
         (
             {
-                "window_width": 300,
+                "window_width": 30,
                 "window_step": 2,
                 "selected_columns": ["close", "return"],
                 "std_by_feature": {"close": ClassicStd()},
@@ -69,13 +69,13 @@ from numpy.lib.stride_tricks import sliding_window_view
             },
             {
                 "length": 2400,
-                "first_window": lambda data: data["return"].iloc[959:1259].values
+                "first_window": lambda data: data["return"].iloc[229:259].values
             }
         )
     ]
 )
 def test_data_windowing(get_btc_tagged_data, test_input, expected):
-    data = get_btc_tagged_data(test_input["window_step"])
+    data = get_btc_tagged_data(test_input["window_step"]).iloc[1000:]
 
     multi_dataframe_windows = data_windowing(data, **test_input)
     assert len(multi_dataframe_windows.groupby(level="WindowIndex").size()) == expected["length"]
@@ -86,7 +86,7 @@ def test_data_windowing(get_btc_tagged_data, test_input, expected):
     if "std_by_feature" in test_input:
         for feature in test_input["std_by_feature"]:
             assert np.round(multi_dataframe_windows.loc[0, feature].mean(), 4) == 0.0
-            assert np.round(multi_dataframe_windows.loc[0, feature].std(), 2) == 1.0
+            assert np.round(multi_dataframe_windows.loc[0, feature].std(), 1) == 1.0
 
 
 @pytest.mark.parametrize(
