@@ -2,11 +2,8 @@
 """
 
 import numpy as np
-import pandas as pd
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional
 from mlcf.datatools.windowing.iterator import WindowIterator
-
-from mlcf.datatools.windowing.tseries import WTSeries
 
 
 __all__ = [
@@ -35,13 +32,13 @@ class WindowForecastIterator():
         if not np.all(feature_in):
             raise AttributeError(
                 "The given input features are not in the feature's iterator:" +
-                f"{self.input_features[feature_in]}")
+                f"{[feat for feat, isin in zip(self.input_features, feature_in) if not isin]}")
 
         feature_in = [feature in self.features for feature in self.target_features]
         if not np.all(feature_in):
             raise AttributeError(
                 "The given target features are not in the feature's iterator:" +
-                f"{self.target_features[feature_in]}")
+                f"{[feat for feat, isin in zip(self.target_features, feature_in) if not isin]}")
 
         if self.input_width + self.target_width > self.data.width:
             raise ValueError(
@@ -59,13 +56,13 @@ class WindowForecastIterator():
 
     @property
     def input_features(self):
-        if self.__input_features is None:
+        if not self.__input_features:
             return self.features
         return self.__input_features
 
     @property
     def target_features(self):
-        if self.__target_features is None:
+        if not self.__target_features:
             return self.features
         return self.__target_features
 
@@ -83,16 +80,17 @@ class WindowForecastIterator():
     def __getitem__(self, idx):
         window = self.data[idx]
         w_input = window.iloc[:self.input_width]
-        w_target = window.iloc[-self.target_features:]
+        w_target = window.iloc[-self.target_width:]
         return w_input[self.input_features], w_target[self.target_features]
 
     def __iter__(self):
+        self.__window_index = 0
         return self
 
     def __next__(self):
-        if self.__window_index == len(self):
-            self.__window_index = 0
+        if self.__window_index < len(self):
+            item = self[self.__window_index]
+            self.__window_index += 1
+            return item
+        else:
             raise StopIteration
-        item = self[self.__window_index]
-        self.__window_index += 1
-        return item

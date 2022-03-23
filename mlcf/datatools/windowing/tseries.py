@@ -5,13 +5,12 @@ allows us to handle a multi-indexed data frame that represents a windowed time s
 
 from __future__ import annotations
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional
 from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 import numpy as np
 from mlcf.datatools.standardize_fct import StandardisationFct
 from mlcf.datatools.windowing.iterator import WindowIterator
-
 
 
 __all__ = [
@@ -89,7 +88,7 @@ class WTSeries(WindowIterator):
         data_columns = list(data.columns)
         data[TIME_INDEX_NAME] = np.arange(len(data), dtype=int)
         if len(data) == 0 or len(data) < window_width:
-            raise DataEmptyException("The given data is empty or too small for the window width.")
+            raise DataEmptyException("The given data is empty or smaller than the window width.")
 
         # Slid window on all data
         index_data = sliding_window_view(

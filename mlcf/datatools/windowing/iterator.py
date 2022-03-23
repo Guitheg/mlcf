@@ -14,16 +14,17 @@ class WindowIterator(ABC):
     def __len__(self):
         pass
 
-    def __next__(self):
-        if self.__window_index == len(self):
-            self.__window_index = 0
-            raise StopIteration
-        item = self[self.__window_index]
-        self.__window_index += 1
-        return item
-
     def __iter__(self):
+        self.__window_index = 0
         return self
+
+    def __next__(self):
+        if self.__window_index < len(self):
+            item = self[self.__window_index]
+            self.__window_index += 1
+            return item
+        else:
+            raise StopIteration
 
     @property
     @abstractmethod

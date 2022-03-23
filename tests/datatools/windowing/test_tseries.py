@@ -1,11 +1,13 @@
 
 from functools import partial
 from pathlib import Path
-import pandas
+import pandas as pd
 import pytest
 import numpy as np
 from mlcf.datatools.data_intervals import DataInIntervals
 from mlcf.datatools.windowing.tseries import (
+    DataEmptyException,
+    IncompatibleDataException,
     WTSeries,
     predicate_balance_tag,
     predicate_windows_step
@@ -97,6 +99,30 @@ def test_wtseries(get_btc_tagged_data, test_input, expected):
 
 
 @pytest.mark.parametrize(
+    "data_selection, test_input, expected_exception",
+    [
+        (
+            "few",
+            {"window_width": 101, "window_step": 1},
+            DataEmptyException
+        ),
+        (
+            "empty",
+            {"window_width": 20, "window_step": 1},
+            DataEmptyException
+        )
+    ]
+)
+def test_wtseries_exception(ohlcvra_btc, data_selection, test_input, expected_exception):
+    data = {
+        "few": ohlcvra_btc.iloc[:100],
+        "empty": pd.DataFrame(column=ohlcvra_btc.columns)
+    }
+    with pytest.raises(expected_exception):
+        WTSeries.create_wtseries(data[data_selection], **test_input)
+
+
+@pytest.mark.parametrize(
     "test_input",
     [
         ({"window_width": 20, "window_step": 1}),
@@ -127,6 +153,11 @@ def test_merge(ohlcvra_btc, test_input):
     assert len(wtseries_1) + len(wtseries_2) == len(wtseries)
 
 
+def test_wtseries_exception(ohlcvra_btc):
+    with pytest.raises(IncompatibleDataException):
+        WTSeries(ohlcvra_btc)
+
+
 @pytest.mark.parametrize(
     "test_input, group_key",
     [
@@ -149,7 +180,7 @@ def test_write(ohlcvr_btc, test_input, group_key, tmp_path: Path):
     file_name = "datasetwts"
     file_path = wtseries.write(userdir, file_name, group_key)
     assert file_path.is_file()
-    assert np.all(pandas.read_hdf(file_path).values == wtseries.data.values)
+    assert np.all(pd.read_hdf(file_path).values == wtseries.data.values)
 
 
 @pytest.mark.parametrize(
