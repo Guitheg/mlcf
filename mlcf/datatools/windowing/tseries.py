@@ -25,6 +25,7 @@ __all__ = [
 
 WINDOW_INDEX_NAME = "WindowIndex"
 TIME_INDEX_NAME = "TimeIndex"
+SUFFIX_FILE = ".h5"
 
 
 class DataEmptyException(Exception):
@@ -164,17 +165,18 @@ class WTSeries(WindowIterator):
         return WTSeries(data=pd.concat([self.data, wtseries.data]))
 
     def write(self, dirpath: Path, filename: str, group_file_key: str = None):
-        filepath = dirpath.joinpath(filename).with_suffix('h5')
+        filepath = dirpath.joinpath(filename).with_suffix(SUFFIX_FILE)
         filekey = "{primary}{secondary}".format(
-            primary=self.group_file_key,
+            primary=self.__class__.__name__,
             secondary=(f"_{group_file_key}" if group_file_key else "")
         )
         self.data.to_hdf(filepath, key=filekey, mode="w")
+        return filepath
 
-    @classmethod
-    def read(self, filepath: Path, group_file_key: str = None) -> WTSeries:
+    @staticmethod
+    def read(filepath: Path, group_file_key: str = None) -> WTSeries:
         filekey = "{primary}{secondary}".format(
-            primary=self.group_file_key,
+            primary=WTSeries.__name__,
             secondary=(f"_{group_file_key}" if group_file_key else "")
         )
-        return WTSeries(pd.read_hdf(filepath.with_suffix("h5"), key=filekey, mode="r"))
+        return WTSeries(pd.read_hdf(filepath.with_suffix(SUFFIX_FILE), key=filekey, mode="r"))

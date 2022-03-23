@@ -57,7 +57,3 @@ class WindowIterator(ABC):
     @abstractmethod
     def write(self, dirpath, filename):
         pass
-
-    @property
-    def group_file_key(self) -> str:
-        return self.__class__.__name__

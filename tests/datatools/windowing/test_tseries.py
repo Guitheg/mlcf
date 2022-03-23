@@ -1,5 +1,7 @@
 
 from functools import partial
+from pathlib import Path
+import pandas
 import pytest
 import numpy as np
 from mlcf.datatools.data_intervals import DataInIntervals
@@ -94,13 +96,11 @@ def test_wtseries(get_btc_tagged_data, test_input, expected):
     assert wtseries.width == test_input["window_width"]
 
 
-
 @pytest.mark.parametrize(
     "test_input",
     [
         ({"window_width": 20, "window_step": 1}),
-        ({"window_width": 30, "window_step": 1}),
-        ({"window_width": 30, "window_step": 2}),
+        ({"window_width": 30, "window_step": 10}),
         (
             {
                 "window_width": 30,
@@ -127,8 +127,56 @@ def test_merge(ohlcvra_btc, test_input):
     assert len(wtseries_1) + len(wtseries_2) == len(wtseries)
 
 
-def test_write():
-    pass
+@pytest.mark.parametrize(
+    "test_input, group_key",
+    [
+        ({"window_width": 20, "window_step": 1}, None),
+        ({"window_width": 30, "window_step": 10}, None),
+        (
+            {
+                "window_width": 30,
+                "window_step": 2,
+                "selected_columns": ["close", "return"]
+            },
+            "train"
+        ),
+    ]
+)
+def test_write(ohlcvr_btc, test_input, group_key, tmp_path: Path):
+    wtseries = WTSeries.create_wtseries(ohlcvr_btc, **test_input)
+    userdir = tmp_path.joinpath("userdir")
+    userdir.mkdir()
+    file_name = "datasetwts"
+    file_path = wtseries.write(userdir, file_name, group_key)
+    assert file_path.is_file()
+    assert np.all(pandas.read_hdf(file_path).values == wtseries.data.values)
+
+
+@pytest.mark.parametrize(
+    "test_input, group_key",
+    [
+        ({"window_width": 20, "window_step": 1}, None),
+        ({"window_width": 30, "window_step": 10}, None),
+        (
+            {
+                "window_width": 30,
+                "window_step": 2,
+                "selected_columns": ["close", "return"]
+            },
+            "train"
+        ),
+    ]
+)
+def test_read(ohlcvr_btc, test_input, group_key, tmp_path: Path):
+    wtseries = WTSeries.create_wtseries(ohlcvr_btc, **test_input)
+    userdir = tmp_path.joinpath("userdir")
+    userdir.mkdir()
+    file_name = "datasetwts"
+    file_path = wtseries.write(userdir, file_name, group_key)
+    assert file_path.is_file()
+    wtseries_read = WTSeries.read(file_path, group_key)
+    assert np.all(wtseries.data.values == wtseries_read.data.values)
+
 
 @pytest.mark.parametrize(
     "predicate, test_input, expected",
