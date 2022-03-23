@@ -11,7 +11,7 @@ from mlcf.datatools.data_intervals import (
     LabelBalanceTag,
     TagCreator
 )
-from mlcf.datatools.sliding_windows import predicate_windows_step
+from mlcf.datatools.windowing.tseries import predicate_windows_step
 from mlcf.datatools.standardize_fct import ClassicStd, MinMaxStd
 from mlcf.datatools.utils import labelize
 
@@ -140,12 +140,12 @@ def test_data_windowing(ohlcvra_btc, n_intervals, test_input):
     dataset = data_intervals.data_windowing(**test_input)
 
     for key in dataset:
-        assert len(dataset[key].groupby(level="WindowIndex").size()) == \
+        assert len(dataset[key]) == \
             (len(data_intervals.intervals[key][0]) - test_input["window_width"] + 1) * n_intervals
 
     for key in dataset:
         np.all(
-            dataset[key].loc[0].index.values ==
+            dataset[key][0].index.values ==
             data_intervals.intervals[key][0]
             .iloc[:test_input["window_width"]][test_input["selected_columns"]].index.values)
 

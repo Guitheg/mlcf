@@ -4,7 +4,7 @@ from pathlib import Path
 
 import random
 import numpy as np
-from mlcf.datatools.data_intervals import LabelBalanceTag
+from mlcf.datatools.data_intervals import DataInIntervals, LabelBalanceTag
 
 from mlcf.datatools.data_reader import read_ohlcv_json_from_file
 from mlcf.datatools.indicators.indicators_fct import add_adx
@@ -80,3 +80,12 @@ def get_btc_tagged_data(ohlcvrl_btc):
         data["balance_tag"] = balanced_label
         return data
     return fct
+
+
+@pytest.fixture
+def wtseries_dict(ohlcvra_btc):
+    data_intervals = DataInIntervals(ohlcvra_btc, n_intervals=1)
+    data_intervals.add_step_tag(1)
+    return data_intervals.data_windowing(
+        window_width=50,
+        selected_columns=["close", "return", "adx"])

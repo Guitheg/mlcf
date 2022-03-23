@@ -8,13 +8,13 @@ from typing import Callable, Dict, List, Optional, Tuple
 import pandas as pd
 import numpy as np
 import random
-from mlcf.datatools.sliding_windows import data_windowing, predicate_windows_step
+from mlcf.datatools.windowing.tseries import WTSeries, predicate_windows_step
 
 from mlcf.datatools.utils import split_train_val_test
 from mlcf.datatools.standardize_fct import StandardisationFct, standardize
 
 __all__ = [
-    "AnyStepTag",
+    # "AnyStepTag",
     "HaveAlreadyAStepTag",
     "TagCreator",
     "LabelBalanceTag",
@@ -122,6 +122,7 @@ class LabelBalanceTag(TagCreator):
         return tag_col
 
 
+# TODO: (refactoring) protect more self.step_tag from modification
 class DataInIntervals():
     def __init__(
         self,
@@ -260,7 +261,7 @@ class DataInIntervals():
         selected_columns: Optional[List[str]] = None,
         predicate_row_selection: Optional[Callable] = None,
         std_by_feature: Optional[Dict[str, StandardisationFct]] = None
-    ) -> Dict[str, pd.DataFrame]:
+    ) -> Dict[str, WTSeries]:
         window_step = self.step_tag
         if self.step_tag and predicate_row_selection is None:
             predicate_row_selection = partial(
@@ -272,11 +273,11 @@ class DataInIntervals():
         if not self.step_tag and predicate_row_selection is None:
             window_step = 1
 
-        data_windowed: Dict[str, List[pd.DataFrame]] = {}
+        data_windowed: Dict[str, WTSeries] = {}
         for key, intervals in self.intervals.items():
             for idx_interval, interval in enumerate(intervals):
                 if len(interval) >= window_width:
-                    windows = data_windowing(
+                    wtseries = WTSeries.create_wtseries(
                         dataframe=interval,
                         window_width=window_width,
                         window_step=window_step,
@@ -284,15 +285,8 @@ class DataInIntervals():
                         predicate_row_selection=predicate_row_selection,
                         std_by_feature=std_by_feature
                     )
-                    windows.index = windows.index.set_levels(
-                        [
-                            (
-                                windows.index.levels[0] + idx_interval*len(windows.index.levels[0])
-                            ).astype(int),
-                            windows.index.levels[1]
-                        ])
                     if key in data_windowed:
-                        data_windowed[key] = pd.concat([data_windowed[key], windows])
+                        data_windowed[key] = data_windowed[key].merge(wtseries)
                     else:
-                        data_windowed[key] = windows
+                        data_windowed[key] = wtseries
         return data_windowed
