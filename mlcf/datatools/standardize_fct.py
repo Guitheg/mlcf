@@ -30,8 +30,12 @@ class StandardisationFct():
     def partial_fit(self, data: pd.Series):
         pass
 
-    def fit(self, data: Union[np.ndarray, pd.DataFrame]):
+    def fit(self, data: Union[np.ndarray, pd.DataFrame, pd.Series]):
         pass
+
+    def fit_transform(self, data):
+        self.fit(data)
+        return self.transform(data)
 
     def transform(
         self,
@@ -59,8 +63,11 @@ class ClassicStd(StandardisationFct):
     def partial_fit(self, data: pd.Series):
         self.std.partial_fit(np.reshape(data.values, (-1, 1)))
 
-    def fit(self, data: Union[np.ndarray, pd.DataFrame]):
-        self.std.fit(data)
+    def fit(self, data: Union[np.ndarray, pd.DataFrame, pd.Series]):
+        if isinstance(data, pd.Series):
+            self.std.fit(np.reshape(data.values, (-1, 1)))
+        else:
+            self.std.fit(data)
 
 
 class MinMaxStd(StandardisationFct):
@@ -78,11 +85,17 @@ class MinMaxStd(StandardisationFct):
         else:
             self.std.partial_fit(np.reshape(data.values, (-1, 1)))
 
-    def fit(self, data: Union[np.ndarray, pd.DataFrame]):
+    def fit(self, data: Union[np.ndarray, pd.DataFrame, pd.Series]):
         if self.minmax:
-            self.std.fit(np.array([[self.minmax[0], self.minmax[1]]]*data.shape[-1]).T)
+            if isinstance(data, pd.Series):
+                self.std.fit([[self.minmax[0]], [self.minmax[1]]])
+            else:
+                self.std.fit(np.array([[self.minmax[0], self.minmax[1]]]*data.shape[-1]).T)
         else:
-            self.std.fit(data)
+            if isinstance(data, pd.Series):
+                self.std.fit(np.reshape(data.values, (-1, 1)))
+            else:
+                self.std.fit(data)
 
 
 def copy_std_feature_dict(std_by_feature: Dict[str, StandardisationFct]):

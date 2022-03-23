@@ -86,68 +86,47 @@ class WTSeries(WindowIterator):
     ) -> WTSeries:
         data = dataframe.copy()
         data_columns = list(data.columns)
-        data["__index"] = np.arange(len(data))
+        data[TIME_INDEX_NAME] = np.arange(len(data), dtype=int)
         if len(data) == 0 or len(data) < window_width:
             raise DataEmptyException("The given data is empty or too small for the window width.")
 
         # Slid window on all data
-        windowed_data = sliding_window_view(
-            data,
-            window_shape=(window_width, len(data.columns))
-        ).reshape((-1, window_width, len(data.columns)))
-        if not windowed_data.flags["WRITEABLE"]:
-            windowed_data = windowed_data.copy()
-
-        # Reshape windowed data
-        windowed_data_shape: Tuple[int, int, int] = (-1, window_width, len(data.columns))
-        windowed_data = np.reshape(windowed_data, newshape=windowed_data_shape)
-
-        index_data = windowed_data[:, :, list(data.columns).index("__index")]
+        index_data = sliding_window_view(
+            data[TIME_INDEX_NAME],
+            window_shape=(window_width),
+        ).reshape((-1, window_width))
 
         # Select rows and windows
         if predicate_row_selection is None:
-            windowed_data = windowed_data[::window_step]
+            index_data = index_data[::window_step]
         else:
-            windowed_data = windowed_data[
+            index_data = index_data[
                 [predicate_row_selection(data, idx) for idx in index_data]]
-        index_data = windowed_data[:, :, list(data.columns).index("__index")]
 
         # Set the indexes
         window_index = np.mgrid[
-            0: windowed_data.shape[0]: 1,
+            0: index_data.shape[0]: 1,
             0:window_width: 1
         ][0].reshape(-1, 1)
 
         # Select columns
         if selected_columns is None:
             selected_columns = data_columns
-        idx_selected_columns = [data_columns.index(col) for col in selected_columns]
+
+        windows = data.iloc[index_data.reshape(-1)][selected_columns]
+        windows.rename_axis(TIME_INDEX_NAME, inplace=True)
+        windows[WINDOW_INDEX_NAME] = window_index
+        windows.set_index(WINDOW_INDEX_NAME, append=True, inplace=True)
+        windows = windows.reorder_levels([WINDOW_INDEX_NAME, TIME_INDEX_NAME])
 
         # Standardization
         if std_by_feature:
             for feature, std_object in std_by_feature.items():
-                datafit = windowed_data[:, :, data_columns.index(feature)].T
-                std_object.fit(datafit)
-                windowed_data[:, :, data_columns.index(feature)] = std_object.transform(datafit).T
-        windowed_data = windowed_data[:, :,
-                                      idx_selected_columns+[list(data.columns).index("__index")]]
-        # Make list of window (dataframe)
+                datafit = windows[feature].values.reshape(-1, window_width)[:, :].T
+                windows[feature] = std_object.fit_transform(datafit).T.reshape(-1)
 
-        multi_dataframe_windows = pd.DataFrame(
-            np.concatenate(
-                [
-                    windowed_data.reshape(-1, len(selected_columns)+1),
-                    window_index.astype(int)
-                ], axis=1),
-            columns=selected_columns + [TIME_INDEX_NAME, WINDOW_INDEX_NAME]
-        ).set_index([WINDOW_INDEX_NAME, TIME_INDEX_NAME])
-        multi_dataframe_windows.index = multi_dataframe_windows.index.set_levels(
-            [
-                multi_dataframe_windows.index.levels[0],
-                pd.to_datetime(data.iloc[multi_dataframe_windows.index.levels[1]].index)
-            ]
-        )
-        return WTSeries(data=multi_dataframe_windows)
+        # Make list of window (dataframe)
+        return WTSeries(data=windows)
 
     def __len__(self) -> int:
         return self.n_window

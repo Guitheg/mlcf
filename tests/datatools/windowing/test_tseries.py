@@ -2,6 +2,7 @@
 from functools import partial
 import pytest
 import numpy as np
+from mlcf.datatools.data_intervals import DataInIntervals
 from mlcf.datatools.windowing.tseries import (
     WTSeries,
     predicate_balance_tag,
@@ -15,11 +16,11 @@ from numpy.lib.stride_tricks import sliding_window_view
     "test_input, expected",
     [
         ({"window_width": 20, "window_step": 1},
-         {"length": 14328, "first_window": lambda data: data["return"].iloc[0:20].values}),
+         {"length": 15328, "first_window": lambda data: data["return"].iloc[0:20].values}),
         ({"window_width": 30, "window_step": 1},
-         {"length": 14318, "first_window": lambda data: data["return"].iloc[0:30].values}),
+         {"length": 15318, "first_window": lambda data: data["return"].iloc[0:30].values}),
         ({"window_width": 30, "window_step": 2},
-         {"length": 7159, "first_window": lambda data: data["return"].iloc[0:30].values}),
+         {"length": 7659, "first_window": lambda data: data["return"].iloc[0:30].values}),
         (
             {
                 "window_width": 30,
@@ -27,7 +28,7 @@ from numpy.lib.stride_tricks import sliding_window_view
                 "selected_columns": ["close", "return"]
             },
             {
-                "length": 7159,
+                "length": 7659,
                 "first_window": lambda data: data["return"].iloc[0:30].values
             }
         ),
@@ -39,7 +40,7 @@ from numpy.lib.stride_tricks import sliding_window_view
                 "std_by_feature": {"close": ClassicStd()}
             },
             {
-                "length": 7159,
+                "length": 7659,
                 "first_window": lambda data: data["return"].iloc[0:30].values
             }
         ),
@@ -52,13 +53,13 @@ from numpy.lib.stride_tricks import sliding_window_view
                 "predicate_row_selection": partial(predicate_windows_step, step_tag_name="step_tag")
             },
             {
-                "length": 7159,
+                "length": 7659,
                 "first_window": lambda data: data["return"].iloc[1:31].values
             }
         ),
         (
             {
-                "window_width": 30,
+                "window_width": 300,
                 "window_step": 2,
                 "selected_columns": ["close", "return"],
                 "std_by_feature": {"close": ClassicStd()},
@@ -69,24 +70,65 @@ from numpy.lib.stride_tricks import sliding_window_view
             },
             {
                 "length": 2400,
-                "first_window": lambda data: data["return"].iloc[229:259].values
+                "first_window": lambda data: data["return"].iloc[959:1259].values
             }
         )
     ]
 )
 def test_wtseries(get_btc_tagged_data, test_input, expected):
-    data = get_btc_tagged_data(test_input["window_step"]).iloc[1000:]
+    data = get_btc_tagged_data(test_input["window_step"])
 
     wtseries = WTSeries.create_wtseries(data, **test_input)
     assert len(wtseries) == expected["length"]
     assert np.all(wtseries[0]["return"].values == expected["first_window"](data))
     if "selected_columns" in test_input:
         assert list(wtseries.features) == test_input["selected_columns"]
+        assert wtseries.ndim == len(test_input["selected_columns"])
+    else:
+        assert wtseries.ndim == len(list(data.columns))
     if "std_by_feature" in test_input:
         for feature in test_input["std_by_feature"]:
             assert np.round(wtseries[0][feature].mean(), 4) == 0.0
             assert np.round(wtseries[0][feature].std(), 1) == 1.0
+    assert wtseries.n_window == expected["length"]
+    assert wtseries.width == test_input["window_width"]
 
+
+
+@pytest.mark.parametrize(
+    "test_input",
+    [
+        ({"window_width": 20, "window_step": 1}),
+        ({"window_width": 30, "window_step": 1}),
+        ({"window_width": 30, "window_step": 2}),
+        (
+            {
+                "window_width": 30,
+                "window_step": 2,
+                "selected_columns": ["close", "return"]
+            }
+        ),
+        (
+            {
+                "window_width": 30,
+                "window_step": 2,
+                "selected_columns": ["close", "return"],
+                "std_by_feature": {"close": ClassicStd()}
+            }
+        )
+    ]
+)
+def test_merge(ohlcvra_btc, test_input):
+    data_intervals = DataInIntervals.create_list_interval(ohlcvra_btc, n_intervals=2)
+    wtseries_1 = WTSeries.create_wtseries(data_intervals[0], **test_input)
+    wtseries_2 = WTSeries.create_wtseries(data_intervals[0], **test_input)
+    wtseries = wtseries_1.merge(wtseries_2)
+    assert np.all(wtseries[len(wtseries_1)].values == wtseries_2[0].values)
+    assert len(wtseries_1) + len(wtseries_2) == len(wtseries)
+
+
+def test_write():
+    pass
 
 @pytest.mark.parametrize(
     "predicate, test_input, expected",
