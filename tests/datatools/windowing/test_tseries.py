@@ -113,10 +113,10 @@ def test_wtseries(get_btc_tagged_data, test_input, expected):
         )
     ]
 )
-def test_wtseries_exception(ohlcvra_btc, data_selection, test_input, expected_exception):
+def test_create_wtseries_exception(ohlcvra_btc, data_selection, test_input, expected_exception):
     data = {
         "few": ohlcvra_btc.iloc[:100],
-        "empty": pd.DataFrame(column=ohlcvra_btc.columns)
+        "empty": pd.DataFrame(columns=ohlcvra_btc.columns)
     }
     with pytest.raises(expected_exception):
         WTSeries.create_wtseries(data[data_selection], **test_input)
