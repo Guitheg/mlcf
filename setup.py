@@ -3,7 +3,7 @@ from setuptools import setup
 install_requirements = [
     "TA-Lib",
     "pandas-ta",
-    "sklearn"
+    "sklearn",
     "tables"
 ]
 
