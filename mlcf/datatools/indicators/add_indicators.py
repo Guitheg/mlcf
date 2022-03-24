@@ -45,10 +45,9 @@ def add_extern_indicator(
         pd.DataFrame: The new extern features merged to the time series OHLCV dataframe
     """
     dataframe = data.copy()
+    feature_columns: List[str] = feature_names
     if time_index_name in feature_names:
-        feature_columns: List[str] = feature_names.remove(time_index_name)
-    else:
-        feature_columns = feature_names
+        feature_columns.remove(time_index_name)
 
     f_exist = list(
         np.array(feature_columns)[[i in list(dataframe.columns) for i in feature_columns]])

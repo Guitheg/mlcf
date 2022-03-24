@@ -18,6 +18,7 @@ __all__ = [
 ]
 
 
+# TODO: (enhancement) datainterval with multi-index dataframe
 class DataIntervals():
     def __init__(
         self,

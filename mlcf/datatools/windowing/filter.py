@@ -13,6 +13,7 @@ __all__ = [
 ]
 
 
+# TODO: (enhancement) use only __call__
 class WindowFilter(ABC):
     def __init__(self):
         self.data: pd.DataFrame = None
@@ -21,6 +22,7 @@ class WindowFilter(ABC):
     def __call__(
         self,
         data: pd.DataFrame,
+        index_array: np.ndarray,
         *args, **kwargs
     ) -> pd.DataFrame:
         pass
@@ -35,7 +37,7 @@ class LabelBalanceFilter(WindowFilter):
         self,
         column: str,
         max_count: Optional[int] = None,
-        sample_function: Optional[Callable] = random.sample
+        sample_function: Callable = random.sample
     ):
 
         super(LabelBalanceFilter, self).__init__()

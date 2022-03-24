@@ -8,6 +8,7 @@ __all__ = [
 ]
 
 
+# TODO: (enhancement) Window Iterator Time Series implementation
 class WindowIterator(ABC):
     def __init__(self):
         self.__window_index = 0

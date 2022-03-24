@@ -40,11 +40,11 @@ class StandardisationFct(ABC):
     ) -> Union[np.ndarray, pd.DataFrame, pd.Series]:
         if isinstance(data, pd.Series):
             series = data.copy()
-            series.loc[:] = self.std.transform(np.reshape(data.values, (-1, 1))).reshape(-1)
+            series.iloc[:] = self.std.transform(np.reshape(data.values, (-1, 1))).reshape(-1)
             return series
         elif isinstance(data, pd.DataFrame):
             dataframe = data.copy()
-            dataframe.loc[:] = self.std.transform(data.values)
+            dataframe.iloc[:] = self.std.transform(data.values)
             return dataframe
         elif isinstance(data, np.ndarray):
             return self.std.transform(data)
@@ -155,22 +155,25 @@ def standardize(
 ) -> Union[pd.DataFrame, List[pd.DataFrame]]:
     if std_by_feature is None:
         return transform_data
-
-    if not std_fct_save and std_by_feature is not None:
-        std_by_feature = copy_std_feature_dict(std_by_feature)
+    else:
+        if not std_fct_save:
+            dict_std_by_feature: Dict[str, StandardisationFct] = \
+                copy_std_feature_dict(std_by_feature)
+        else:
+            dict_std_by_feature = std_by_feature
 
     if not inplace:
         raise NotImplementedError
 
     if isinstance(fit_data, pd.DataFrame):
         if not fit_data.empty:
-            for feature, std_obj in std_by_feature.items():
+            for feature, std_obj in dict_std_by_feature.items():
                 std_obj.fit(fit_data[feature])
 
     elif (isinstance(fit_data, list) and np.all([isinstance(i, pd.DataFrame) for i in fit_data])):
         for data in fit_data:
             if not data.empty:
-                for feature, std_obj in std_by_feature.items():
+                for feature, std_obj in dict_std_by_feature.items():
                     std_obj.partial_fit(data[feature])
 
     else:
@@ -178,14 +181,14 @@ def standardize(
 
     if isinstance(transform_data, pd.DataFrame):
         if not transform_data.empty:
-            for feature, std_obj in std_by_feature.items():
+            for feature, std_obj in dict_std_by_feature.items():
                 transform_data[feature] = std_obj.transform(transform_data[feature])
 
     elif (isinstance(transform_data, list) and
           np.all([isinstance(i, pd.DataFrame) for i in transform_data])):
         for data in transform_data:
             if not data.empty:
-                for feature, std_obj in std_by_feature.items():
+                for feature, std_obj in dict_std_by_feature.items():
                     data[feature] = std_obj.transform(data[feature])
     else:
         raise TypeError(f"Bad transform_data ({type(transform_data)}) type in standardize")

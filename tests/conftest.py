@@ -3,8 +3,6 @@ import pytest
 from pathlib import Path
 
 import random
-import numpy as np
-from mlcf.datatools.data_intervals import DataIntervals
 
 from mlcf.datatools.data_reader import read_ohlcv_json_from_file
 from mlcf.datatools.indicators.indicators_fct import add_adx

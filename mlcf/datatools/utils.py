@@ -108,7 +108,7 @@ def labelize(
     if isinstance(labels, int):
         label_names = pd.Series(np.arange(labels), index=np.arange(labels)+1)
         n_labels = copy(labels)
-    elif isinstance(labels, List) or isinstance(labels, Tuple):
+    elif isinstance(labels, list) or isinstance(labels, tuple):
         label_names = pd.Series(labels, index=np.arange(len(labels))+1)
         n_labels = len(labels)
     else:

@@ -12,7 +12,6 @@ from mlcf.datatools.windowing.tseries import (
 )
 
 from mlcf.datatools.standardize_fct import ClassicStd
-from numpy.lib.stride_tricks import sliding_window_view
 
 
 @pytest.mark.parametrize(
