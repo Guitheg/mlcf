@@ -5,6 +5,7 @@ import numpy as np
 from typing import List, Optional
 from mlcf.datatools.windowing.iterator import WindowIterator
 
+# TODO: (doc)
 
 __all__ = [
     "WindowForecastIterator"
@@ -81,7 +82,7 @@ class WindowForecastIterator():
         window = self.data[idx]
         w_input = window.iloc[:self.input_width]
         w_target = window.iloc[-self.target_width:]
-        return w_input[self.input_features], w_target[self.target_features]
+        return w_input[self.input_features].values, w_target[self.target_features].values
 
     def __iter__(self):
         self.__window_index = 0

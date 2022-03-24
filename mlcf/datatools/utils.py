@@ -100,6 +100,8 @@ def labelize(
     Returns:
         pd.DataFrame: _description_
     """
+    if data.isnull().values.any():
+        raise Exception("NaN values has been found")
     dataframe = data.copy()
     if not (isinstance(bounds, tuple) and len(bounds) == 2) and bounds:
         raise TypeError("Bounds must be a tuple of two elements")

@@ -3,127 +3,22 @@ This is a data structure that divides the input data into n intervals and applie
 to each of these intervals. It provides a data structure to tag (True or False) rows according to
 certain conditions."""
 
-from functools import partial
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 import pandas as pd
-import numpy as np
-import random
-from mlcf.datatools.windowing.tseries import WTSeries, predicate_windows_step
+from mlcf.datatools.windowing.filter import WindowFilter
+from mlcf.datatools.windowing.tseries import WTSeries
 
 from mlcf.datatools.utils import split_train_val_test
 from mlcf.datatools.standardize_fct import StandardisationFct, standardize
 
+# TODO: (doc)
+
 __all__ = [
-    # "AnyStepTag",
-    "HaveAlreadyAStepTag",
-    "TagCreator",
-    "LabelBalanceTag",
-    "DataInIntervals"
+    "DataIntervals"
 ]
 
 
-class AnyStepTag(Exception):
-    pass
-
-
-class HaveAlreadyAStepTag(Exception):
-    pass
-
-
-class TagCreator():
-    """This class is called to tag (True or False) rows according to certain conditions by
-    returning a pandas.Series with the tag values. The other tag creaters are inherited from this
-    parent class and overwrite the "__call__" function. The __call__ function that is implemented
-    in this class will tag True by default."""
-    def __call__(
-        self,
-        data: pd.DataFrame,
-        column: str,
-        *args, **kwargs
-    ) -> pd.Series:
-        """
-        This function returns a pandas.Series with the tag values (True or False) for every row.
-        It returns True by default. It must be overwritten in an inherited class to change its
-        behaviour.
-
-        Args:
-            data (pandas.DataFrame): pandas.DataFrame on which the row values are evaluated to
-            determine the tag values
-            column (List[str]): The relevant column on which the values are evaluated to
-            determine the tag values
-
-        Returns:
-            pandas.Series: A pandas.Series with True tag values for every row
-        """
-        return pd.Series([True]*len(data[column]))
-
-
-class LabelBalanceTag(TagCreator):
-    """This class is called to slice the histogram of labeled values according to the {max_count}
-    parameter. It aims to limit the height of the histogram and to make the histogram more uniform
-    by tagging False the values that are not taken into account in the construction of the
-    histogram."""
-    def __init__(self, max_count: Optional[int] = None, sample_function: Callable = random.sample):
-        """Define the LabelBalanceTag by giving a max_count and a sample_function.
-
-        Args:
-            max_count (int, optional): The maximum height of the histogram. If it is not specified,
-            it will be defined as the average of extreme values of the histogram.
-            sample_function (Callable, optional): The function allowing to set True or False tags
-            while keeping the desired proportion. By default, it is set as random.sample.
-        """
-        self.max_count: Optional[int] = max_count
-        self.sample_function = sample_function
-
-    def __call__(
-        self,
-        data: pd.DataFrame,
-        column: str,
-        *args, **kwargs
-    ) -> pd.Series:
-        """
-        This function tags False the values that are not taken into account in the construction
-        of the histogram of the relevant {column} values of {data}. This way, the histogram will
-        be more uniform and limited in height by {max_count}.
-
-        Args:
-            data (pandas.DataFrame): pandas.DataFrame on which the row values are evaluated to
-            determine the tag values
-            column (List[str]): The relevant column on which the values are evaluated to
-            determine the tag values
-
-        Returns:
-            pandas.Series: It returns a pandas.Series where the proportion of False tagged values
-            make the histogram of the given column more uniform
-        """
-        if "step_tag" not in data:
-            dataframe = data.copy()
-            tag_col = pd.Series([True]*len(dataframe), index=dataframe.index)
-        else:
-            dataframe = data.loc[data["step_tag"]].copy()
-            tag_col = data["step_tag"].copy()
-        value_count = dataframe[column].value_counts()
-        if not self.max_count:
-            if "-inf" in value_count and "+inf" in value_count:
-                max_count = np.mean([value_count["-inf"], value_count["+inf"]]).astype(int)
-            else:
-                max_count = np.mean(value_count).astype(int)
-        else:
-            max_count = self.max_count
-
-        for idx in value_count.index:
-            if value_count[idx] > max_count:
-                tag_col.loc[
-                    sorted(self.sample_function(
-                        list(dataframe[dataframe[column] == idx].index),
-                        k=value_count[idx]-max_count)
-                    )
-                ] = False
-        return tag_col
-
-
-# TODO: (refactoring) protect more self.step_tag from modification
-class DataInIntervals():
+class DataIntervals():
     def __init__(
         self,
         data: pd.DataFrame,
@@ -146,7 +41,6 @@ class DataInIntervals():
             "val": self.val_intervals,
             "test": self.test_intervals
         }
-        self.step_tag: int = 0
 
     def get(self, set_name: str):
         if set_name not in self.intervals:
@@ -156,6 +50,15 @@ class DataInIntervals():
 
     def __call__(self, set_name: str):
         return self.get(set_name)
+
+    def __getitem__(self, set_name: str):
+        return self.get(set_name)
+
+    def __iter__(self):
+        return self.intervals
+
+    def __next__(self):
+        return next(self.intervals)
 
     @classmethod
     def create_list_interval(
@@ -208,81 +111,48 @@ class DataInIntervals():
         std_by_feature: Dict[str, StandardisationFct]
     ) -> None:
         self.std_by_feature = std_by_feature
+
         self.train_intervals = standardize(
-            self.std_by_feature,
+            std_by_feature=self.std_by_feature,
             fit_data=self.train_intervals,
-            transform_data=self.train_intervals)
+            transform_data=self.train_intervals
+        )
+
         self.val_intervals = standardize(
-            self.std_by_feature,
+            std_by_feature=self.std_by_feature,
             fit_data=[],
-            transform_data=self.val_intervals)
+            transform_data=self.val_intervals
+        )
+
         self.test_intervals = standardize(
-            self.std_by_feature,
+            std_by_feature=self.std_by_feature,
             fit_data=[],
-            transform_data=self.test_intervals)
-
-    def add_step_tag(self, step: int):
-        if self.step_tag:
-            raise HaveAlreadyAStepTag(
-                "Cannot recompute a new step tag considering there " +
-                f"are already a step tag ({self.step_tag})"
-            )
-        if step < 1:
-            raise ValueError("The step value must be greater than 0")
-        for _, intervals in self.intervals.items():
-            for interval in intervals:
-                array = np.zeros(len(interval), dtype=bool)
-                array[::step] = True
-                interval["step_tag"] = array
-        self.step_tag = step
-
-    def add_tag(
-        self,
-        tag_creator: TagCreator,
-        tag_name: str,
-        list_partitions: List[str],
-        column: str,
-        *args, **kwargs
-    ):
-        if not self.step_tag:
-            raise AnyStepTag("There are any step tag. We need a step tag to add a tag")
-        for partition in list_partitions:
-            for interval in self.intervals[partition]:
-                interval[tag_name] = tag_creator(
-                    data=interval,
-                    column=column,
-                    *args,
-                    **kwargs
-                ).values
+            transform_data=self.test_intervals
+        )
 
     def data_windowing(
         self,
         window_width: int,
+        window_step: int = 1,
         selected_columns: Optional[List[str]] = None,
-        predicate_row_selection: Optional[Callable] = None,
+        filter_by_dataset: Optional[Dict[str, WindowFilter]] = None,
         std_by_feature: Optional[Dict[str, StandardisationFct]] = None
     ) -> Dict[str, WTSeries]:
-        window_step = self.step_tag
-        if self.step_tag and predicate_row_selection is None:
-            predicate_row_selection = partial(
-                predicate_windows_step,
-                step_tag_name="step_tag")
-        if not self.step_tag and predicate_row_selection:
-            raise AnyStepTag(
-                "There are any step tag. We need a step tag to use a predicate")
-        if not self.step_tag and predicate_row_selection is None:
-            window_step = 1
 
         data_windowed: Dict[str, WTSeries] = {}
         for key, intervals in self.intervals.items():
-            for idx_interval, interval in enumerate(intervals):
+            if filter_by_dataset and key in filter_by_dataset:
+                window_filter = filter_by_dataset[key]
+            else:
+                window_filter = None
+            for interval in intervals:
                 if len(interval) >= window_width:
                     wtseries = WTSeries.create_wtseries(
                         dataframe=interval,
                         window_width=window_width,
                         window_step=window_step,
                         selected_columns=selected_columns,
-                        predicate_row_selection=predicate_row_selection,
+                        window_filter=window_filter,
                         std_by_feature=std_by_feature
                     )
                     if key in data_windowed:

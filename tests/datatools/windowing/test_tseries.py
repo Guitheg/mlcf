@@ -1,17 +1,16 @@
 
-from functools import partial
+import pytest
 from pathlib import Path
 import pandas as pd
-import pytest
 import numpy as np
-from mlcf.datatools.data_intervals import DataInIntervals
+from mlcf.datatools.data_intervals import DataIntervals
+from mlcf.datatools.windowing.filter import LabelBalanceFilter
 from mlcf.datatools.windowing.tseries import (
-    DataEmptyException,
     IncompatibleDataException,
     WTSeries,
-    predicate_balance_tag,
-    predicate_windows_step
+    DataEmptyException
 )
+
 from mlcf.datatools.standardize_fct import ClassicStd
 from numpy.lib.stride_tricks import sliding_window_view
 
@@ -50,37 +49,21 @@ from numpy.lib.stride_tricks import sliding_window_view
         ),
         (
             {
-                "window_width": 30,
-                "window_step": 2,
-                "selected_columns": ["close", "return"],
-                "std_by_feature": {"close": ClassicStd()},
-                "predicate_row_selection": partial(predicate_windows_step, step_tag_name="step_tag")
-            },
-            {
-                "length": 7659,
-                "first_window": lambda data: data["return"].iloc[1:31].values
-            }
-        ),
-        (
-            {
                 "window_width": 300,
                 "window_step": 2,
                 "selected_columns": ["close", "return"],
                 "std_by_feature": {"close": ClassicStd()},
-                "predicate_row_selection": partial(
-                    predicate_balance_tag,
-                    step_tag_name="step_tag",
-                    balance_tag_name="balance_tag")
+                "window_filter": LabelBalanceFilter("label")
             },
             {
-                "length": 2400,
-                "first_window": lambda data: data["return"].iloc[959:1259].values
+                "length": 5209,
+                "first_window": lambda data: data["return"].iloc[4:304].values
             }
         )
     ]
 )
-def test_wtseries(get_btc_tagged_data, test_input, expected):
-    data = get_btc_tagged_data(test_input["window_step"])
+def test_wtseries(ohlcvrl_btc, test_input, expected):
+    data = ohlcvrl_btc.copy()
 
     wtseries = WTSeries.create_wtseries(data, **test_input)
     assert len(wtseries) == expected["length"]
@@ -145,7 +128,7 @@ def test_create_wtseries_exception(ohlcvra_btc, data_selection, test_input, expe
     ]
 )
 def test_merge(ohlcvra_btc, test_input):
-    data_intervals = DataInIntervals.create_list_interval(ohlcvra_btc, n_intervals=2)
+    data_intervals = DataIntervals.create_list_interval(ohlcvra_btc, n_intervals=2)
     wtseries_1 = WTSeries.create_wtseries(data_intervals[0], **test_input)
     wtseries_2 = WTSeries.create_wtseries(data_intervals[0], **test_input)
     wtseries = wtseries_1.merge(wtseries_2)
@@ -207,66 +190,3 @@ def test_read(ohlcvr_btc, test_input, group_key, tmp_path: Path):
     assert file_path.is_file()
     wtseries_read = WTSeries.read(file_path, group_key)
     assert np.all(wtseries.data.values == wtseries_read.data.values)
-
-
-@pytest.mark.parametrize(
-    "predicate, test_input, expected",
-    [
-        (
-            partial(
-                predicate_balance_tag,
-                step_tag_name="step_tag",
-                balance_tag_name="balance_tag"),
-            {"window_step": 1, "window_width": 30},
-            2400
-        ),
-        (
-            partial(
-                predicate_balance_tag,
-                step_tag_name="step_tag",
-                balance_tag_name="balance_tag"),
-            {"window_step": 2, "window_width": 30},
-            2400
-        ),
-        (
-            partial(
-                predicate_balance_tag,
-                step_tag_name="step_tag",
-                balance_tag_name="balance_tag"),
-            {"window_step": 20, "window_width": 30},
-            766
-        ),
-        (
-            partial(predicate_windows_step, step_tag_name="step_tag"),
-            {"window_step": 1, "window_width": 30},
-            15318
-        ),
-        (
-            partial(predicate_windows_step, step_tag_name="step_tag"),
-            {"window_step": 2, "window_width": 30},
-            7659
-        ),
-        (
-            partial(predicate_windows_step, step_tag_name="step_tag"),
-            {"window_step": 100, "window_width": 30},
-            153
-        )
-    ]
-)
-def test_predicate_tag(get_btc_tagged_data, predicate, test_input, expected):
-    # Data preprocess --
-    data = get_btc_tagged_data(test_input["window_step"])
-    data["__index"] = np.arange(len(data))
-    windowed_data: np.ndarray = sliding_window_view(
-        data,
-        window_shape=(test_input["window_width"], len(data.columns))
-    )
-    windowed_data_shape = (-1, test_input["window_width"], len(data.columns))
-    windowed_data = np.reshape(windowed_data, newshape=windowed_data_shape)
-    index_data = windowed_data[:, :, list(data.columns).index("__index")]
-    # --------------
-    bool_list = [
-        predicate(data, idx)
-        for idx in index_data
-    ]
-    assert len([b for b in bool_list if b]) == expected

@@ -1,6 +1,12 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 
+# TODO: (doc)
+
+__all__ = [
+    "WindowIterator"
+]
+
 
 class WindowIterator(ABC):
     def __init__(self):

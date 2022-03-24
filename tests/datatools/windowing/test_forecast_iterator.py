@@ -39,10 +39,10 @@ def test_window_forecast_iterator(
     )
     for w in w_iterator:
         wi, wt = w
-        assert len(wi) == input_width
-        assert len(wt) == target_width
-        assert list(wi.columns) == list(i_features if i_features else wtseries.features)
-        assert list(wt.columns) == list(t_features if t_features else wtseries.features)
+        assert wi.shape == (
+            input_width, len(list(i_features if i_features else wtseries.features)))
+        assert wt.shape == (
+            target_width, len(list(t_features if t_features else wtseries.features)))
 
 
 @pytest.mark.parametrize(

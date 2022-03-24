@@ -5,19 +5,19 @@ allows us to handle a multi-indexed data frame that represents a windowed time s
 
 from __future__ import annotations
 from pathlib import Path
-from typing import Callable, Dict, List, Optional
+from typing import Dict, List, Optional
 from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 import numpy as np
 from mlcf.datatools.standardize_fct import StandardisationFct
+from mlcf.datatools.windowing.filter import WindowFilter
 from mlcf.datatools.windowing.iterator import WindowIterator
 
+# TODO: (doc)
 
 __all__ = [
     "WINDOW_INDEX_NAME",
     "TIME_INDEX_NAME",
-    "predicate_windows_step",
-    "predicate_balance_tag",
     "WTSeries"
 ]
 
@@ -35,27 +35,6 @@ class IncompatibleDataException(Exception):
     pass
 
 
-def predicate_windows_step(
-    data,
-    idx: List[int],
-    step_tag_name: str
-) -> bool:
-    return data.loc[data.index[idx[-1]], step_tag_name]
-
-
-def predicate_balance_tag(
-    data,
-    idx: List[int],
-    balance_tag_name: str,
-    step_tag_name: str
-) -> bool:
-    return (
-        data.loc[data.index[idx[-1]], balance_tag_name] and
-        data.loc[data.index[idx[-1]], step_tag_name]
-    )
-
-
-# TODO: (refactoring) Typage
 class WTSeries(WindowIterator):
     """
 
@@ -81,10 +60,11 @@ class WTSeries(WindowIterator):
         window_width: int,
         window_step: int,
         selected_columns: Optional[List[str]] = None,
-        predicate_row_selection: Optional[Callable] = None,
+        window_filter: Optional[WindowFilter] = None,
         std_by_feature: Optional[Dict[str, StandardisationFct]] = None
     ) -> WTSeries:
         data = dataframe.copy()
+
         data_columns = list(data.columns)
         data[TIME_INDEX_NAME] = np.arange(len(data), dtype=int)
         if len(data) == 0 or len(data) < window_width:
@@ -96,12 +76,11 @@ class WTSeries(WindowIterator):
             window_shape=(window_width),
         ).reshape((-1, window_width))
 
-        # Select rows and windows
-        if predicate_row_selection is None:
-            index_data = index_data[::window_step]
-        else:
-            index_data = index_data[
-                [predicate_row_selection(data, idx) for idx in index_data]]
+        # filter and select windows
+        index_data = index_data[::window_step]
+        if window_filter:
+            window_filter(data, index_data)
+            index_data = index_data[[window_filter[idx] for idx in index_data]]
 
         # Set the indexes
         window_index = np.mgrid[
