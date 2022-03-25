@@ -36,7 +36,6 @@ for window in wtseries:
 """
 
 from __future__ import annotations
-from pdoc import __pdoc__
 from pathlib import Path
 from typing import Dict, List, Optional
 from numpy.lib.stride_tricks import sliding_window_view
