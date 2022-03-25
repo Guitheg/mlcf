@@ -1,9 +1,11 @@
-# setuptools version 59.5 to avoid : AttributeError: module 'setuptools._distutils' has no attribute 'version'
-
-# https://www.freqtrade.io/en/stable/te
-ccxt==1.72.98
+# https://mrjbq7.github.io/ta-lib/
 TA-Lib==0.4.24
 
+# https://github.com/twopirllc/pandas-ta
 pandas-ta
 
+# https://scikit-learn.org/stable/
 sklearn
+
+# https://pypi.org/project/tables/
+tables

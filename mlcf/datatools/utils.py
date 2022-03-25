@@ -1,6 +1,5 @@
 """Utilitaries module
-Provide some tools to perform processing on data frame
-"""
+Provide some tools to perform processing on data frame"""
 
 from copy import copy
 from typing import List, Tuple, Union
@@ -23,7 +22,8 @@ def binarize(
     include_sep: bool = True,
     label_col_name: str = None
 ) -> pd.DataFrame:
-    """Add a {label_col_name} column to a dataframe containing the binary label of a given column.
+    """
+    Add a {label_col_name} column to a dataframe containing the binary label of a given column.
     We can choose the separator value such as : every value of the column less than the {sep_value}
     belong to the first class and every value greater or equal than the {sep_value} belong to the
     second class. The greater or equal condition can be change by just a greater condition
@@ -33,16 +33,21 @@ def binarize(
 
     Args:
         data (pd.DataFrame): The dataframe
+
         column (str): The column to binarize
+
         labels (Union[Tuple, List], optional): A tuple or list of two element (the labels names).
-        If None then the two elements will be (0, 1). Defaults to None.
+            If None then the two elements will be (0, 1). Defaults to None.
+
         sep_value (Union[float, int], optional): The value which determine the condition to belong
-        to the first or the second class. If value are less than {sep_value} then it belongs to
-        the first class else it belongs to the second class. Defaults to 0.0.
+            to the first or the second class. If value are less than {sep_value} then it belongs to
+            the first class else it belongs to the second class. Defaults to 0.0.
+
         include_sep (bool, optional): If False, the value should be less or equal to {sep_value}
-        to belong to the first class. Defaults to True.
+             belong to the first class. Defaults to True.
+
         label_col_name (str, optional): The column name of the new label column. By default, the
-        name is : '{column}_label'. Defaults to None.
+            name is : '{column}_label'. Defaults to None.
 
     Raises:
         TypeError: Raise the exception if the type of the labelsis unknown
@@ -76,7 +81,8 @@ def labelize(
     label_col_name: str = None,
     *args, **kwargs
 ) -> pd.DataFrame:
-    """Add a {label_col_name} column to a dataframe containing the labels of a given column.
+    """
+    Add a {label_col_name} column to a dataframe containing the labels of a given column.
     The labels refer to a membership of a values to an interval. The number of intervals is
     determined by the number of labels. All interval have the same size. If we give a bounds,
     the intervals are determined inside the bounds. Every value which is under or above the bounds
@@ -84,18 +90,25 @@ def labelize(
 
     Args:
         data (pd.DataFrame): The dataframe
+
         column (str): The column to labelize
+
         labels (Union[int, List]): A list or tuple of N elements (the labels names). A int to
-        determine the number of labels.
+            determine the number of labels.
+
         bounds (Tuple[float, float], optional): The intervals are determined inside the bounds.
-        Every value which is under or above the bounds will have respectively the label
-        '-inf' and '+inf'. Defaults to None.
+            Every value which is under or above the bounds will have respectively the label
+            '-inf' and '+inf'. Defaults to None.
+
         label_col_name (str, optional): The column name of the new label column. By default, the
-        name is : '{column}_label'. Defaults to None.
+            name is : '{column}_label'. Defaults to None.
 
     Raises:
-        TypeError: _description_
-        ValueError: _description_
+        TypeError: Raise this exception if {bounds} is not a tuple of two elements.
+
+        TypeError: Raise this exception if the type is wrong. Must be a Integer or a List.
+
+        ValueError: If the value of label doesn't have a sense.
 
     Returns:
         pd.DataFrame: _description_
@@ -159,13 +172,15 @@ def split_pandas(
     data: pd.DataFrame,
     prop_snd_elem: float = 0.5
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    """Split a dataframe in two dataframes which keep the same columns.
+    """
+    Split a dataframe in two dataframes which keep the same columns.
     The {prop_snd_elem} is the proportion of row for the second element.
 
     Args:
         dataframe (pd.DataFrame): The dataframe we want to split in two
+
         prop_snd_elem (float, optional): The proportion of row of the second elements in percentage.
-        Defaults to 0.5.
+            Defaults to 0.5.
 
     Returns:
         Tuple[pd.DataFrame, pd.DataFrame]: The first and second part of the split
@@ -197,7 +212,8 @@ def split_train_val_test(
     prop_val_test: float,
     prop_val: float = 0.0
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """It splits the dataframe in train, val, and test set.
+    """
+    It splits the dataframe in train, val, and test set.
     The {prop_val_test} value defines the proportion of val and test rows.
     So the proportion of train rows: 1-{prop_val_test}.
     The {prop_val} value defines the proportion of val rows amoung the test set.
@@ -206,11 +222,13 @@ def split_train_val_test(
 
     Args:
         data (pd.DataFrame): The dataframe we want to split in 3 set: (train, val, test)
+
         prop_val_test (float): The val and test rows proportion. The proportion of train is
-        equal to: 1-{prop_val_test}.
+            equal to: 1-{prop_val_test}.
+
         prop_val (float, optional): The val set proportion amoung the test set. The proportion of
-        val rows is : {prop_val_test}*{prop_val}. The proportion of test part is :
-        {prop_val_test}*(1-{prop_val}). Defaults to 0.0.
+            val rows is : {prop_val_test}*{prop_val}. The proportion of test part is :
+            {prop_val_test}*(1-{prop_val}). Defaults to 0.0.
 
     Returns:
         Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: Return a tuple of respectively

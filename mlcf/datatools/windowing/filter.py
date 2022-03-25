@@ -13,10 +13,11 @@ __all__ = [
 ]
 
 
-# TODO: (enhancement) use only __call__
 class WindowFilter(ABC):
-    def __init__(self):
-        self.data: pd.DataFrame = None
+    """
+    This class allows us to perform a window filtering according to some condition. This class is compatible with WTSeries and DataIntervals.
+    Every class which want to perform window filtering must inherit from this class.
+    """
 
     @abstractmethod
     def __call__(
@@ -27,34 +28,63 @@ class WindowFilter(ABC):
     ) -> pd.DataFrame:
         pass
 
-    @abstractmethod
-    def __getitem__(self, idx) -> bool:
-        pass
-
 
 class LabelBalanceFilter(WindowFilter):
+    """
+    From a set of window, will filter the window in order to uniformize the histogram of the given label column.
+    
+    Attributes:
+        column (str): The filter will take only the values of this column in account
+        
+        max_count (int): The maximum number of count for each label after the filtering
+        
+        sample_function (Callable): A callable function such as fct(list, k) -> list_of_k_values
+    """
     def __init__(
         self,
         column: str,
         max_count: Optional[int] = None,
         sample_function: Callable = random.sample
     ):
+        """
+        Initialize the LabelBalanceFilter.
+        We must give the column to know which will be take in account to uniformize the histogram.
+
+        Args:
+            column (str): The label column on which the histogram is processed.
+
+            max_count (Optional[int], optional): The maximum number of counted label after filtering. Defaults to None.
+
+            sample_function (Callable, optional): A function such as fct(list, k) -> list_of_k_values.
+                Defaults to random.sample.
+        """
 
         super(LabelBalanceFilter, self).__init__()
         self.column = column
-        self.tag_name = "label_balance_tag"
         self.max_count: Optional[int] = max_count
-        self.sample_function = sample_function
+        self.sample_function: Callable = sample_function
+
+    @property
+    def tag_name(self):
+        return "label_balance_tag"
 
     def __call__(
         self,
         data: pd.DataFrame,
         index_array: np.ndarray,
         *args, **kwargs
-    ):
+    ) -> List[bool]:
         """
-        This function tags False the values that are not taken into account in the construction
-        of the histogram of the relevant {column} values of {data}.
+        Given the time series dataframe and a index array corresponding to the windowed index of the time series dataframe.
+
+        Args:
+            data (pd.DataFrame): The time series dataframe
+
+            index_array (np.ndarray): the index array correspond to the windowed index dataframe. It's a 2-D array with first axis give the 
+                windows and the second axis gives the row index in the time series dataframe.
+
+        Returns:
+            List[bool]: List length = number of window. With True if we keep the corresponding window else False.
         """
 
         dataframe = data.copy()
@@ -96,6 +126,4 @@ class LabelBalanceFilter(WindowFilter):
                 ] = False
         self.data = data.copy()
         self.data[self.tag_name] = tag_col
-
-    def __getitem__(self, idx: List[int]) -> bool:
-        return self.data.loc[self.data.index[idx[-1]], self.tag_name]
+        return [self.data.loc[self.data.index[idx[-1]], self.tag_name] for idx in index_array]

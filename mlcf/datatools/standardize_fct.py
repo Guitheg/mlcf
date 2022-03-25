@@ -1,5 +1,5 @@
-"""_summary_
-"""
+"""Standardisation Function Module
+This module provide the StandardisationFct class which provide methods compatible with DataIntervals and WTSeries."""
 from abc import ABC
 from typing import Dict, List, Optional, Tuple, Union
 import pandas as pd

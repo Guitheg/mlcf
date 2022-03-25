@@ -1,5 +1,10 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
+from ctypes import Union
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
 
 # TODO: (doc)
 
@@ -10,18 +15,25 @@ __all__ = [
 
 # TODO: (enhancement) Window Iterator Time Series implementation
 class WindowIterator(ABC):
+    """
+    WindowIterator is an abstract class.
+    Every class which attempt to iterate over a dataframe with window should be inherit from this WindowIterator.
+
+    Attributes:
+        __window_index (int): the window index used to iterate over the window.
+    """
     def __init__(self):
         self.__window_index = 0
 
     @abstractmethod
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int):
         pass
 
     @abstractmethod
-    def __len__(self):
+    def __len__(self) -> int:
         pass
 
-    def __iter__(self):
+    def __iter__(self) -> WindowIterator:
         self.__window_index = 0
         return self
 
@@ -35,33 +47,33 @@ class WindowIterator(ABC):
 
     @property
     @abstractmethod
-    def n_window(self):
+    def n_window(self) -> int:
         pass
 
     @property
     @abstractmethod
-    def ndim(self):
+    def ndim(self) -> int:
         pass
 
     @property
     @abstractmethod
-    def features(self):
+    def features(self) -> int:
         pass
 
     @property
     @abstractmethod
-    def width(self):
+    def width(self) -> int:
         pass
 
     @abstractmethod
-    def copy(self):
+    def copy(self) -> WindowIterator:
         pass
 
     @classmethod
     @abstractmethod
-    def read(self, filepath) -> WindowIterator:
+    def read(self, filepath: Path) -> WindowIterator:
         pass
 
     @abstractmethod
-    def write(self, dirpath, filename):
+    def write(self, dirpath: Path, filename: str) -> Path:
         pass

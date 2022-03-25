@@ -1,7 +1,6 @@
-"""Add indicators module.
+"""Indicators Module.
 This module provide function to add intern or extern indicators as features
-on a time series dataframe.
-"""
+on a time series dataframe."""
 
 from typing import List
 
@@ -11,8 +10,6 @@ import pandas as pd
 import numpy as np
 
 from mlcf.datatools.indicators.indicators_fct import INDICE_DICT
-
-# TODO: (doc)
 
 __all__ = [
     "FeatureAlreadyExistException",
@@ -31,18 +28,25 @@ def add_extern_indicator(
     feature_names: List[str],
     time_index_name: str = "date"
 ) -> pd.DataFrame:
-    """This function allows to add new features with extern indicators (provided by a json file).
-    The data's file must have a time column as index. The data's features will be merged to the
-    given {data} pandas.DataFrame.
+    """
+    This function allows to add new features with extern indicators (provided by a json file).
+    The data's file must have a time column as index which match with your data. The data format must be such as : {column -> {index -> value}}.
+    The data's features will be merged to the given {data} pandas.DataFrame.
 
     Args:
         data (pd.DataFrame): The pandas.DataFrame time series OHLCV data
+
         file_path (Path): The file path to the extern indicators file.
+
         feature_names (List[str]): The names of the features.
+
         time_index_name (str, optional): The name of the time index column. Defaults to "date".
 
+    Raises:
+        FeatureAlreadyExistException: Raise this exception if a feature in the extern file indicator already exist in the given dataframe.
+    
     Returns:
-        pd.DataFrame: The new extern features merged to the time series OHLCV dataframe
+        pd.DataFrame: The passed data plus the new extern features.
     """
     dataframe = data.copy()
     feature_columns: List[str] = feature_names
@@ -70,16 +74,19 @@ def add_intern_indicator(
     indice_name: str,
     *args, **kwargs
 ) -> pd.DataFrame:
-    """This function allows to add new features with intern indicators (provided by processing the
-    OHLCV data).
+    """
+    This function allows to add new features with intern indicators (provided by processing the OHLCV data).
     The new data's features will be merged to the given {data} pandas.DataFrame.
+    The indice name correspond to a key of {mlcf.datatools.indicators.indicators_fct.INDICE_DICT} 
+    which give for a key the corresponding adding indicator function.
 
     Args:
         data (pd.DataFrame): The OHLCV pandas.DataFrame
-        indice_name (str): The name of the function which will add new features to the dataframe
+
+        indice_name (str): The name of the {INDICE_DICT} key corresponding to the function which will add new features to the dataframe.
 
     Returns:
-        pd.DataFrame: The dataframe merged with the new features
+        pd.DataFrame: The dataframe merged with the new features.
     """
     dataframe = data.copy()
     dataframe = INDICE_DICT[indice_name](dataframe, *args, **kwargs)

@@ -1,6 +1,5 @@
-"""Indicators function mododule.
-Provide a set of indicators functions.
-"""
+"""Indicators Function mododule.
+Provide a set of indicators functions and INDICE_DICT which give one of these function given a string key."""
 
 from typing import Callable, Dict
 # import mlcf.datatools.indicators_tools as i_tools
@@ -20,7 +19,7 @@ def add_adx(data: pd.DataFrame, *args, **kwargs):
     """Average Directional Index (ADX)
     The average directional index (ADX) is a technical analysis indicator used by some traders
     to determine the strength of a trend.
-    NOTE: The ADX function has an unstable period.
+    note: The ADX function has an unstable period.
     real = ADX(high, low, close, timeperiod=14)
     """
     dataframe = data.copy()

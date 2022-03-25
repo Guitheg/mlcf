@@ -172,10 +172,10 @@ from mlcf.datatools.windowing.tseries import WTSeries
 # To create a WTSeries from pandas.DataFrame
 wtseries = WTSeries.create_wtseries(
     dataframe=data,
-    window_filter=30,
+    window_width=30,
     window_step=1,
     selected_columns=["close", "return", "adx"],
-    filter_by_dataset=filter_by_set,
+    window_filter=LabelBalanceFilter("label"),
     std_by_feature=std_by_feautures
 )
 

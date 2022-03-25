@@ -25,6 +25,5 @@ def test_label_balance_filter(ohlcvrl_btc, max_count, window_width, window_step,
         window_shape=(window_width),
     ).reshape((-1, window_width))
     index_data = index_data[::window_step]
-    window_filter(ohlcvrl_btc, index_data)
-    index_data = index_data[[window_filter[idx] for idx in index_data]]
+    index_data = index_data[window_filter(ohlcvrl_btc, index_data)]
     assert index_data.shape[0] == expected
