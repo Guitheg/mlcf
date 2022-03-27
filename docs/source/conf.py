@@ -12,7 +12,6 @@
 #
 import os
 import sys
-from mlcf import __version__
 sys.path.insert(0, os.path.abspath('..'))
 
 
@@ -21,7 +20,6 @@ sys.path.insert(0, os.path.abspath('..'))
 project = 'MLCF'
 copyright = '2022, CGrbi'
 author = 'CGrbi'
-version = __version__
 
 
 # -- General configuration ---------------------------------------------------
