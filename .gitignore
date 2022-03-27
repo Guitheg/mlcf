@@ -32,9 +32,6 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
-#sphinx doc
-!docs/build/
-
 develop-eggs/
 dist/
 downloads/
