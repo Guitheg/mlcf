@@ -4,14 +4,14 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 from mlcf.datatools.data_intervals import DataIntervals
-from mlcf.datatools.windowing.filter import LabelBalanceFilter
-from mlcf.datatools.windowing.tseries import (
+from mlcf.windowing.filtering import LabelBalanceFilter
+from mlcf.windowing.iterator.tseries import (
     IncompatibleDataException,
     WTSeries,
     DataEmptyException
 )
 
-from mlcf.datatools.standardize_fct import ClassicStd
+from mlcf.datatools.standardisation import ClassicStd
 
 
 @pytest.mark.parametrize(

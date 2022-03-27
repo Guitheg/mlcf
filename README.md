@@ -61,7 +61,7 @@ In this part, we will introduce some example usage of MLCF module.
 
 ---
 
-### File reader module:
+### File reader module
 
 ```python
 # -----------  read file ---------------------------------
@@ -90,7 +90,7 @@ data = read_json_file(Path("tests/testdata/meteo.json"), 'time', ["time", "Tempe
 
 ```python
 # ------------------- Indicators module -----------------------------
-from mlcf.datatools.indicators.add_indicators import add_intern_indicator
+from mlcf.indicators.add_indicators import add_intern_indicator
 
 # you can add yoursel your own indicators or features
 data["return"] = data["close"].pct_change(1)
@@ -134,7 +134,7 @@ from mlcf.datatools.windowing.filter import LabelBalanceFilter
 # We define a dict which give us the information about what standardization apply to each columns.
 std_by_feautures = {
     "close": ClassicStd(),
-    "return": ClassicStd(with_mean=False),  # to avoid to shift we do no center the mean
+    "return": ClassicStd(with_mean=False),  # to avoid to shift we don't center
     "adx": MinMaxStd(minmax=(0, 100))  # the value observed in the adx are between 0 and 100 and we
                                        # want to set it between 0 and 1.
 }
@@ -150,7 +150,7 @@ filter_by_set = {
 
 # dict_train_val_test is a dict with the key 'train', 'val', 'test'. The value of the dict is a
 # WTSeries (a windowed time series).
-dict_train_val_test = data_intervals.data_windowing(
+dict_train_val_test = data_intervals.windowing(
     window_width=30,
     window_step=1,
     selected_columns=["close", "return", "adx"],
@@ -172,10 +172,10 @@ from mlcf.datatools.windowing.tseries import WTSeries
 # To create a WTSeries from pandas.DataFrame
 wtseries = WTSeries.create_wtseries(
     dataframe=data,
-    window_filter=30,
+    window_width=30,
     window_step=1,
     selected_columns=["close", "return", "adx"],
-    filter_by_dataset=filter_by_set,
+    window_filter=LabelBalanceFilter("label"),
     std_by_feature=std_by_feautures
 )
 

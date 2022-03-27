@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mlcf.windowing.filtering.label_balance_filter module &mdash; MLCF documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="mlcf.windowing.iterator package" href="mlcf.windowing.iterator.html" />
+    <link rel="prev" title="mlcf.windowing.filtering.filter module" href="mlcf.windowing.filtering.filter.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> MLCF
+          </a>
+              <div class="version">
+                2.0.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">mlcf</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="mlcf.html">mlcf package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="mlcf.datatools.html">mlcf.datatools package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mlcf.indicators.html">mlcf.indicators package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="mlcf.windowing.html">mlcf.windowing package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="mlcf.windowing.filtering.html">mlcf.windowing.filtering package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mlcf.windowing.iterator.html">mlcf.windowing.iterator package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MLCF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="modules.html">mlcf</a> &raquo;</li>
+          <li><a href="mlcf.html">mlcf package</a> &raquo;</li>
+          <li><a href="mlcf.windowing.html">mlcf.windowing package</a> &raquo;</li>
+          <li><a href="mlcf.windowing.filtering.html">mlcf.windowing.filtering package</a> &raquo;</li>
+      <li>mlcf.windowing.filtering.label_balance_filter module</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-mlcf.windowing.filtering.label_balance_filter">
+<span id="mlcf-windowing-filtering-label-balance-filter-module"></span><h1>mlcf.windowing.filtering.label_balance_filter module<a class="headerlink" href="#module-mlcf.windowing.filtering.label_balance_filter" title="Permalink to this headline"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="mlcf.windowing.filtering.label_balance_filter.LabelBalanceFilter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mlcf.windowing.filtering.label_balance_filter.</span></span><span class="sig-name descname"><span class="pre">LabelBalanceFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column:</span> <span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_occ:</span> <span class="pre">typing.Optional[int]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_function:</span> <span class="pre">typing.Callable</span> <span class="pre">=</span> <span class="pre">&lt;bound</span> <span class="pre">method</span> <span class="pre">Random.sample</span> <span class="pre">of</span> <span class="pre">&lt;random.Random</span> <span class="pre">object&gt;&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mlcf.windowing.filtering.label_balance_filter.LabelBalanceFilter" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="mlcf.windowing.filtering.filter.html#mlcf.windowing.filtering.filter.WindowFilter" title="mlcf.windowing.filtering.filter.WindowFilter"><code class="xref py py-class docutils literal notranslate"><span class="pre">mlcf.windowing.filtering.filter.WindowFilter</span></code></a></p>
+<p>Label balancing filter.</p>
+<blockquote>
+<div><p>It will even out the histogram of a labeled feature.</p>
+<p>A labeled feature corresponds to the category of a value.
+Example: Having the feature X defined in the interval -1 and 1,
+if we decide to label this feature in 4 categories:
+- Values between -1 and -0.5 belong to label 0,
+- The values between -0.5 and 0 belong to the label 1,
+- Values between 0 and 0.5 belong to label 2,
+- Values between 0.5 and 1 belong to label 3.
+0, 1, 2, 3 are labeled feature of X.</p>
+<p>The histogram of these labeled features is constructed by taking into account the
+last index of each window.</p>
+<p>From a parameter called maximum occurrence, we select a number of lines so that the occurrence
+of each labeled feature does not exceed said parameter.</p>
+</div></blockquote>
+<p>Translated with www.DeepL.com/Translator (free version)</p>
+<blockquote>
+<div><dl>
+<dt>Attributes:</dt><dd><p>column (str): The filter will take only the values of this column in account</p>
+<p>max_occ (int): The maximum number of count for each label after the filtering</p>
+<p>sample_function (Callable): A callable function such as fct(list, k) -&gt; list_of_k_values</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="mlcf.windowing.filtering.label_balance_filter.LabelBalanceFilter.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_array</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#mlcf.windowing.filtering.label_balance_filter.LabelBalanceFilter.__call__" title="Permalink to this definition"></a></dt>
+<dd><p>Given the time series dataframe and an index array corresponding to the time index in
+each window, it returns a list of booleans indicating whether or not to take the window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">pd.DataFrame</span></code>) – The time series dataframe</p></li>
+<li><p><strong>index_array</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span></code>) – The index array correspond to the windowed index dataframe.
+It’s a 2-D array with first axis give the windows and the second axis gives the
+row index in the time series dataframe.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of boolean indicating whether or not to take a window.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[bool]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mlcf.windowing.filtering.label_balance_filter.LabelBalanceFilter.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column:</span> <span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_occ:</span> <span class="pre">typing.Optional[int]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_function:</span> <span class="pre">typing.Callable</span> <span class="pre">=</span> <span class="pre">&lt;bound</span> <span class="pre">method</span> <span class="pre">Random.sample</span> <span class="pre">of</span> <span class="pre">&lt;random.Random</span> <span class="pre">object&gt;&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mlcf.windowing.filtering.label_balance_filter.LabelBalanceFilter.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Create a Label balancing filter object.</p>
+<p>We need to give the column to know which one will be taken into account to equalize
+the histogram.
+We can define the maximum occurrence parameter.
+Otherwise it will be determined automatically.
+We can give a selection function that will determine the selection method of
+the K windows such that K &lt; {max_occ} for each label.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>column</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – The label column on which the histogram is processed.</p></li>
+<li><p><strong>max_occ</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional[int],</span> <span class="pre">optional</span></code>) – The maximum number of occurence for each labeled
+feature. Defaults to None.</p></li>
+<li><p><strong>sample_function</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Callable,</span> <span class="pre">optional</span></code>) – A selection function that respects this format: fct(list, k) -&gt; list_of_k_values.
+Defaults to random.sample.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mlcf.windowing.filtering.label_balance_filter.LabelBalanceFilter.tag_name">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tag_name</span></span><a class="headerlink" href="#mlcf.windowing.filtering.label_balance_filter.LabelBalanceFilter.tag_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="mlcf.windowing.filtering.filter.html" class="btn btn-neutral float-left" title="mlcf.windowing.filtering.filter module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mlcf.windowing.iterator.html" class="btn btn-neutral float-right" title="mlcf.windowing.iterator package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, CGrbi.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
