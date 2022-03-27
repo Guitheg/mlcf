@@ -272,7 +272,7 @@ class DataIntervals():
 
         Args:
             std_by_feature (Dict[str, StandardisationModule]): A dictionary
-                prodiving the standardisation method to be applied on each column.
+                prodiving the standardisation to be applied on each column.
                 The dictionary format must be as following:
                 {string -> :py:class:`StandardisationModule
                 <mlcf.datatools.standardisation.StandardisationModule>`}.
@@ -334,7 +334,7 @@ class DataIntervals():
                 If None is set then no window filtering is applied. The default value is None.
 
             std_by_feature (Optional[Dict[str, StandardisationModule]], optional):
-                A dictionary prodiving the standardisation method to be applied on each column.
+                A dictionary prodiving the standardisation to be applied on each column.
                 Here, the standardisation is done independently on each window.
                 The dictionary format must be as following:
                 {string -> :py:class:`StandardisationModule
