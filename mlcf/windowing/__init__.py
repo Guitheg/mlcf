@@ -2,5 +2,3 @@
 
 This package gather the modules which work with windows and windowed data.
 """
-
-# TODO (doc) correct English
