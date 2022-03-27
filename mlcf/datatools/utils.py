@@ -88,6 +88,7 @@ def labelize(
     Add a {label_col_name} column to a dataframe containing the labels of a given feature.
     The labels refer to a membership of a values to an interval. The number of intervals is
     determined by the number of labels. All interval have the same size.
+
     Example:
         Having the features X defined in the interval -1 and 1,
         if we decide to label this features in 4 categories:
@@ -116,26 +117,25 @@ def labelize(
         label_col_name (str, optional): The column name of the new label column. By default, the
             name is : '{column}_label'. Defaults to None.
 
-    Example:
+    Typical usage example:
+        .. code-block:: python
 
-    .. code-block:: python
+            from mlcf.datatools.utils import labelize
 
-        from mlcf.datatools.utils import labelize
+            # A good practice is to take the mean and the standard deviation of the value you want
+            # to labelize
+            mean = data["return"].mean()
+            std = data["return"].std()
 
-        # A good practice is to take the mean and the standard deviation of the value you want to
-        # labelize
-        mean = data["return"].mean()
-        std = data["return"].std()
-
-        # Here you give the value you want to labelize with column='return'. The new of the labels
-        # column will be the name give to 'label_col_name'
-        data = labelize(
-            data,
-            column="return",
-            labels=5,
-            bounds=(mean-std, mean+std),
-            label_col_name="label"
-        )
+            # Here you give the value you want to labelize with column='return'. The new of the
+            # labels column will be the name give to 'label_col_name'
+            data = labelize(
+                data,
+                column="return",
+                labels=5,
+                bounds=(mean-std, mean+std),
+                label_col_name="label"
+            )
 
     Raises:
         TypeError: Raise this exception if {bounds} is not a tuple of two elements.
