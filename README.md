@@ -14,6 +14,8 @@ For now, the library provide only data tools, such as:
 
 This library doesn't provide models or an end-to-end trade bot.
 
+For more information, find the documentation here : https://guitheg.github.io/mlcf/
+
 ---
 
 ## Installation
