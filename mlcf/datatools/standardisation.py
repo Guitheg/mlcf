@@ -13,7 +13,7 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
-# TODO (doc)
+# TODO (doc) review
 
 __all__ = [
     "StandardisationModule",
@@ -164,7 +164,7 @@ class ClassicStd(StandardisationModule):
 
 
 class MinMaxStd(StandardisationModule):
-    """Allows to perform a standardisation with :py:class:`sklearn.preprocessing.MinMaxScaler`
+    """Allows to perform a standardisation with :py:class:`sklearn.preprocessing.MinMaxScaler`.
     Transform features by scaling each feature to a given range.
     """
     def __init__(
@@ -230,21 +230,25 @@ class MinMaxStd(StandardisationModule):
                 raise TypeError("data must be a numpy.ndarray, pandas.DataFrame or a pandas.Series")
 
 
-def copy_std_feature_dict(std_by_feature: Dict[str, StandardisationModule]):
+def copy_std_feature_dict(
+    std_by_feature: Dict[str, StandardisationModule]
+) -> Dict[str, StandardisationModule]:
     """It copy each StandardisationModule of a dictionnary in a new dictionnary.
 
     Args:
-        std_by_feature (Dict[str, StandardisationModule]): _description_
+        std_by_feature (Dict[str, StandardisationModule]): A dictionnary with the format:
+            {key (string) -> :py:class:`StandardisationModule
+            <mlcf.datatools.standardisation.StandardisationModule>`}.
 
     Returns:
-        _type_: _description_
+        Dict[str, StandardisationModule]: The copied dictionnary.
     """
     return {
         feature: std_obj.copy() for feature, std_obj in std_by_feature.items()
     }
 
 
-# TODO (enhancement) implement option for inplace = False
+# TODO (enhancement) implement option for inplace = False /change not implemented in doc
 # TODO (refactoring) list comprehension for data_transformed or verify if it's inplace or not
 def standardize(
     fit_data: Union[pd.DataFrame, List[pd.DataFrame]],
@@ -253,6 +257,44 @@ def standardize(
     inplace: bool = True,
     std_fct_save: bool = True
 ) -> Union[pd.DataFrame, List[pd.DataFrame]]:
+    """It allows you to fit from one list of data frames and then standardize on another
+    list of data frames.
+
+    (Not Implemented: inplace operation)
+
+    Args:
+        fit_data (Union[pd.DataFrame, List[pd.DataFrame]]): The data frame or list of data frame
+            used to fit the StandardisationModule.
+
+        transform_data (Union[pd.DataFrame, List[pd.DataFrame]]): The data frame or list of data
+            frame which will be standardise.
+
+        std_by_feature (Optional[Dict[str, StandardisationModule]], optional): A dictionary
+            prodiving the standardisation to be applied on each column.
+            The dictionary format must be as following:
+            {string -> :py:class:`StandardisationModule
+            <mlcf.datatools.standardisation.StandardisationModule>`}.
+            The key must correspond to a column name (a feature) of the data frame.
+            The value is any object inheriting from the
+            :py:class:`StandardisationModule
+            <mlcf.datatools.standardisation.StandardisationModule>` class.
+            Defaults to None.
+
+        inplace (bool, optional): True the {transform_data} is modify inplace.
+            Otherwise it returns a copy of the modified {transform_data} (not implemented).
+            Defaults to True.
+
+        std_fct_save (bool, optional):Set to True so that the adjustment is in place,
+        otherwise set to False. In any case, the std_by_feature is not returned. Defaults to True.
+
+    Raises:
+        NotImplementedError: _description_
+        TypeError: _description_
+        TypeError: _description_
+
+    Returns:
+        Union[pd.DataFrame, List[pd.DataFrame]]: _description_
+    """
     if std_by_feature is None:
         return transform_data
     else:
@@ -300,4 +342,13 @@ def standardize_fit_transform(
     fit_transform_data: Union[pd.DataFrame, List[pd.DataFrame]],
     *args, **kwargs
 ) -> Union[pd.DataFrame, List[pd.DataFrame]]:
+    """It perform a fit transform using :py:class:`~standardize`.
+
+    Args:
+        fit_transform_data (Union[pd.DataFrame, List[pd.DataFrame]]):
+            The data used to fit and which will be transformed.
+
+    Returns:
+        Union[pd.DataFrame, List[pd.DataFrame]]: The transformed data.
+    """
     return standardize(fit_transform_data, fit_transform_data, *args, **kwargs)
