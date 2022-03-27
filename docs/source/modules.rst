@@ -2,6 +2,6 @@ mlcf
 ====
 
 .. toctree::
-   :maxdepth: 6
+   :maxdepth: 4
 
    mlcf
