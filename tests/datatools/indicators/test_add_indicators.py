@@ -2,7 +2,7 @@
 import pytest
 import pandas as pd
 import numpy as np
-from mlcf.datatools.indicators.add_indicators import (
+from mlcf.indicators.add_indicators import (
     FeatureAlreadyExistException,
     add_extern_indicator,
     add_intern_indicator
