@@ -1,15 +1,56 @@
-"""Data Interval Module
-This is a data structure that divides the input data into n intervals and then into 3 set such as 
-train set, validation set and test set. This module provide DataIntervals allowing us to handle the 
-Nx3 intervals data structure."""
+"""Data Interval Module.
+
+It is a data structure that divides the input data into n intervals and then into 3 sets such as
+the train set, the validation set and the test set.
+It provides DataIntervals class allowing us to handle the Nx3 intervals data structure.
+
+    Example:
+
+    .. code-block:: python
+
+        from mlcf.datatools.data_intervals import DataIntervals
+        from mlcf.datatools.standardize_fct import ClassicStd, MinMaxStd
+        from mlcf.datatools.windowing.filter import LabelBalanceFilter
+
+        # We define a dict which give us the information about what standardization apply to each
+        # columns.
+        std_by_feautures = {
+            "close": ClassicStd(),
+            "return": ClassicStd(with_mean=False),  # to avoid to shift we don't center
+            "adx": MinMaxStd(minmax=(0, 100))  # the value observed in the adx are between
+                                               # 0 and 100 and we
+                                               # want to set it between 0 and 1.
+        }
+        data_intervals = DataIntervals(data, n_intervals=10)
+        data_intervals.standardize(std_by_feautures)
+
+        # We can apply a filter the dataset we want. Here we will filter the values in order
+        # to balance the histogram of return value. For this, we use the label previously process
+        # on return.
+        filter_by_set = {
+            "train": LabelBalanceFilter("label")  # the column we will balance the data is 'label
+                                                # the max count will be automatically process
+        }
+
+        # dict_train_val_test is a dict with the key 'train', 'val', 'test'.
+        # The value of the dict is a  WTSeries (a windowed time series).
+        dict_train_val_test = data_intervals.windowing(
+            window_width=30,
+            window_step=1,
+            selected_columns=["close", "return", "adx"],
+            filter_by_dataset=filter_by_set,
+            std_by_feature=None  # Here we can pass the same kind of dict previously introduce
+                                 # to apply the standardization independtly on each window
+        )
+"""
 
 from typing import Dict, List, Optional, Tuple
 import pandas as pd
-from mlcf.datatools.windowing.filter import WindowFilter
-from mlcf.datatools.windowing.tseries import WTSeries
+from mlcf.windowing.filtering import WindowFilter
+from mlcf.windowing.iterator import WTSeries
 
 from mlcf.datatools.utils import split_train_val_test
-from mlcf.datatools.standardize_fct import StandardisationFct, standardize
+from mlcf.datatools.standardisation import StandardisationModule, standardize
 
 
 __all__ = [
@@ -17,25 +58,28 @@ __all__ = [
 ]
 
 
-# TODO: (enhancement) datainterval with multi-index dataframe
 class DataIntervals():
-    """
-    DataIntervals is a class which provide tools to divide a dataframe in Nx3 parts and then handeling it.
+    """Data Intervals Class.
+    It provides tools to divide a data frame into Nx3 parts and handles them.
 
     Attributes:
-        raw_data (pandas.DataFrame): The raw time series dataframe (not splited).
-        
-        n_intervals (int): The number of intervals the dataframe has been splited.
-        
-        train_intervals (List[pandas.DataFrame]): A list of {n_intervals} dataframe which correspond to the {n_intervals} train set.
-        
-        val_intervals (List[pandas.DataFrame]): A list of {n_intervals} dataframe which correspond to the {n_intervals} validation set.
-        
-        test_intervals (List[pandas.DataFrame]): A list of {n_intervals} dataframe which correspond to the {n_intervals} test set.
-        
-        intervals: (Dict[str, List[pandas.DataFrame]): A dictionnary which regroup the 3 intervals set. With the 'train', 'val' and 'test' keys
-        returning the corresponding list of dataframe.
+        raw_data (pandas.DataFrame): Raw time series data frame (unsplit).
+
+        n_intervals (int): Number of intervals created after splitting the data frame.
+
+        train_intervals (List[pandas.DataFrame]): List of data frame corresponding to training set
+            whose length is {n_intervals}
+
+        val_intervals (List[pandas.DataFrame]): List of data frame corresponding to validation set
+            whose length is {n_intervals}
+
+        test_intervals (List[pandas.DataFrame]): List of data frame corresponding to test set
+            whose length is {n_intervals}
+
+        intervals: (Dict[str, List[pandas.DataFrame]): A dictionary of keys 'train', 'val', 'test'
+            that groups 3 sets of intervals.
     """
+
     def __init__(
         self,
         data: pd.DataFrame,
@@ -43,22 +87,24 @@ class DataIntervals():
         prop_val_test: float = 0.2,
         prop_val: float = 0.3
     ):
-        """
-        Create a DataInterval object given a time series dataframe.
-        The {data} will be splited into {n_intervals} parts.
-        Then theses parts will be splited into 3 set such as 'train', 'val' and 'test' set.
+        """It creates a DataInterval object from a time series data frame.
+
+        The {data} will be split into {n_intervals}.
+        Then these parts will be split into 3 sets such as 'train', 'val' and 'test'.
 
         Args:
-            data (pd.DataFrame): The time series dataframe on which the splitted operation will be perform.
-            
+            data (pd.DataFrame): The time series data frame on which the split operation
+                will be performed.
+
             n_intervals (int): The number of intervals to split the {data}.
-            
-            prop_val_test (float, optional): The val and test rows proportion.
-                The proportion of train is equal to: 1-{prop_val_test}. Defaults to 0.2.
-                
-            prop_val (float, optional): The val set proportion amoung the test set.
-                The proportion of val rows is : {prop_val_test}*{prop_val}. 
-                The proportion of test part is : {prop_val_test}*(1-{prop_val}). Defaults to 0.3.
+
+            prop_val_test (float, optional): The proportion of val and test rows.
+                The proportion of train is equal to 1-{prop_val_test}. It is set to 0.2 by default.
+
+            prop_val (float, optional): The proportion of val set amoung the test set.
+                The proportion of val rows is : {prop_val_test}*{prop_val}.
+                The proportion of test part is : {prop_val_test}*(1-{prop_val}).
+                It is set to 0.3 by default.
         """
         self.raw_data: pd.DataFrame = data
         self.n_intervals: int = n_intervals
@@ -77,19 +123,19 @@ class DataIntervals():
         }
 
     def get(self, set_name: str) -> List[pd.DataFrame]:
-        """
-        Given a {set_name} return the corresponding set (list of dataframe).
+        """Given a {set_name}, it returns the corresponding set (list of dataframe).
         The {set_name} string value must be 'train', 'val' or 'test'.
 
         Args:
-            set_name (str): The string key corresponding to the set we want.
-                Choose between 'train', 'val', 'test'.
+            set_name (str): The string key corresponds to the desired set.
+                It must be chosen between 'train', 'val', 'test'.
 
         Raises:
-            ValueError: If the {set_name} correspond to any set in the self.intervals dictionnary.
+            ValueError: If the {set_name} does not match any set name
+                in the self.intervals dictionnary.
 
         Returns:
-            List[pd.DataFrame]: The corresponding set.
+            List[pd.DataFrame]: The corresponding list of dataframe.
         """
         if set_name not in self.intervals:
             raise ValueError(
@@ -97,12 +143,11 @@ class DataIntervals():
         return self.intervals[set_name]
 
     def __call__(self, set_name: str) -> List[pd.DataFrame]:
-        """
-        Call the get(self, set_name) function and return its result.
+        """It calls the :py:func:`~get` function and returns its result.
 
         Args:
-            set_name (str): The string key corresponding to the set we want.
-                Choose between 'train', 'val', 'test'.
+            set_name (str): The string key corresponding to the desired set.
+                It must be chosen between 'train', 'val', 'test'.
 
         Returns:
             List[pd.DataFrame]: The corresponding set.
@@ -110,12 +155,11 @@ class DataIntervals():
         return self.get(set_name)
 
     def __getitem__(self, set_name: str) -> List[pd.DataFrame]:
-        """
-        Call the get(self, set_name) function and return its result.
+        """It calls the :py:func:`~get` function and returns its result.
 
         Args:
-            set_name (str): The string key corresponding to the set we want.
-                Choose between 'train', 'val', 'test'.
+            set_name (str): The string key corresponding to the desired set.
+                It must be chosen between 'train', 'val', 'test'.
 
         Returns:
             List[pd.DataFrame]: The corresponding set.
@@ -123,13 +167,12 @@ class DataIntervals():
         return self.get(set_name)
 
     def __iter__(self) -> Dict:
-        """
-        Iterate over the {self.intervals} dictionnary
+        """It iterates over the {self.intervals} dictionary.
 
         Returns:
-            Dict: The dictionnary which contains all the set.
+            Dict: The dictionary iterator
         """
-        return self.intervals
+        return self.intervals.__iter__()
 
     def __next__(self):
         return next(self.intervals)
@@ -140,30 +183,30 @@ class DataIntervals():
         data: pd.DataFrame,
         n_intervals: int = 1
     ) -> List[pd.DataFrame]:
-        """
-        Split the {data} in a number of {n_intervals}. Returns the list of these intervals.
+        """It splits the {data} into {n_intervals} and returns the list of these intervals.
 
         Args:
-            data (pd.DataFrame): The time series dataframe.
+            data (pd.DataFrame): The time series data frame.
 
-            n_intervals (int, optional): The number of intervals to split the dataframe. Defaults to 1.
+            n_intervals (int, optional): The number of intervals to split the data frame.
+                Default to 1.
 
         Raises:
-            ValueError: If the dataframe is empty.
+            ValueError: If the data frame is empty.
             TypeError: If {n_intervals} is not an Integer.
-            ValueError: If the number of intervals is less than or equal to 0
+            ValueError: If the number of intervals is less than or equal to 0.
 
         Returns:
-            List[pd.DataFrame]: The list of dataframe (intervals)
+            List[pd.DataFrame]: The list of data frame (intervals).
         """
 
         dataframe = data.copy()
         if dataframe.empty:
-            raise ValueError("The dataframe is empty.")
+            raise ValueError("The data frame is empty.")
         if not isinstance(n_intervals, int):
-            raise TypeError("n_intervals must be a int greater than 0")
+            raise TypeError("n_intervals must be an Integer and greater than 0")
         if n_intervals < 1:
-            raise ValueError("n_intervals must be greater than 0")
+            raise ValueError("n_intervals must be greater than 0.")
 
         k, m = divmod(len(dataframe), n_intervals)
         list_intervals: List[pd.DataFrame] = [
@@ -172,8 +215,8 @@ class DataIntervals():
         ]
         return list_intervals
 
-    # TODO: (refactoring) list comprehension to create split list interval
-    # TODO: (enhancement) handle if test or val is null
+    # TODO (refactoring) list comprehension to create split list interval
+    # TODO (enhancement) handle if test or val is null
     @classmethod
     def split_train_val_test(
         self,
@@ -181,22 +224,26 @@ class DataIntervals():
         prop_val_test: float,
         prop_val: float = 0.0
     ) -> Tuple[List[pd.DataFrame], List[pd.DataFrame], List[pd.DataFrame]]:
-        """
-        Split each interval (dataframe) of the {list_intervals} in 3 set part 'train', 'val' and 'test'.
-        The proportion of train, val and test set are given by the {prop_val_test} and the {prop_val} parameters.
+        """It splits each interval (data frame) of {list_intervals} in 3 sets:
+        'train', 'val' and 'test'.
+        The proportions of train, val and test sets are given by
+        {prop_val_test} and {prop_val} parameters.
 
         Args:
-            list_intervals (List[pd.DataFrame]): A list of dataframe
+            list_intervals (List[pd.DataFrame]): A list of data frame.
 
-            prop_val_test (float): The val and test rows proportion.
-                The proportion of train is equal to: 1-{prop_val_test}.
+            prop_val_test (float): The proportion of val and test rows.
+                The proportion of train is equal to 1-{prop_val_test}.
 
-            prop_val (float, optional): The val set proportion amoung the test set.
-                The proportion of val rows is : {prop_val_test}*{prop_val}. 
-                The proportion of test part is : {prop_val_test}*(1-{prop_val}). Defaults to 0.0.
+            prop_val (float, optional): The proportion of val set amoung the test set.
+                The proportion of val rows is : {prop_val_test}*{prop_val}.
+                The proportion of test part is : {prop_val_test}*(1-{prop_val}).
+                Default to 0.0.
 
         Returns:
-            Tuple[List[pd.DataFrame], List[pd.DataFrame], List[pd.DataFrame]]: _description_
+            Tuple[List[pd.DataFrame], List[pd.DataFrame], List[pd.DataFrame]]:
+                A tuple of lists corresponding to the train, validation and test parts
+                of the given list data frames.
         """
         splited_list_interval: Tuple[
             List[pd.DataFrame],
@@ -216,18 +263,23 @@ class DataIntervals():
 
     def standardize(
         self,
-        std_by_feature: Dict[str, StandardisationFct]
+        std_by_feature: Dict[str, StandardisationModule]
     ) -> None:
-        """
-        An Inplace operation. Apply a standardisation over all the dataframes contains in DataIntervals.
-        The fit operation of the standardisation is perform only to the 'train' set.
-        The transform operation of the standardisation is perform to every set.
-        
+        """An inplace operation applying a standardisation over all the data
+        frame intervals of DataIntervals.
+        Fit operation of the standardisation is performed only on the 'train' set.
+        Transform operation of the standardisation is performed on every set.
+
         Args:
-            std_by_feature (Dict[str, StandardisationFct]): A dict which give us the information about what standardisation apply to each
-                columns. The dict format must be : {key (string) -> value (StandardisationFct)}.
-                The key must correspond to a column name (a feature) of the dataframes.
-                The standardisation function must inherit from StandardisationFct class.
+            std_by_feature (Dict[str, StandardisationModule]): A dictionary
+                prodiving the standardisation method to be applied on each column.
+                The dictionary format must be as following:
+                {string -> :py:class:`StandardisationModule
+                <mlcf.datatools.standardisation.StandardisationModule>`}.
+                The key must correspond to a column name (a feature) of the data frame.
+                The value is any object inheriting from the
+                :py:class:`StandardisationModule
+                <mlcf.datatools.standardisation.StandardisationModule>` class.
         """
         self.std_by_feature = std_by_feature
 
@@ -249,44 +301,54 @@ class DataIntervals():
             transform_data=self.test_intervals
         )
 
-    def data_windowing(
+    def windowing(
         self,
         window_width: int,
         window_step: int = 1,
         selected_columns: Optional[List[str]] = None,
         filter_by_dataset: Optional[Dict[str, WindowFilter]] = None,
-        std_by_feature: Optional[Dict[str, StandardisationFct]] = None
+        std_by_feature: Optional[Dict[str, StandardisationModule]] = None
     ) -> Dict[str, WTSeries]:
-        """
-        It perform a windowing operation over all intervals producing for each set a WTSeries (a windowed time series).
-        We can provide a window filtering operation and a window standardisation operation.
-        
+        """It performs the windowing operation over all intervals producing for each set a
+        :py:class:`WTSeries <mlcf.windowing.iterator.tseries.WTSeries>`
+        (a windowed time series).
+        We can provide a dictionnary indicating the standardisation used for each feature.
+        We can provide a dictionary indicating the window filtering operation applied to each set.
+
         Args:
-            window_width (int): The window width
-            
+            window_width (int): The window width.
+
             window_step (int, optional): The step between each window. Defaults to 1.
-            
-            selected_columns (Optional[List[str]], optional): The list of name of features we want to keep in the WTSeries.
-                If None is given, then every feature will be kept. Defaults to None.
-                
-            filter_by_dataset (Optional[Dict[str, WindowFilter]], optional): A dict which give the information about what window filtering will be applied
-                on each set.
-                The dict format is such as : {key (string) -> value (WindowFilter)}.
-                The key is the name of the set ('train', 'val' and 'test').
-                The value is a class which inherit from the WindowFilter class.
-                If None, any window filtering is apply. Defaults to None.
-                
-            std_by_feature (Optional[Dict[str, StandardisationFct]], optional): 
-                A dict which give us the information about what standardisation apply to each
-                columns. 
-                Here, the standardisation are perform per window independently.
-                The dict format must be : {key (string) -> value (StandardisationFct)}.
-                The key must correspond to a column name (a feature) of the dataframes.
-                The standardisation function must inherit from StandardisationFct class.
-                If None, any standardisation is apply. Defaults to None.
+
+            selected_columns (Optional[List[str]], optional): The list of names of the selected
+                features. If None is given, then all features will be kept.
+                The default value is None.
+
+            filter_by_dataset (Optional[Dict[str, WindowFilter]], optional): A dictionary
+                that gives information about the type of window filtering applied on each set.
+                The format of the dictionary is such as: {key (string) ->
+                :py:class:`WindowFilter <mlcf.windowing.filtering.filter.WindowFilter>`}.
+                The key is the name of a set ('train', 'val' and 'test').
+                The value is any object inheriting from the
+                :py:class:`WindowFilter <mlcf.windowing.filtering.filter.WindowFilter>` class.
+                If None is set then no window filtering is applied. The default value is None.
+
+            std_by_feature (Optional[Dict[str, StandardisationModule]], optional):
+                A dictionary prodiving the standardisation method to be applied on each column.
+                Here, the standardisation is done independently on each window.
+                The dictionary format must be as following:
+                {string -> :py:class:`StandardisationModule
+                <mlcf.datatools.standardisation.StandardisationModule>`}.
+                The key must correspond to a column name (a feature) of the data frame.
+                The value is any object inheriting from the
+                :py:class:`StandardisationModule
+                <mlcf.datatools.standardisation.StandardisationModule>` class.
 
         Returns:
-            Dict[str, WTSeries]: A dict such as {key (string) -> value (WTSeries)} where the key correspond to a set name.
+            Dict[str, WTSeries]:
+                A dictionnary such as {key (string) ->
+                :py:class:`WTSeries <mlcf.windowing.iterator.tseries.WTSeries>` }
+                where the key correspond to a set name.
         """
 
         data_windowed: Dict[str, WTSeries] = {}
