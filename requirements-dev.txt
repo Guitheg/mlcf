@@ -12,3 +12,5 @@ flake8
 
 # http://www.mypy-lang.org/
 mypy
+
+sphinx
