@@ -5,7 +5,7 @@ from pathlib import Path
 import random
 
 from mlcf.datatools.data_reader import read_ohlcv_json_from_file
-from mlcf.datatools.indicators.indicators_fct import add_adx
+from mlcf.indicators.indicators_fct import add_adx
 from mlcf.datatools.utils import labelize
 random.seed(0)
 

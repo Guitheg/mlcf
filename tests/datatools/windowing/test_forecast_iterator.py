@@ -1,7 +1,7 @@
 
 import pytest
-from mlcf.datatools.windowing.forecast_iterator import WindowForecastIterator
-from mlcf.datatools.windowing.tseries import WTSeries
+from mlcf.windowing.iterator.forecast_iterator import WindowForecastIterator
+from mlcf.windowing.iterator.tseries import WTSeries
 
 
 @pytest.mark.parametrize(
