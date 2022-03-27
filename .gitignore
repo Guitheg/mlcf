@@ -1,6 +1,3 @@
-#docs
-docs/source/mlcf*.rst
-
 
 #pytest coverage file
 cov.xml

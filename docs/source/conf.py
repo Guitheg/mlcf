@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.abspath('..'))
 project = 'MLCF'
 copyright = '2022, CGrbi'
 author = 'CGrbi'
-version=__version__
+version = __version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -32,27 +32,10 @@ version=__version__
 extensions = [
     'sphinx.ext.napoleon',
     'myst_parser',
-    'sphinx_math_dollar',
     'sphinx.ext.mathjax',
     'sphinx.ext.autodoc',
     "sphinx_rtd_theme"
 ]
-
-math_number_all=True
-# -- Math Latex ------------------------------------------------
-mathjax_config = {
-    'tex2jax': {
-        'inlineMath': [ ["$","$"] ],
-        'displayMath': [["\\[","\\]"] ],
-    },
-}
-dmath_double_inline=True
-math_dollar_debug = True
-from sphinx_math_dollar import NODE_BLACKLIST
-from docutils.nodes import header
-
-math_dollar_node_blacklist = NODE_BLACKLIST + (header,)
-# --------------------------------------------------------------
 
 
 # -- Google-style napoleon config ------------------------------
@@ -91,7 +74,6 @@ todo_include_todos = False
 html_theme = 'sphinx_rtd_theme'
 html_title = "MLCF documentation"
 html_short_title = "MLCF documentation"
-html_codeblock_linenos_style='inline'
 
 
 html_theme_options = {
@@ -106,5 +88,5 @@ html_theme_options = {
 # so a file named "default.css" will overwrite the builtin "default.css".
 # html_static_path = ['_static']
 
-html_show_sourcelink=False
-html_copy_source=False
+html_show_sourcelink = False
+html_copy_source = False
