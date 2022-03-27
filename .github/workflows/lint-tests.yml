@@ -24,6 +24,8 @@ jobs:
       run: |
         wget https://raw.githubusercontent.com/Guitheg/mlcf/main/build_helper/talib-install.sh
         sh talib-install.sh
+        rm ta-lib-0.4.0-src.tar.gz
+        rm talib-install.sh
 
     - name: Install dependencies
       run: |
