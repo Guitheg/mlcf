@@ -44,7 +44,7 @@ It provides DataIntervals class allowing us to handle the Nx3 intervals data str
         )
 """
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Iterator, List, Optional, Tuple
 import pandas as pd
 from mlcf.windowing.filtering import WindowFilter
 from mlcf.windowing.iterator import WTSeries
@@ -166,7 +166,7 @@ class DataIntervals():
         """
         return self.get(set_name)
 
-    def __iter__(self) -> Dict:
+    def __iter__(self) -> Iterator:
         """It iterates over the {self.intervals} dictionary.
 
         Returns:

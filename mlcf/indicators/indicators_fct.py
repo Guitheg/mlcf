@@ -51,4 +51,4 @@ def indice_dict(indice_name: str) -> Callable:
 _INDICE_DICT: Dict[str, Callable] = {
     "adx": add_adx
 }
-indice_dict.__doc__ = indice_dict.__doc__.format(list_indice=list(_INDICE_DICT.keys()))
+indice_dict.__doc__ = str(indice_dict.__doc__).format(list_indice=list(_INDICE_DICT.keys()))
