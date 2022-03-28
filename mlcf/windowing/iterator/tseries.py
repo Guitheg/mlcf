@@ -30,12 +30,11 @@ allows us to handle a multi-indexed data frame that represents a windowed time s
 from __future__ import annotations
 from pathlib import Path
 from typing import Dict, List, Optional
-from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 import numpy as np
 from mlcf.datatools.standardisation import StandardisationModule
 from mlcf.windowing.filtering.filter import WindowFilter
-from mlcf.windowing.iterator.iterator import WindowIterator
+from mlcf.windowing.iterator import WindowIterator, WTSeriesLite
 
 
 __all__ = [
@@ -92,12 +91,16 @@ class WTSeries(WindowIterator):
         ):
             raise IncompatibleDataException(
                 "To create a WTSeries please use by WTSeries.create_wtseries")
-        self.data: pd.DataFrame = data
+        self._data: pd.DataFrame = data
+
+    @property
+    def data(self):
+        return self._data
 
     @classmethod
     def create_wtseries(
         self,
-        dataframe: pd.DataFrame,
+        data: pd.DataFrame,
         window_width: int,
         window_step: int,
         selected_columns: Optional[List[str]] = None,
@@ -141,35 +144,25 @@ class WTSeries(WindowIterator):
         Returns:
             WTSeries: The Windowed multi-indexed time series dataframe.
         """
-        data = dataframe.copy()
 
-        data_columns = list(data.columns)
-        data[TIME_INDEX_NAME] = np.arange(len(data), dtype=int)
-        if len(data) == 0 or len(data) < window_width:
-            raise DataEmptyException("The given data is empty or smaller than the window width.")
+        wtseries_lite = WTSeriesLite.create_wtseries_lite(
+            data=data,
+            window_width=window_width,
+            window_step=window_step,
+            selected_columns=selected_columns,
+            window_filter=window_filter,
+            std_by_feature=std_by_feature
+        )
 
-        # Slid window on all data
-        index_data = sliding_window_view(
-            data[TIME_INDEX_NAME],
-            window_shape=(window_width),
-        ).reshape((-1, window_width))
-
-        # filter and select windows
-        index_data = index_data[::window_step]
-        if window_filter:
-            index_data = index_data[window_filter(data, index_data)]
+        dataframe = wtseries_lite.data.copy()
 
         # Set the indexes
         window_index = np.mgrid[
-            0: index_data.shape[0]: 1,
+            0: wtseries_lite.index_array.shape[0]: 1,
             0:window_width: 1
         ][0].reshape(-1, 1)
 
-        # Select columns
-        if selected_columns is None:
-            selected_columns = data_columns
-
-        windows = data.iloc[index_data.reshape(-1)][selected_columns]
+        windows = dataframe.iloc[wtseries_lite.index_array.reshape(-1)]
         windows.rename_axis(TIME_INDEX_NAME, inplace=True)
         windows[WINDOW_INDEX_NAME] = window_index
         windows.set_index(WINDOW_INDEX_NAME, append=True, inplace=True)
@@ -194,7 +187,7 @@ class WTSeries(WindowIterator):
 
     @property
     def n_window(self) -> int:
-        """The number of window
+        """The number of window.
 
         Returns:
             int: The number of window
@@ -203,7 +196,7 @@ class WTSeries(WindowIterator):
 
     @property
     def width(self) -> int:
-        """The window width
+        """The window width.
 
         Returns:
             int: The window width
@@ -212,8 +205,7 @@ class WTSeries(WindowIterator):
 
     @property
     def ndim(self) -> int:
-        """
-        The number of features. ndim for number of dimension (for one row)
+        """The number of features. ndim for number of dimension (for one row).
 
         Returns:
             int: The number of features.
@@ -241,7 +233,7 @@ class WTSeries(WindowIterator):
         return self.data.loc[idx]
 
     def copy(self) -> WTSeries:
-        """Return a copy of this WTSeries
+        """Return a copy of this WTSeries.
 
         Returns:
             WTSeries: A copy of this WTSeries
@@ -269,8 +261,7 @@ class WTSeries(WindowIterator):
         return WTSeries(data=pd.concat([self.data, wtseries.data]))
 
     def write(self, dirpath: Path, filename: str, group_file_key: str = None) -> Path:
-        """
-        Create a .h5 file dataset in the {dirpath}.
+        """Create a .h5 file dataset in the {dirpath}.
 
         Args:
             dirpath (Path): The direcotry path where the file will be created.
@@ -293,8 +284,7 @@ class WTSeries(WindowIterator):
 
     @staticmethod
     def read(filepath: Path, group_file_key: str = None) -> WTSeries:
-        """
-        Read a WTSeries dataset .h5 file and return it.
+        """Read a WTSeries dataset .h5 file and return it.
 
         Args:
             filepath (Path): The file path of the WTSeries dataset .h5 file.
@@ -310,3 +300,4 @@ class WTSeries(WindowIterator):
             secondary=(f"_{group_file_key}" if group_file_key else "")
         )
         return WTSeries(pd.read_hdf(filepath.with_suffix(SUFFIX_FILE), key=filekey, mode="r"))
+
