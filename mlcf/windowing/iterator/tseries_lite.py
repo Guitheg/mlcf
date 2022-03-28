@@ -32,7 +32,7 @@ from typing import Dict, Optional, List
 import pandas as pd
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
-from mlcf.datatools.standardisation import StandardisationModule, copy_std_feature_dict
+from mlcf.datatools.standardisation import StandardisationModule
 from mlcf.windowing.iterator import WindowIterator, SUFFIX_FILE
 from mlcf.windowing.filtering import WindowFilter
 
@@ -254,8 +254,7 @@ class WTSeriesLite(WindowIterator):
 
         return WTSeriesLite(
             data=self.data.copy(),
-            index_array=self.index_array.copy(),
-            std_by_feature=copy_std_feature_dict(self.std_by_feature)
+            index_array=self.index_array.copy()
         )
 
     # TODO (enhancement): make it as a classmethod
