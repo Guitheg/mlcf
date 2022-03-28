@@ -256,5 +256,4 @@ def test_subset_selection(test_input, expected):
 )
 def test_subset_selection_exception(test_input):
     with pytest.raises(ValueError):
-        a = subset_selection(**test_input)
-        print(a)
+        subset_selection(**test_input)
