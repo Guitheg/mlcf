@@ -14,7 +14,8 @@ __all__ = [
     "binarize",
     "labelize",
     "split_pandas",
-    "split_train_val_test"
+    "split_train_val_test",
+    "subset_selection"
 ]
 
 
@@ -272,3 +273,120 @@ def split_train_val_test(
     train_data, test_val_data = split_pandas(dataframe, prop_snd_elem=prop_val_test)
     val_data, test_data = split_pandas(test_val_data, prop_snd_elem=1-prop_val)
     return train_data, val_data, test_data
+
+
+def subset_selection(
+    element_list: List,
+    selection_list: List[int],
+    auto_completion: bool = True
+) -> List:
+    """The subset selection function allows to return a subset of a list according to a selection
+    list.
+
+    The selection list is a list which contains positive or negative integers. The positive numbers
+    indicate the number of elements we selection and negative numbers indicate the number of
+    elements we ignore.
+
+    Example:
+
+        .. code-block:: python
+
+            # Given the element list A = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+            # we keep the 5 first elements then we ignore the 3 which follows then we keep the 2
+            # last.
+            >>> subset_selection(A, selection_list = [5, -3, 2])
+            [1, 2, 3, 4, 5, 9, 10]
+            >>> subset_selection(A, selection_list = [2, -3, 1, -2, 2]),
+            [1, 2, 6, 9, 10]
+            >>> subset_selection(A, selection_list = [2, -3, -3, 2]),
+            [1, 2, 9, 10]
+            >>> subset_selection(A, selection_list = [2, -6, 2]),
+            [1, 2, 9, 10]
+            # we ignore the rest of the elements by default if the absolute sum of the selection
+            # list is less than the length of the element list.
+            >>> subset_selection(A, selection_list = [1]),
+            [1]
+            >>> subset_selection(A, selection_list = [1, -1]),
+            [1]
+            >>> subset_selection(A, selection_list = [-1]),
+            []
+            >>> subset_selection(A, selection_list = [2, -1]),
+            [1, 2]
+            # we can use the zero for auto completion.
+            # it must have at most one zero.
+            # zero has the opposite sign of its neighborhood.
+            # the two values of its neighborhood cannot have a different sign
+            >>> subset_selection(A, selection_list = [1, 0]),
+            [1]
+            >>> subset_selection(A, selection_list = [-1, 0]),
+            [2, 3, 4, 5, 6, 7, 8, 9, 10]
+            >>> subset_selection(A, selection_list = [-1, 0, -1]),
+            [2, 3, 4, 5, 6, 7, 8, 9]
+            >>> subset_selection(A, selection_list = [1, 0, 1]),
+            [1, 10]
+
+    Args:
+        element_list (List): The list of elements on which to select the subset.
+
+        selection_list (List[int]): The selection list is a list which contains positive or negative
+            integers. The positive numbers indicate the number of elements we selection and negative
+            numbers indicate the number of elements we ignore.
+
+        auto_completion (bool, optional): True if we want to interpret the 0 for auto_completion.
+            Defaults to True.
+
+    Raises:
+        ValueError: The subset selection function cannot interpret a selection list with more
+            than one 0
+        ValueError: The 0 must be given between two values of the same sign.
+
+    Returns:
+        List: The selected subset.
+    """
+    if auto_completion:
+        unique, counted = np.unique(selection_list, return_counts=True)
+        n_zeros = counted[np.where(unique == 0)]
+        if n_zeros > 1:
+            raise ValueError(
+                "The subset selection function cannot interpret " +
+                "a selection list with more than one 0."
+            )
+        elif n_zeros == 1:
+            abs_sum = np.sum(np.abs(selection_list))
+            if abs_sum == 0:
+                return element_list
+            if selection_list[0] == 0:
+                idx = 0
+                sign = 1 if selection_list[1] > 0 else -1
+            elif selection_list[-1] == 0:
+                idx = -1
+                sign = 1 if selection_list[-2] > 0 else -1
+            else:
+                idx = selection_list.index(0)
+                sign = 1 if selection_list[idx - 1] > 0 else -1
+                sign_bis = 1 if selection_list[idx + 1] > 0 else -1
+                if sign_bis != sign:
+                    raise ValueError("The 0 must be given between two values of the same sign.")
+
+            selection_list[idx] = (len(element_list) - abs_sum) * (-sign)
+            return subset_selection(
+                element_list,
+                selection_list,
+                auto_completion=False
+            )
+
+    if not len(selection_list):
+        return []
+
+    if selection_list[0] < 0:
+        return subset_selection(
+            element_list[abs(selection_list[0]):],
+            selection_list[1:],
+            auto_completion=False)
+    else:
+        return element_list[:selection_list[0]] + subset_selection(
+            element_list[abs(selection_list[0]):],
+            selection_list[1:],
+            auto_completion=False
+        )
