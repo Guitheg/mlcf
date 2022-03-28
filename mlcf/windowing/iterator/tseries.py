@@ -15,8 +15,7 @@ allows us to handle a multi-indexed data frame that represents a windowed time s
             window_width=30,
             window_step=1,
             selected_columns=["close", "return", "adx"],
-            window_filter=LabelBalanceFilter("label"),
-            std_by_feature=std_by_feautures
+            window_filter=LabelBalanceFilter("label")
         )
         # Or from a wtseries .h5 file:
         wtseries = WTSeries.read(Path("/tests/testdata/wtseries.h5"))
@@ -34,23 +33,16 @@ import pandas as pd
 import numpy as np
 from mlcf.datatools.standardisation import StandardisationModule
 from mlcf.windowing.filtering.filter import WindowFilter
-from mlcf.windowing.iterator import WindowIterator, WTSeriesLite
+from mlcf.windowing.iterator import WindowIterator, SUFFIX_FILE
+from mlcf.windowing.iterator.tseries_lite import WTSeriesLite, TIME_INDEX_NAME
 
 
 __all__ = [
     "WINDOW_INDEX_NAME",
-    "TIME_INDEX_NAME",
     "WTSeries"
 ]
 
-
 WINDOW_INDEX_NAME = "WindowIndex"
-TIME_INDEX_NAME = "TimeIndex"
-SUFFIX_FILE = ".h5"
-
-
-class DataEmptyException(Exception):
-    pass
 
 
 class IncompatibleDataException(Exception):
@@ -66,6 +58,12 @@ class WTSeries(WindowIterator):
     It is a multi-index pandas.DataFrame with a WindowIndex and a TimeIndex.
     WTSeries build the Windowed Time Series. So the iteration is performed on the WindowIndex
     of the dataframe.
+
+    The memory complexity of the WTSeries is:
+
+    T*(W*F)
+
+    with T the length of the time series, W the window width and F the number of feature.
 
     Attributes:
         data (pandas.DataFrame): A multi-index windowed pandas.DataFrame with a WindowIndex
@@ -158,11 +156,11 @@ class WTSeries(WindowIterator):
 
         # Set the indexes
         window_index = np.mgrid[
-            0: wtseries_lite.index_array.shape[0]: 1,
-            0:window_width: 1
+            0: wtseries_lite.n_window: 1,
+            0: window_width: 1
         ][0].reshape(-1, 1)
 
-        windows = dataframe.iloc[wtseries_lite.index_array.reshape(-1)]
+        windows = dataframe.iloc[wtseries_lite.index_array.values.reshape(-1)]
         windows.rename_axis(TIME_INDEX_NAME, inplace=True)
         windows[WINDOW_INDEX_NAME] = window_index
         windows.set_index(WINDOW_INDEX_NAME, append=True, inplace=True)
@@ -275,11 +273,8 @@ class WTSeries(WindowIterator):
             Path: Return the path of the saved file.
         """
         filepath = dirpath.joinpath(filename).with_suffix(SUFFIX_FILE)
-        filekey = "{primary}{secondary}".format(
-            primary=self.__class__.__name__,
-            secondary=(f"_{group_file_key}" if group_file_key else "")
-        )
-        self.data.to_hdf(filepath, key=filekey, mode="w")
+        filekey = self._get_dataset_namespace(group_file_key)
+        self.data.to_hdf(filepath, key=filekey, mode="a")
         return filepath
 
     @staticmethod
@@ -295,9 +290,12 @@ class WTSeries(WindowIterator):
         Returns:
             WTSeries: The corresponding WTSeries
         """
-        filekey = "{primary}{secondary}".format(
-            primary=WTSeries.__name__,
-            secondary=(f"_{group_file_key}" if group_file_key else "")
-        )
+        filekey = WTSeries._get_dataset_namespace(group_file_key)
         return WTSeries(pd.read_hdf(filepath.with_suffix(SUFFIX_FILE), key=filekey, mode="r"))
 
+    @classmethod
+    def _get_dataset_namespace(self, group_file_key: str = None):
+        return "{primary}_{secondary}".format(
+            primary=WTSeriesLite.__name__,
+            secondary=(str(group_file_key) if group_file_key else "")
+        )

@@ -7,10 +7,9 @@ from mlcf.datatools.data_intervals import DataIntervals
 from mlcf.windowing.filtering import LabelBalanceFilter
 from mlcf.windowing.iterator.tseries import (
     IncompatibleDataException,
-    WTSeries,
-    DataEmptyException
+    WTSeries
 )
-
+from mlcf.windowing.iterator.tseries_lite import DataEmptyException
 from mlcf.datatools.standardisation import ClassicStd
 
 

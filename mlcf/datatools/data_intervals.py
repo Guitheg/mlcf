@@ -38,9 +38,7 @@ It provides DataIntervals class allowing us to handle the Nx3 intervals data str
             window_width=30,
             window_step=1,
             selected_columns=["close", "return", "adx"],
-            filter_by_dataset=filter_by_set,
-            std_by_feature=None  # Here we can pass the same kind of dict previously introduce
-                                 # to apply the standardization independtly on each window
+            filter_by_dataset=filter_by_set
         )
 """
 
@@ -360,7 +358,7 @@ class DataIntervals():
             for interval in intervals:
                 if len(interval) >= window_width:
                     wtseries = WTSeries.create_wtseries(
-                        dataframe=interval,
+                        data=interval,
                         window_width=window_width,
                         window_step=window_step,
                         selected_columns=selected_columns,
