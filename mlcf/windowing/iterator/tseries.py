@@ -1,4 +1,4 @@
-""" Windowed Time Series Module
+""" Windowed Time Series Module.
 This module provides a data structure named "windowed time series (wtseries)". This data structure
 allows us to handle a multi-indexed data frame that represents a windowed time series data frame.
 

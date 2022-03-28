@@ -1,4 +1,4 @@
-"""Lite Windowed Time Series Module
+"""Lite Windowed Time Series Module.
 This module provides a data structure named "windowed time series (lite)". This data structure
 allows us to handle a time series with a windowed index to simulate a windowed time series.
 This data structure is lighter than the classic WTSeries.

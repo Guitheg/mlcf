@@ -71,16 +71,34 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
+html_theme = "pydata_sphinx_theme"
 html_title = "MLCF documentation"
 html_short_title = "MLCF documentation"
 
 
 html_theme_options = {
-    'prev_next_buttons_location': 'bottom',
-    'collapse_navigation': True,
-    'sticky_navigation': True,
-    'titles_only': True
+    "icon_links": [
+        {
+            # Label for this link
+            "name": "GitHub",
+            # URL where the link will redirect
+            "url": "https://github.com/Guitheg/mlcf/tree/main/",  # required
+            # Icon class (if "type": "fontawesome"), or path to local image (if "type": "local")
+            "icon": "fab fa-github",
+            # Whether icon should be a FontAwesome class, or a local file
+            "type": "fontawesome",  # Default is fontawesome
+        },
+        {
+            # Label for this link
+            "name": "Pypi",
+            # URL where the link will redirect
+            "url": "https://pypi.org/project/MLCF/",  # required
+            # Icon class (if "type": "fontawesome"), or path to local image (if "type": "local")
+            "icon": "fa fa-download",
+            # Whether icon should be a FontAwesome class, or a local file
+            "type": "fontawesome",  # Default is fontawesome
+        }
+   ]
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
