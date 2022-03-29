@@ -33,8 +33,7 @@ extensions = [
     'sphinx.ext.napoleon',
     'myst_parser',
     'sphinx.ext.mathjax',
-    'sphinx.ext.autodoc',
-    "sphinx_rtd_theme"
+    'sphinx.ext.autodoc'
 ]
 
 
