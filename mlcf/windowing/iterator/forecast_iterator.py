@@ -42,7 +42,7 @@ __all__ = [
 ]
 
 
-# TODO (doc) explain offset_mode
+# TODO (doc) explain index_selection_mode
 class WindowForecastIterator():
     """This class use a WindowIterator in order to returns an input and a target window instead of a
     single window.
@@ -55,7 +55,7 @@ class WindowForecastIterator():
         input_features: Optional[List[str]] = None,
         target_features: Optional[List[str]] = None,
         std_by_feature: Optional[Dict[str, StandardisationModule]] = None,
-        offset_mode: Optional[Union[str, List[int]]] = None
+        index_selection_mode: Optional[Union[str, List[int]]] = None
     ):
         """Create a WindowForecastIterator which give for each item an input window and
         a target window.
@@ -63,7 +63,7 @@ class WindowForecastIterator():
         the WindowIterator window width.
         If the sum of input window width and the target window width is not equal to the
         WindowIterator window width then the difference between the sum and the window with
-        is considered as the offset.
+        is the number of ignored rows/index.
 
         Args:
             w_iterator (WindowIterator): The window iterator used
@@ -92,8 +92,41 @@ class WindowForecastIterator():
                 :py:class:`StandardisationModule
                 <mlcf.datatools.standardisation.StandardisationModule>` class.
 
-            offset_mode (Union[str, List[int]], optional): Choose between 'default', 'right' or
-                'left'
+            index_selection_mode (Union[str, List[int]], optional): The index selection mode can be
+                a predefined index selection mode that is indicated by these keys: 'default', 'left'
+                or 'right'. It can also be a custom index selection mode defined by a list of
+                integers. The list of integers is called 'subset selection list' (see
+                :py:func:`subset_selection <mlcf.datatools.utils.subset_selection>`
+                for more information).
+                A subset selection list is a list interpreted by the subset_selection function that
+                takes only positive and negative integers and indicates whether or not we are
+                selecting or ignoring a subset of elements in a list (positive integers indicate
+                the number of elements we are selecting and negative integers indicate the number
+                of elements we are ignoring - the subset selection list is order sensitive).
+                Here, the list of elements corresponds to the index of a window itself.
+
+                .. code-block:: python
+
+                    # called in the __init__:
+                    selected_index = subset_selection(
+                        list(np.arange(self.data.width)),
+                        self.__index_selection_mode
+                    )
+
+                Here some further information about pre-defined index selection mode:
+
+                    - 'default':
+                        correspond to the subset selection list
+                        [input_width, 0, target_width]. Here, it correspond to an offset between
+                        the input and the target window.
+                    - 'left':
+                        correspond to [0, input_width, target_width].  Here, it correspond to an
+                        offset on the left before the input and target window.
+                    - 'right':
+                        correspond to [input_width, target_width, 0].  Here, it correspond to an
+                        offset on the right after the input and target window.
+
+                Defaults to 'default'.
 
         Raises:
             AttributeError: If one of the feature gived in the input or target feature doesn't
@@ -127,25 +160,38 @@ class WindowForecastIterator():
                 f"window width of the given WindowIterator. ({self.input_width} " +
                 f"+ {self.target_width} > {self.data.width})")
 
-        self.__offset_mode: List[int] = [0]
-        if isinstance(offset_mode, str):
-            if offset_mode == "default":
-                self.__offset_mode = [input_width, 0, target_width]
-            if offset_mode == "left":
-                self.__offset_mode = [0, input_width, target_width]
-            if offset_mode == "right":
-                self.__offset_mode = [input_width, target_width, 0]
-        elif isinstance(offset_mode, list) and np.all([isinstance(i, int) for i in offset_mode]):
-            self.__offset_mode = offset_mode
+        self.__index_selection_mode: List[int] = [0]
+        if isinstance(index_selection_mode, str):
+            if index_selection_mode == "default":
+                self.__index_selection_mode = [input_width, 0, target_width]
+            if index_selection_mode == "left":
+                self.__index_selection_mode = [0, input_width, target_width]
+            if index_selection_mode == "right":
+                self.__index_selection_mode = [input_width, target_width, 0]
+        elif isinstance(index_selection_mode, list) and np.all(
+            [isinstance(i, int) for i in index_selection_mode]
+        ):
+            self.__index_selection_mode = index_selection_mode
 
-        selected_index = subset_selection(list(np.arange(self.data.width)), self.__offset_mode)
+        selected_window_width = input_width + target_width
+        if selected_window_width > self.data.width:
+            raise ValueError(
+                "The sum of the input width and the target width is greater than the window width.")
+
+        if np.sum(np.abs(self.index_selection_mode)) > self.data.width:
+            raise ValueError(
+                "The absolute sum of the index selection mode is greater than the window width.")
+
+        selected_index = subset_selection(
+            list(np.arange(self.data.width)),
+            self.__index_selection_mode)
 
         self.__input_index: List[int] = selected_index[:input_width]
         self.__target_index: List[int] = selected_index[-target_width:]
 
     @property
-    def offset_mode(self):
-        return self.__offset_mode
+    def index_selection_mode(self):
+        return self.__index_selection_mode
 
     @property
     def std_by_feature(self) -> Optional[Dict[str, StandardisationModule]]:
