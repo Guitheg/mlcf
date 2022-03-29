@@ -71,6 +71,7 @@ Translated with www.DeepL.com/Translator (free version)
     def tag_name(self):
         return "label_balance_tag"
 
+    # TODO (optimize)
     def __call__(
         self,
         data: pd.DataFrame,
@@ -111,10 +112,7 @@ Translated with www.DeepL.com/Translator (free version)
         # if {max_occ} has not been set, the {max_occ} is set has the mean between the number
         # of label which belongs to '-inf' and '+inf'
         if not self.max_occ:
-            if "-inf" in value_count and "+inf" in value_count:
-                max_occ = np.mean([value_count["-inf"], value_count["+inf"]]).astype(int)
-            else:
-                max_occ = np.mean(value_count).astype(int)
+            max_occ = int(np.min(value_count))
         else:
             max_occ = self.max_occ
 
