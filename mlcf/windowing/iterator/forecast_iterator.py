@@ -27,11 +27,9 @@ input window and a target window.
 """
 
 from __future__ import annotations
-from ast import Raise
-from ctypes import Union
 import numpy as np
 import pandas as pd
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple, Union
 from mlcf.datatools.standardisation import StandardisationModule, standardize
 from mlcf.windowing.iterator.iterator import WindowIterator
 from mlcf.datatools.utils import subset_selection
@@ -131,6 +129,14 @@ class WindowForecastIterator():
 
                 Defaults to 'default'.
 
+            transform_input (Callable, optional): A function called in __getitem__ that takes an
+                input window as input and returns its transformation (type, shape, etc.).
+                Defaults to None.
+
+            transform_target (Callable, optional): A function called in __getitem__ that takes a
+                target window as input and returns its transformation (type, shape, etc.).
+                Defaults to None.
+
         Raises:
             AttributeError: If one of the feature gived in the input or target feature doesn't
                 belong to the features of the WindowIterator
@@ -183,6 +189,11 @@ class WindowForecastIterator():
         selected_index = subset_selection(
             list(np.arange(self.data.width)),
             self.__index_selection_mode)
+
+        if len(selected_index) != input_width + target_width:
+            raise ValueError(
+                "The number of selected index is differents than the window width."
+            )
 
         self.__input_index: List[int] = selected_index[:input_width]
         self.__target_index: List[int] = selected_index[-target_width:]
@@ -252,26 +263,28 @@ class WindowForecastIterator():
 
     @property
     def transform_input(self) -> Callable:
+        """This function is called in __getitem__ before returning the input window."""
         if self.__transform_input:
             return self.__transform_input
         else:
             return lambda x: x
 
     @property
-    def transform_target(self):
+    def transform_target(self) -> Callable:
+        """This function is called in __getitem__ before returning the target window."""
         if self.__transform_target:
             return self.__transform_target
         else:
             return lambda y: y
 
     def set_transform_input(self, transform_input: Callable):
-        if isinstance(transform_input, Callable):
+        if callable(transform_input):
             self.__transform_target = transform_input
         else:
             raise ValueError("The transform paramater must be a callable (a function)")
 
     def set_transform_target(self, transform_target: Callable):
-        if isinstance(transform_target, Callable):
+        if callable(transform_target):
             self.__transform_target = transform_target
         else:
             raise ValueError("The transform paramater must be a callable (a function)")
@@ -294,7 +307,7 @@ class WindowForecastIterator():
         w_target = window.iloc[self.target_index][self.target_features].copy()
         if self.std_by_feature:
             standardize(w_input, [w_input, w_target], self.std_by_feature, std_fct_save=False)
-        return w_input, w_target
+        return self.transform_input(w_input), self.transform_target(w_target)
 
     def __iter__(self) -> WindowForecastIterator:
         self.__window_index = 0

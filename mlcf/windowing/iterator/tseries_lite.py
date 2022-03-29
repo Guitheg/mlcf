@@ -28,11 +28,10 @@ This data structure is lighter than the classic WTSeries.
 """
 from __future__ import annotations
 from pathlib import Path
-from typing import Dict, Optional, List
+from typing import Optional, List
 import pandas as pd
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
-from mlcf.datatools.standardisation import StandardisationModule
 from mlcf.windowing.iterator import WindowIterator, SUFFIX_FILE
 from mlcf.windowing.filtering import WindowFilter
 

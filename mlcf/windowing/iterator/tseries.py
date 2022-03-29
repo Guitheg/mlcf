@@ -28,7 +28,7 @@ allows us to handle a multi-indexed data frame that represents a windowed time s
 
 from __future__ import annotations
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import List, Optional
 import pandas as pd
 import numpy as np
 from mlcf.windowing.filtering.filter import WindowFilter
@@ -138,17 +138,15 @@ class WTSeries(WindowIterator):
             window_filter=window_filter
         )
 
-        dataframe = wtseries_lite.data.copy()
-
         # Set the indexes
         window_index = np.mgrid[
             0: wtseries_lite.n_window: 1,
             0: window_width: 1
         ][0].reshape(-1, 1)
 
-        windows = dataframe.iloc[wtseries_lite.index_array.values.reshape(-1)]
+        windows = wtseries_lite.data.iloc[wtseries_lite.index_array.values.reshape(-1)].copy()
         windows.rename_axis(TIME_INDEX_NAME, inplace=True)
-        windows[WINDOW_INDEX_NAME] = window_index
+        windows.loc[:, WINDOW_INDEX_NAME] = window_index
         windows.set_index(WINDOW_INDEX_NAME, append=True, inplace=True)
         windows = windows.reorder_levels([WINDOW_INDEX_NAME, TIME_INDEX_NAME])
 

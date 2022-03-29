@@ -10,7 +10,6 @@ from mlcf.windowing.iterator.tseries import (
     WTSeries
 )
 from mlcf.windowing.iterator.tseries_lite import DataEmptyException
-from mlcf.datatools.standardisation import ClassicStd
 
 
 @pytest.mark.parametrize(
@@ -49,7 +48,7 @@ from mlcf.datatools.standardisation import ClassicStd
                 "window_width": 300,
                 "window_step": 2,
                 "selected_columns": ["close", "return"],
-                "window_filter": LabelBalanceFilter("label")
+                "window_filter": LabelBalanceFilter("label", sample_function=lambda li, k: li[:k])
             },
             {
                 "length": 2616,
