@@ -51,11 +51,11 @@ from mlcf.datatools.standardisation import ClassicStd
                 "window_step": 2,
                 "selected_columns": ["close", "return"],
                 "std_by_feature": {"close": ClassicStd()},
-                "window_filter": LabelBalanceFilter("label")
+                "window_filter": LabelBalanceFilter("label", sample_function=lambda li, k: li[:k])
             },
             {
                 "length": 2616,
-                "first_window": lambda data: data["return"].iloc[26:326].index
+                "first_window": lambda data: data["return"].iloc[68:368].index
             }
         )
     ]

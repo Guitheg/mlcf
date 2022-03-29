@@ -13,11 +13,11 @@ from mlcf.windowing.iterator.tseries_lite import WTSeriesLite
     "test_input, expected",
     [
         ({"window_width": 20, "window_step": 1},
-         {"length": 15328, "first_window": lambda data: data["return"].iloc[0:20].values}),
+         {"length": 15328, "first_window": lambda data: data["return"].iloc[0:20].index}),
         ({"window_width": 30, "window_step": 1},
-         {"length": 15318, "first_window": lambda data: data["return"].iloc[0:30].values}),
+         {"length": 15318, "first_window": lambda data: data["return"].iloc[0:30].index}),
         ({"window_width": 30, "window_step": 2},
-         {"length": 7659, "first_window": lambda data: data["return"].iloc[0:30].values}),
+         {"length": 7659, "first_window": lambda data: data["return"].iloc[0:30].index}),
         (
             {
                 "window_width": 30,
@@ -26,7 +26,7 @@ from mlcf.windowing.iterator.tseries_lite import WTSeriesLite
             },
             {
                 "length": 7659,
-                "first_window": lambda data: data["return"].iloc[0:30].values
+                "first_window": lambda data: data["return"].iloc[0:30].index
             }
         ),
         (
@@ -38,7 +38,7 @@ from mlcf.windowing.iterator.tseries_lite import WTSeriesLite
             },
             {
                 "length": 7659,
-                "first_window": lambda data: data["return"].iloc[0:30].values
+                "first_window": lambda data: data["return"].iloc[0:30].index
             }
         ),
         (
@@ -47,21 +47,22 @@ from mlcf.windowing.iterator.tseries_lite import WTSeriesLite
                 "window_step": 2,
                 "selected_columns": ["close", "return"],
                 "std_by_feature": {"close": ClassicStd()},
-                "window_filter": LabelBalanceFilter("label")
+                "window_filter": LabelBalanceFilter("label", sample_function=lambda li, k: li[:k])
             },
             {
-                "length": 5209,
-                "first_window": lambda data: data["return"].iloc[4:304].values
+                "length": 2616,
+                "first_window": lambda data: data["return"].iloc[68:368].index
             }
         )
     ]
 )
-def test_wtseries(ohlcvrl_btc, test_input, expected):
+def test_wtseries_lite(ohlcvrl_btc, test_input, expected):
+
     data = ohlcvrl_btc.copy()
 
     wtseries = WTSeriesLite.create_wtseries_lite(data, **test_input)
     assert len(wtseries) == expected["length"]
-    assert np.all(wtseries[0]["return"].values == expected["first_window"](data))
+    assert np.all(wtseries[0]["return"].index == expected["first_window"](data))
     if "selected_columns" in test_input:
         assert list(wtseries.features) == test_input["selected_columns"]
         assert wtseries.ndim == len(test_input["selected_columns"])
@@ -90,7 +91,12 @@ def test_wtseries(ohlcvrl_btc, test_input, expected):
         )
     ]
 )
-def test_create_wtseries_exception(ohlcvra_btc, data_selection, test_input, expected_exception):
+def test_create_wtseries_lite_exception(
+    ohlcvra_btc,
+    data_selection,
+    test_input,
+    expected_exception
+):
     data = {
         "few": ohlcvra_btc.iloc[:100],
         "empty": pd.DataFrame(columns=ohlcvra_btc.columns)
