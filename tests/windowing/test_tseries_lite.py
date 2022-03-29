@@ -1,17 +1,12 @@
-
-import pytest
 from pathlib import Path
+import pytest
 import pandas as pd
 import numpy as np
 from mlcf.datatools.data_intervals import DataIntervals
 from mlcf.windowing.filtering import LabelBalanceFilter
-from mlcf.windowing.iterator.tseries import (
-    IncompatibleDataException,
-    WTSeries,
-    DataEmptyException
-)
-
+from mlcf.windowing.iterator.tseries_lite import DataEmptyException
 from mlcf.datatools.standardisation import ClassicStd
+from mlcf.windowing.iterator.tseries_lite import WTSeriesLite
 
 
 @pytest.mark.parametrize(
@@ -64,7 +59,7 @@ from mlcf.datatools.standardisation import ClassicStd
 def test_wtseries(ohlcvrl_btc, test_input, expected):
     data = ohlcvrl_btc.copy()
 
-    wtseries = WTSeries.create_wtseries(data, **test_input)
+    wtseries = WTSeriesLite.create_wtseries_lite(data, **test_input)
     assert len(wtseries) == expected["length"]
     assert np.all(wtseries[0]["return"].values == expected["first_window"](data))
     if "selected_columns" in test_input:
@@ -101,7 +96,7 @@ def test_create_wtseries_exception(ohlcvra_btc, data_selection, test_input, expe
         "empty": pd.DataFrame(columns=ohlcvra_btc.columns)
     }
     with pytest.raises(expected_exception):
-        WTSeries.create_wtseries(data[data_selection], **test_input)
+        WTSeriesLite.create_wtseries_lite(data[data_selection], **test_input)
 
 
 @pytest.mark.parametrize(
@@ -128,16 +123,11 @@ def test_create_wtseries_exception(ohlcvra_btc, data_selection, test_input, expe
 )
 def test_merge(ohlcvra_btc, test_input):
     data_intervals = DataIntervals.create_list_interval(ohlcvra_btc, n_intervals=2)
-    wtseries_1 = WTSeries.create_wtseries(data_intervals[0], **test_input)
-    wtseries_2 = WTSeries.create_wtseries(data_intervals[0], **test_input)
+    wtseries_1 = WTSeriesLite.create_wtseries_lite(data_intervals[0], **test_input)
+    wtseries_2 = WTSeriesLite.create_wtseries_lite(data_intervals[0], **test_input)
     wtseries = wtseries_1.merge(wtseries_2)
     assert np.all(wtseries[len(wtseries_1)].values == wtseries_2[0].values)
     assert len(wtseries_1) + len(wtseries_2) == len(wtseries)
-
-
-def test_wtseries_exception(ohlcvra_btc):
-    with pytest.raises(IncompatibleDataException):
-        WTSeries(ohlcvra_btc)
 
 
 @pytest.mark.parametrize(
@@ -156,13 +146,22 @@ def test_wtseries_exception(ohlcvra_btc):
     ]
 )
 def test_write(ohlcvr_btc, test_input, group_key, tmp_path: Path):
-    wtseries = WTSeries.create_wtseries(ohlcvr_btc, **test_input)
+    wtseries = WTSeriesLite.create_wtseries_lite(ohlcvr_btc, **test_input)
     userdir = tmp_path.joinpath("userdir")
     userdir.mkdir()
     file_name = "datasetwts"
     file_path = wtseries.write(userdir, file_name, group_key)
     assert file_path.is_file()
-    assert np.all(pd.read_hdf(file_path).values == wtseries.data.values)
+    assert np.all(
+        pd.read_hdf(
+            file_path, key=WTSeriesLite._get_dataset_namespace("data", group_key)).values ==
+        wtseries.data.values
+    )
+    assert np.all(
+        pd.read_hdf(
+            file_path, key=WTSeriesLite._get_dataset_namespace("index", group_key)).values ==
+        wtseries.index_array.values
+    )
 
 
 @pytest.mark.parametrize(
@@ -181,11 +180,12 @@ def test_write(ohlcvr_btc, test_input, group_key, tmp_path: Path):
     ]
 )
 def test_read(ohlcvr_btc, test_input, group_key, tmp_path: Path):
-    wtseries = WTSeries.create_wtseries(ohlcvr_btc, **test_input)
+    wtseries = WTSeriesLite.create_wtseries_lite(ohlcvr_btc, **test_input)
     userdir = tmp_path.joinpath("userdir")
     userdir.mkdir()
     file_name = "datasetwts"
     file_path = wtseries.write(userdir, file_name, group_key)
     assert file_path.is_file()
-    wtseries_read = WTSeries.read(file_path, group_key)
+    wtseries_read = WTSeriesLite.read(file_path, group_key)
     assert np.all(wtseries.data.values == wtseries_read.data.values)
+    assert np.all(wtseries.index_array.values == wtseries_read.index_array.values)
