@@ -20,6 +20,7 @@ mlcf_home/*
 
 #freqtrade
 user_data/*
+data/*
 
 config.json
 *.sqlite
