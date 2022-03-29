@@ -33,8 +33,7 @@ from mlcf.windowing.iterator.tseries_lite import WTSeriesLite
             {
                 "window_width": 30,
                 "window_step": 2,
-                "selected_columns": ["close", "return"],
-                "std_by_feature": {"close": ClassicStd()}
+                "selected_columns": ["close", "return"]
             },
             {
                 "length": 7659,
@@ -46,7 +45,6 @@ from mlcf.windowing.iterator.tseries_lite import WTSeriesLite
                 "window_width": 300,
                 "window_step": 2,
                 "selected_columns": ["close", "return"],
-                "std_by_feature": {"close": ClassicStd()},
                 "window_filter": LabelBalanceFilter("label")
             },
             {
@@ -115,8 +113,7 @@ def test_create_wtseries_exception(ohlcvra_btc, data_selection, test_input, expe
             {
                 "window_width": 30,
                 "window_step": 2,
-                "selected_columns": ["close", "return"],
-                "std_by_feature": {"close": ClassicStd()}
+                "selected_columns": ["close", "return"]
             }
         )
     ]

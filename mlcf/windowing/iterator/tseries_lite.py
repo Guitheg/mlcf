@@ -74,8 +74,7 @@ class WTSeriesLite(WindowIterator):
     def __init__(
         self,
         data: pd.DataFrame,
-        index_array: np.ndarray,
-        std_by_feature: Optional[Dict[str, StandardisationModule]] = None
+        index_array: np.ndarray
     ):
         """Build a WTSeriesLite from a time series and an index_array.
 
@@ -87,7 +86,6 @@ class WTSeriesLite(WindowIterator):
 
         self._data: pd.DataFrame = data
         self._index_array: pd.DataFrame = index_array
-        self._std_by_feature: Optional[Dict[str, StandardisationModule]] = std_by_feature
 
     @property
     def data(self) -> pd.DataFrame:
@@ -97,10 +95,6 @@ class WTSeriesLite(WindowIterator):
     def index_array(self) -> pd.DataFrame:
         return self._index_array
 
-    @property
-    def std_by_feature(self) -> Optional[Dict[str, StandardisationModule]]:
-        return self._std_by_feature
-
     @classmethod
     def create_wtseries_lite(
         self,
@@ -108,8 +102,7 @@ class WTSeriesLite(WindowIterator):
         window_width: int,
         window_step: int,
         selected_columns: Optional[List[str]] = None,
-        window_filter: Optional[WindowFilter] = None,
-        std_by_feature: Optional[Dict[str, StandardisationModule]] = None
+        window_filter: Optional[WindowFilter] = None
     ) -> WTSeriesLite:
         """This function create a WTSeriesLite given a time series dataframe.
 
@@ -128,17 +121,6 @@ class WTSeriesLite(WindowIterator):
                 This allows to filter windows according to some condition.
                 For example, filter the window in order to uniformise the histogram on a feature.
                 If None, any window filtering is performed. Defaults to None.
-
-            std_by_feature (Optional[Dict[str, StandardisationModule]], optional):
-                A dictionary prodiving the standardisation to be applied on each column.
-                Here, the standardisation is done independently on each window.
-                The dictionary format must be as following:
-                {string -> :py:class:`StandardisationModule
-                <mlcf.datatools.standardisation.StandardisationModule>`}.
-                The key must correspond to a column name (a feature) of the data frame.
-                The value is any object inheriting from the
-                :py:class:`StandardisationModule
-                <mlcf.datatools.standardisation.StandardisationModule>` class.
 
         Raises:
             DataEmptyException: Raise this exception if the time series dataframe
@@ -174,8 +156,7 @@ class WTSeriesLite(WindowIterator):
         # Make list of window (dataframe)
         return WTSeriesLite(
             data=dataframe[selected_columns],
-            index_array=pd.DataFrame(index_data),
-            std_by_feature=std_by_feature
+            index_array=pd.DataFrame(index_data)
         )
 
     def __len__(self) -> int:
@@ -237,13 +218,7 @@ class WTSeriesLite(WindowIterator):
             pd.DataFrame: The corresponding window given an index
         """
 
-        window = self.data.iloc[self.index_array.iloc[idx]]
-
-        if self.std_by_feature:
-            for feature, std_obj in self.std_by_feature.items():
-                window[feature].loc[:] = std_obj.fit_transform(window[feature])
-
-        return window
+        return self.data.iloc[self.index_array.iloc[idx]]
 
     def copy(self) -> WTSeriesLite:
         """Return a copy of this WTSeriesLite.
@@ -272,8 +247,7 @@ class WTSeriesLite(WindowIterator):
 
         return WTSeriesLite(
             data=self.data,
-            index_array=pd.concat([self.index_array, wtseries_lite.index_array]),
-            std_by_feature=self.std_by_feature
+            index_array=pd.concat([self.index_array, wtseries_lite.index_array])
         )
 
     def write(self, dirpath: Path, filename: str, group_file_key: str = None) -> Path:
