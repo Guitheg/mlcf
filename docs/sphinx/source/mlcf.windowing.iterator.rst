@@ -10,6 +10,7 @@ Submodules
    mlcf.windowing.iterator.forecast_iterator
    mlcf.windowing.iterator.iterator
    mlcf.windowing.iterator.tseries
+   mlcf.windowing.iterator.tseries_lite
 
 Module contents
 ---------------
