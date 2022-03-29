@@ -27,10 +27,11 @@ input window and a target window.
 """
 
 from __future__ import annotations
+from ast import Raise
 from ctypes import Union
 import numpy as np
 import pandas as pd
-from typing import Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 from mlcf.datatools.standardisation import StandardisationModule, standardize
 from mlcf.windowing.iterator.iterator import WindowIterator
 from mlcf.datatools.utils import subset_selection
@@ -55,7 +56,9 @@ class WindowForecastIterator():
         input_features: Optional[List[str]] = None,
         target_features: Optional[List[str]] = None,
         std_by_feature: Optional[Dict[str, StandardisationModule]] = None,
-        index_selection_mode: Optional[Union[str, List[int]]] = None
+        index_selection_mode: Optional[Union[str, List[int]]] = None,
+        transform_input: Optional[Callable] = None,
+        transform_target: Optional[Callable] = None
     ):
         """Create a WindowForecastIterator which give for each item an input window and
         a target window.
@@ -154,12 +157,6 @@ class WindowForecastIterator():
                 "The given target features are not in the feature's iterator:" +
                 f"{[feat for feat, isin in zip(self.target_features, feature_in) if not isin]}")
 
-        if self.input_width + self.target_width > self.data.width:
-            raise ValueError(
-                "The input width and the target width doesn't match with the " +
-                f"window width of the given WindowIterator. ({self.input_width} " +
-                f"+ {self.target_width} > {self.data.width})")
-
         self.__index_selection_mode: List[int] = [0]
         if isinstance(index_selection_mode, str):
             if index_selection_mode == "default":
@@ -176,7 +173,8 @@ class WindowForecastIterator():
         selected_window_width = input_width + target_width
         if selected_window_width > self.data.width:
             raise ValueError(
-                "The sum of the input width and the target width is greater than the window width.")
+                "The sum of the input width and the target width is greater than the window width" +
+                f" ({input_width} + {target_width} > {self.data.width}).")
 
         if np.sum(np.abs(self.index_selection_mode)) > self.data.width:
             raise ValueError(
@@ -188,6 +186,9 @@ class WindowForecastIterator():
 
         self.__input_index: List[int] = selected_index[:input_width]
         self.__target_index: List[int] = selected_index[-target_width:]
+
+        self.__transform_input = transform_input
+        self.__transform_target = transform_target
 
     @property
     def index_selection_mode(self):
@@ -249,10 +250,36 @@ class WindowForecastIterator():
 
         return self.__input_index
 
+    @property
+    def transform_input(self) -> Callable:
+        if self.__transform_input:
+            return self.__transform_input
+        else:
+            return lambda x: x
+
+    @property
+    def transform_target(self):
+        if self.__transform_target:
+            return self.__transform_target
+        else:
+            return lambda y: y
+
+    def set_transform_input(self, transform_input: Callable):
+        if isinstance(transform_input, Callable):
+            self.__transform_target = transform_input
+        else:
+            raise ValueError("The transform paramater must be a callable (a function)")
+
+    def set_transform_target(self, transform_target: Callable):
+        if isinstance(transform_target, Callable):
+            self.__transform_target = transform_target
+        else:
+            raise ValueError("The transform paramater must be a callable (a function)")
+
     def __len__(self) -> int:
         return len(self.data)
 
-    def __getitem__(self, idx: int) -> Tuple[np.ndarray, np.ndarray]:
+    def __getitem__(self, idx: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """Given an index return the corresponding pair of input window and target window.
 
         Args:

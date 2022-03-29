@@ -1,48 +1,65 @@
 
 import pytest
+import numpy as np
+from mlcf.datatools.standardisation import ClassicStd
 from mlcf.windowing.iterator.forecast_iterator import WindowForecastIterator
 from mlcf.windowing.iterator.tseries import WTSeries
 
 
 @pytest.mark.parametrize(
-    "input_width, target_width, offset, step, i_features, t_features",
+    "args_wtseries, args_forecast",
     [
-        (5, 1, 0, 1, None, None),
-        (5, 3, 5, 2, None, None),
-        (5, 3, 5, 10, None, None),
-        (5, 3, 5, 1, None, None),
-        (5, 3, 5, 2, ["close"], None),
-        (5, 3, 5, 2, None, ["return"]),
-        (5, 3, 5, 2, ["close"], ["return"]),
+        (
+            {
+                "window_width": 5+1+0,
+                "window_step": 1
+            },
+            {
+                "input_width": 5,
+                "target_width": 1,
+                "input_features": None,
+                "target_features": None,
+                "std_by_feature": None,
+                "index_selection_mode": None,
+            }
+        ),
     ]
 )
 def test_window_forecast_iterator(
     ohlcvr_btc,
-    input_width,
-    target_width,
-    offset,
-    step,
-    i_features,
-    t_features
+    args_wtseries,
+    args_forecast
 ):
-    wtseries = WTSeries.create_wtseries(
-        ohlcvr_btc.iloc[0:100],
-        window_width=input_width+target_width+offset,
-        window_step=step
-    )
-    w_iterator = WindowForecastIterator(
-        wtseries,
-        input_width=input_width,
-        target_width=target_width,
-        input_features=i_features,
-        target_features=t_features
-    )
-    for w in w_iterator:
-        wi, wt = w
-        assert wi.shape == (
-            input_width, len(list(i_features if i_features else wtseries.features)))
-        assert wt.shape == (
-            target_width, len(list(t_features if t_features else wtseries.features)))
+    wtseries = WTSeries.create_wtseries(ohlcvr_btc.iloc[0:100], **args_wtseries)
+    w_iterator = WindowForecastIterator(wtseries, **args_forecast)
+    for w_fore, w_tseries in zip(w_iterator, wtseries):
+        w_input, w_target = w_fore
+        assert w_input.shape == (
+            args_forecast["input_width"],
+            len(list(
+                args_forecast["input_features"]
+                if args_forecast["input_features"]
+                else wtseries.features))
+        )
+        assert w_target.shape == (
+            args_forecast["target_width"],
+            len(list(
+                args_forecast["target_features"]
+                if args_forecast["target_features"]
+                else wtseries.features))
+        )
+
+        if args_forecast["index_selection_mode"]:
+            pass
+        else:
+            assert np.all(w_tseries.iloc[:args_forecast["input_width"]].index == w_input.index)
+            assert np.all(w_tseries.iloc[-args_forecast["target_width"]:].index == w_target.index)
+
+        if args_forecast["std_by_feature"]:
+            for feature, std_object in args_forecast["std_by_feature"].items():
+                if isinstance(std_object, ClassicStd):
+                    assert np.round(w_input[feature].mean(), 4) == 0.0
+                    assert np.round(w_input[feature].std(), 4) == 1.0
 
 
 @pytest.mark.parametrize(
