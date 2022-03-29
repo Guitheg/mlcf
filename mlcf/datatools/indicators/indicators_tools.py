@@ -426,16 +426,16 @@ def macd(series, fast=3, slow=10, smooth=16):
 
 # ---------------------------------------------
 
-def bollinger_bands(series, window=20, stds=2):
+def bollinger_bands(series, window=20, std_coef: float = 2.0, collumns_prefix: str = ""):
     ma = rolling_mean(series, window=window, min_periods=1)
     std = rolling_std(series, window=window, min_periods=1)
-    upper = ma + std * stds
-    lower = ma - std * stds
+    upper = ma + std * std_coef
+    lower = ma - std * std_coef
 
     return pd.DataFrame(index=series.index, data={
-        'upper': upper,
-        'mid': ma,
-        'lower': lower
+        collumns_prefix + 'upper': upper,
+        collumns_prefix + 'mid': ma,
+        collumns_prefix + 'lower': lower
     })
 
 

@@ -36,14 +36,14 @@ class LabelBalanceFilter(WindowFilter):
     def __init__(
         self,
         column: str,
-        max_count: Optional[int] = None,
+        max_occ: Optional[int] = None,
         sample_function: Callable = random.sample
     ):
 
         super(LabelBalanceFilter, self).__init__()
         self.column = column
         self.tag_name = "label_balance_tag"
-        self.max_count: Optional[int] = max_count
+        self.max_occ: Optional[int] = max_occ  # max occurence of elements for each labels
         self.sample_function = sample_function
 
     def __call__(
@@ -74,24 +74,24 @@ class LabelBalanceFilter(WindowFilter):
         # count the number of label for eache label (the corresponding label is given by the column)
         value_count = dataframe[self.column].value_counts()
 
-        # if {max_count} has not been set, the {max_count} is set has the mean between the number
+        # if {max_occ} has not been set, the {max_occ} is set has the mean between the number
         # of label which belongs to '-inf' and '+inf'
-        if not self.max_count:
+        if not self.max_occ:
             if "-inf" in value_count and "+inf" in value_count:
-                max_count = np.mean([value_count["-inf"], value_count["+inf"]]).astype(int)
+                max_occ = np.mean([value_count["-inf"], value_count["+inf"]]).astype(int)
             else:
-                max_count = np.mean(value_count).astype(int)
+                max_occ = np.min(value_count)
         else:
-            max_count = self.max_count
+            max_occ = self.max_occ
 
         # for each value_count greater than the max count we deselect number of rows equals to
-        # the difference between the value_count and the max_count
+        # the difference between the value_count and the max_occ
         for idx in value_count.index:
-            if value_count[idx] > max_count:
+            if value_count[idx] > max_occ:
                 tag_col.loc[
                     sorted(self.sample_function(
                         list(dataframe[dataframe[self.column] == idx].index),
-                        k=value_count[idx]-max_count)
+                        k=value_count[idx]-max_occ)
                     )
                 ] = False
         self.data = data.copy()
