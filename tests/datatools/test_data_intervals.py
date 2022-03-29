@@ -118,11 +118,7 @@ def test_standardize(ohlcvra_btc, test_input):
             {
                 "window_width": 100,
                 "window_step": 1,
-                "selected_columns": ["close", "return"],
-                "std_by_feature": {
-                    "close": ClassicStd(),
-                    "return": ClassicStd(with_mean=False)
-                }
+                "selected_columns": ["close", "return"]
             },
             11883
         ),
@@ -131,11 +127,7 @@ def test_standardize(ohlcvra_btc, test_input):
             {
                 "window_width": 10,
                 "window_step": 1,
-                "selected_columns": ["close", "return"],
-                "std_by_feature": {
-                    "close": ClassicStd(),
-                    "return": ClassicStd(with_mean=False)
-                }
+                "selected_columns": ["close", "return"]
             },
             12243
         ),
@@ -145,34 +137,13 @@ def test_standardize(ohlcvra_btc, test_input):
                 "window_width": 100,
                 "window_step": 3,
                 "selected_columns": ["close", "return"],
-                "std_by_feature": {
-                    "close": ClassicStd(),
-                    "return": ClassicStd(with_mean=False)
-                },
                 "filter_by_dataset":
                     {
                         "train": LabelBalanceFilter("label", 200)
                     }
             },
             3765
-        ),
-        (
-            4,
-            {
-                "window_width": 100,
-                "window_step": 3,
-                "selected_columns": ["close", "return"],
-                "std_by_feature": {
-                    "close": ClassicStd(),
-                    "return": ClassicStd(with_mean=False)
-                },
-                "filter_by_dataset":
-                    {
-                        "train": LabelBalanceFilter("label", 200)
-                    }
-            },
-            3765
-        ),
+        )
     ]
 )
 def test_windowing(ohlcvrl_btc, n_intervals, test_input, expected):
