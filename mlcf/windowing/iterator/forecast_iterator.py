@@ -27,11 +27,13 @@ input window and a target window.
 """
 
 from __future__ import annotations
+from ctypes import Union
 import numpy as np
 import pandas as pd
 from typing import Dict, List, Optional, Tuple
 from mlcf.datatools.standardisation import StandardisationModule, standardize
 from mlcf.windowing.iterator.iterator import WindowIterator
+from mlcf.datatools.utils import subset_selection
 
 # TODO (doc) correct English
 
@@ -40,6 +42,7 @@ __all__ = [
 ]
 
 
+# TODO (doc) explain offset_mode
 class WindowForecastIterator():
     """This class use a WindowIterator in order to returns an input and a target window instead of a
     single window.
@@ -51,7 +54,8 @@ class WindowForecastIterator():
         target_width: int,
         input_features: Optional[List[str]] = None,
         target_features: Optional[List[str]] = None,
-        std_by_feature: Optional[Dict[str, StandardisationModule]] = None
+        std_by_feature: Optional[Dict[str, StandardisationModule]] = None,
+        offset_mode: Optional[Union[str, List[int]]] = None
     ):
         """Create a WindowForecastIterator which give for each item an input window and
         a target window.
@@ -88,14 +92,16 @@ class WindowForecastIterator():
                 :py:class:`StandardisationModule
                 <mlcf.datatools.standardisation.StandardisationModule>` class.
 
+            offset_mode (Union[str, List[int]], optional): Choose between 'default', 'right' or
+                'left'
+
         Raises:
             AttributeError: If one of the feature gived in the input or target feature doesn't
                 belong to the features of the WindowIterator
             ValueError: If the sum of the input width and the target width is greater than the
                 WindowIterator window width.
         """
-        self.__input_width: int = input_width
-        self.__target_width: int = target_width
+
         self.__input_features: Optional[List[str]] = input_features
         self.__target_features: Optional[List[str]] = target_features
         self.__data: WindowIterator = w_iterator
@@ -120,6 +126,26 @@ class WindowForecastIterator():
                 "The input width and the target width doesn't match with the " +
                 f"window width of the given WindowIterator. ({self.input_width} " +
                 f"+ {self.target_width} > {self.data.width})")
+
+        self.__offset_mode: List[int] = [0]
+        if isinstance(offset_mode, str):
+            if offset_mode == "default":
+                self.__offset_mode = [input_width, 0, target_width]
+            if offset_mode == "left":
+                self.__offset_mode = [0, input_width, target_width]
+            if offset_mode == "right":
+                self.__offset_mode = [input_width, target_width, 0]
+        elif isinstance(offset_mode, list) and np.all([isinstance(i, int) for i in offset_mode]):
+            self.__offset_mode = offset_mode
+
+        selected_index = subset_selection(list(np.arange(self.data.width)), self.__offset_mode)
+
+        self.__input_index: List[int] = selected_index[:input_width]
+        self.__target_index: List[int] = selected_index[-target_width:]
+
+    @property
+    def offset_mode(self):
+        return self.__offset_mode
 
     @property
     def std_by_feature(self) -> Optional[Dict[str, StandardisationModule]]:
@@ -166,16 +192,16 @@ class WindowForecastIterator():
         return self.__target_features
 
     @property
-    def target_width(self) -> int:
-        """The width of the target window"""
+    def target_index(self) -> List[int]:
+        """Relative target index by window"""
 
-        return self.__target_width
+        return self.__target_index
 
     @property
-    def input_width(self) -> int:
-        """The width of the input window"""
+    def input_index(self) -> List[int]:
+        """Relative input index by window"""
 
-        return self.__input_width
+        return self.__input_index
 
     def __len__(self) -> int:
         return len(self.data)
@@ -191,8 +217,8 @@ class WindowForecastIterator():
         """
 
         window: pd.DataFrame = self.data[idx]
-        w_input = window.iloc[:self.input_width][self.input_features].copy()
-        w_target = window.iloc[-self.target_width:][self.target_features].copy()
+        w_input = window.iloc[self.input_index][self.input_features].copy()
+        w_target = window.iloc[self.target_index][self.target_features].copy()
         if self.std_by_feature:
             standardize(w_input, [w_input, w_target], self.std_by_feature, std_fct_save=False)
         return w_input, w_target
