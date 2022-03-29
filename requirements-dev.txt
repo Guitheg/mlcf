@@ -15,4 +15,4 @@ mypy
 
 sphinx
 myst_parser
-sphinx_rtd_theme
+pydata-sphinx-theme

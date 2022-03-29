@@ -5,8 +5,11 @@ from typing import List
 
 
 __all__ = [
-    "WindowIterator"
+    "WindowIterator",
+    "SUFFIX_FILE"
 ]
+
+SUFFIX_FILE = ".h5"
 
 
 # TODO (doc) review
