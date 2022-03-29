@@ -102,13 +102,16 @@ class StandardisationModule(ABC):
             Union[np.ndarray, pd.DataFrame, pd.Series]: The standardised data.
         """
         if isinstance(data, pd.Series):
-            series = data.copy()
-            series.iloc[:] = self.std.transform(np.reshape(data.values, (-1, 1))).reshape(-1)
-            return series
+            return pd.Series(
+                self.std.transform(np.reshape(data.values, (-1, 1))).reshape(-1),
+                name=data.name,
+                index=data.index)
         elif isinstance(data, pd.DataFrame):
-            dataframe = data.copy()
-            dataframe.iloc[:] = self.std.transform(data.values)
-            return dataframe
+            return pd.DataFrame(
+                self.std.transform(data.values),
+                columns=data.columns,
+                index=data.index
+            )
         elif isinstance(data, np.ndarray):
             return self.std.transform(data)
         else:
@@ -120,7 +123,9 @@ class StandardisationModule(ABC):
         Returns:
             StandardisationModule: An empty copy.
         """
-        return StandardisationModule(self.class_std, *self.args, **self.kwargs)
+        if isinstance(self.__class__, StandardisationModule):
+            return StandardisationModule(self.class_std, *self.args, **self.kwargs)
+        return self.__class__(*self.args, **self.kwargs)
 
 
 class ClassicStd(StandardisationModule):
@@ -324,14 +329,14 @@ def standardize(
     if isinstance(transform_data, pd.DataFrame):
         if not transform_data.empty:
             for feature, std_obj in dict_std_by_feature.items():
-                transform_data[feature] = std_obj.transform(transform_data[feature])
+                transform_data.loc[:, feature] = std_obj.transform(transform_data[feature])
 
     elif (isinstance(transform_data, list) and
           np.all([isinstance(i, pd.DataFrame) for i in transform_data])):
         for data in transform_data:
             if not data.empty:
                 for feature, std_obj in dict_std_by_feature.items():
-                    data[feature] = std_obj.transform(data[feature])
+                    data.loc[:, feature] = std_obj.transform(data[feature])
     else:
         raise TypeError(f"Bad transform_data ({type(transform_data)}) type in standardize")
 

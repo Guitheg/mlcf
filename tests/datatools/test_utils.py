@@ -5,7 +5,8 @@ from mlcf.datatools.utils import (
     labelize,
     binarize,
     split_pandas,
-    split_train_val_test
+    split_train_val_test,
+    subset_selection
 )
 
 
@@ -175,3 +176,84 @@ def test_split_train_val_test(
     assert train.index.name == val.index.name
     assert train.index.name == test.index.name
     assert data[data_selection].index.name == train.index.name
+
+
+@pytest.mark.parametrize(
+    "test_input, expected",
+    [
+        (
+            {"element_list": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "selection_list": []},
+            []
+        ),
+        (
+            {"element_list": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "selection_list": [-1]},
+            []
+        ),
+        (
+            {"element_list": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "selection_list": [0]},
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        ),
+        (
+            {"element_list": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "selection_list": [1, 0]},
+            [1]
+        ),
+        (
+            {"element_list": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "selection_list": [-1, 0]},
+            [2, 3, 4, 5, 6, 7, 8, 9, 10]
+        ),
+        (
+            {"element_list": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "selection_list": [0, 1]},
+            [10]
+        ),
+        (
+            {"element_list": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "selection_list": [0, -1]},
+            [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        ),
+        (
+            {"element_list": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "selection_list": [-1, 0, -1]},
+            [2, 3, 4, 5, 6, 7, 8, 9]
+        ),
+        (
+            {"element_list": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "selection_list": [1, 0, 1]},
+            [1, 10]
+        ),
+        (
+            {"element_list": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "selection_list": [5]},
+            [1, 2, 3, 4, 5]
+        ),
+        (
+            {"element_list": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "selection_list": [2, -2, 2, -2, 2]},
+            [1, 2, 5, 6, 9, 10]
+        ),
+        (
+            {"element_list": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "selection_list": [2, -2, 0, -2, 2]},
+            [1, 2, 5, 6, 9, 10]
+        ),
+        (
+            {"element_list": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "selection_list": [2, -2, 2, 0, 2]},
+            [1, 2, 5, 6, 9, 10]
+        ),
+        (
+            {"element_list": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "selection_list": [2, -3, -3, 2]},
+            [1, 2, 9, 10]
+        ),
+    ]
+)
+def test_subset_selection(test_input, expected):
+    assert expected == subset_selection(**test_input)
+
+
+@pytest.mark.parametrize(
+    "test_input",
+    [
+        (
+            {"element_list": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "selection_list": [-1, 0, 1]}
+        ),
+        (
+            {"element_list": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "selection_list": [5, 0, 2, 0, 1]}
+        ),
+    ]
+)
+def test_subset_selection_exception(test_input):
+    with pytest.raises(ValueError):
+        subset_selection(**test_input)

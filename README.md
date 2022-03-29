@@ -156,9 +156,7 @@ dict_train_val_test = data_intervals.windowing(
     window_width=30,
     window_step=1,
     selected_columns=["close", "return", "adx"],
-    filter_by_dataset=filter_by_set,
-    std_by_feature=None  # Here we can pass the same kind of dict previously introduce to apply
-                         # the standardization independtly on each window
+    filter_by_dataset=filter_by_set
 )
 # -------------------------------------------------------
 ```
@@ -177,8 +175,7 @@ wtseries = WTSeries.create_wtseries(
     window_width=30,
     window_step=1,
     selected_columns=["close", "return", "adx"],
-    window_filter=LabelBalanceFilter("label"),
-    std_by_feature=std_by_feautures
+    window_filter=LabelBalanceFilter("label")
 )
 
 # Or from a wtseries .h5 file:

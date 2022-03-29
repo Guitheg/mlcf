@@ -3,7 +3,7 @@ import pytest
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
 from mlcf.windowing.filtering import LabelBalanceFilter
-from mlcf.windowing.iterator.tseries import TIME_INDEX_NAME
+from mlcf.windowing.iterator.tseries_lite import TIME_INDEX_NAME
 
 
 @pytest.mark.parametrize(

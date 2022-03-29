@@ -38,9 +38,7 @@ It provides DataIntervals class allowing us to handle the Nx3 intervals data str
             window_width=30,
             window_step=1,
             selected_columns=["close", "return", "adx"],
-            filter_by_dataset=filter_by_set,
-            std_by_feature=None  # Here we can pass the same kind of dict previously introduce
-                                 # to apply the standardization independtly on each window
+            filter_by_dataset=filter_by_set
         )
 """
 
@@ -333,17 +331,6 @@ class DataIntervals():
                 :py:class:`WindowFilter <mlcf.windowing.filtering.filter.WindowFilter>` class.
                 If None is set then no window filtering is applied. The default value is None.
 
-            std_by_feature (Optional[Dict[str, StandardisationModule]], optional):
-                A dictionary prodiving the standardisation to be applied on each column.
-                Here, the standardisation is done independently on each window.
-                The dictionary format must be as following:
-                {string -> :py:class:`StandardisationModule
-                <mlcf.datatools.standardisation.StandardisationModule>`}.
-                The key must correspond to a column name (a feature) of the data frame.
-                The value is any object inheriting from the
-                :py:class:`StandardisationModule
-                <mlcf.datatools.standardisation.StandardisationModule>` class.
-
         Returns:
             Dict[str, WTSeries]:
                 A dictionnary such as {key (string) ->
@@ -360,12 +347,11 @@ class DataIntervals():
             for interval in intervals:
                 if len(interval) >= window_width:
                     wtseries = WTSeries.create_wtseries(
-                        dataframe=interval,
+                        data=interval,
                         window_width=window_width,
                         window_step=window_step,
                         selected_columns=selected_columns,
-                        window_filter=window_filter,
-                        std_by_feature=std_by_feature
+                        window_filter=window_filter
                     )
                     if key in data_windowed:
                         data_windowed[key] = data_windowed[key].merge(wtseries)
