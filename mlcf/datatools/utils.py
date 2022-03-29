@@ -1,5 +1,6 @@
-"""Utilitaries module
-Provide some tools to perform processing on data frame
+"""Utilitaries module.
+
+Provide some tools to perform processing on data frame.
 """
 
 from copy import copy
@@ -7,11 +8,14 @@ from typing import List, Tuple, Union
 import pandas as pd
 import numpy as np
 
+# TODO (doc) review
+
 __all__ = [
     "binarize",
     "labelize",
     "split_pandas",
-    "split_train_val_test"
+    "split_train_val_test",
+    "subset_selection"
 ]
 
 
@@ -23,26 +27,31 @@ def binarize(
     include_sep: bool = True,
     label_col_name: str = None
 ) -> pd.DataFrame:
-    """Add a {label_col_name} column to a dataframe containing the binary label of a given column.
-    We can choose the separator value such as : every value of the column less than the {sep_value}
-    belong to the first class and every value greater or equal than the {sep_value} belong to the
-    second class. The greater or equal condition can be change by just a greater condition
-    if we put {include_sep} to False.
-    The new column will have the name of {label_col_name}, by default it will be :
-    '{column}_label'.
+    """
+    Add a {label_col_name} column to a dataframe containing the binary label of a feature.
+    We can choose the value of the separator as follows: any value in the column less than the
+    {sep_value} belongs to the first class and any value greater than or equal to the {sep_value}
+    belongs to the second class. The upper or equal condition can be changed to a simple upper
+    condition if we set {include_sep} to False.
+    The new column will have the name {label_col_name}, by default it will be: '{column}_label'.
 
     Args:
         data (pd.DataFrame): The dataframe
-        column (str): The column to binarize
+
+        column (str): The column name of the feature.
+
         labels (Union[Tuple, List], optional): A tuple or list of two element (the labels names).
-        If None then the two elements will be (0, 1). Defaults to None.
+            If None then the two elements will be (0, 1). Defaults to None.
+
         sep_value (Union[float, int], optional): The value which determine the condition to belong
-        to the first or the second class. If value are less than {sep_value} then it belongs to
-        the first class else it belongs to the second class. Defaults to 0.0.
+            to the first or the second class. If value are less than {sep_value} then it belongs to
+            the first class else it belongs to the second class. Defaults to 0.0.
+
         include_sep (bool, optional): If False, the value should be less or equal to {sep_value}
-        to belong to the first class. Defaults to True.
+             belong to the first class. Defaults to True.
+
         label_col_name (str, optional): The column name of the new label column. By default, the
-        name is : '{column}_label'. Defaults to None.
+            name is : '{column}_label'. Defaults to None.
 
     Raises:
         TypeError: Raise the exception if the type of the labelsis unknown
@@ -76,29 +85,68 @@ def labelize(
     label_col_name: str = None,
     *args, **kwargs
 ) -> pd.DataFrame:
-    """Add a {label_col_name} column to a dataframe containing the labels of a given column.
+    """
+    Add a {label_col_name} column to a dataframe containing the labels of a given feature.
     The labels refer to a membership of a values to an interval. The number of intervals is
-    determined by the number of labels. All interval have the same size. If we give a bounds,
-    the intervals are determined inside the bounds. Every value which is under or above the bounds
-    will have respectively the label '-inf' and '+inf'.
+    determined by the number of labels. All interval have the same size.
+
+    Example:
+        Having the features X defined in the interval -1 and 1,
+        if we decide to label this features in 4 categories:
+        - Values between -1 and -0.5 belong to label 0,
+        - The values between -0.5 and 0 belong to the label 1,
+        - Values between 0 and 0.5 belong to label 2,
+        - Values between 0.5 and 1 belong to label 3.
+        0, 1, 2, 3 are labeled features of X.
+
+    If we give a bounds, the intervals are determined inside the bounds.
+    Every value which is under or above the bounds will have respectively the label
+    '-inf' and '+inf'.
 
     Args:
         data (pd.DataFrame): The dataframe
+
         column (str): The column to labelize
+
         labels (Union[int, List]): A list or tuple of N elements (the labels names). A int to
-        determine the number of labels.
+            determine the number of labels.
+
         bounds (Tuple[float, float], optional): The intervals are determined inside the bounds.
-        Every value which is under or above the bounds will have respectively the label
-        '-inf' and '+inf'. Defaults to None.
+            Every value which is under or above the bounds will have respectively the label
+            '-inf' and '+inf'. Defaults to None.
+
         label_col_name (str, optional): The column name of the new label column. By default, the
-        name is : '{column}_label'. Defaults to None.
+            name is : '{column}_label'. Defaults to None.
+
+    Typical usage example:
+        .. code-block:: python
+
+            from mlcf.datatools.utils import labelize
+
+            # A good practice is to take the mean and the standard deviation of the value you want
+            # to labelize
+            mean = data["return"].mean()
+            std = data["return"].std()
+
+            # Here you give the value you want to labelize with column='return'. The new of the
+            # labels column will be the name give to 'label_col_name'
+            data = labelize(
+                data,
+                column="return",
+                labels=5,
+                bounds=(mean-std, mean+std),
+                label_col_name="label"
+            )
 
     Raises:
-        TypeError: _description_
-        ValueError: _description_
+        TypeError: Raise this exception if {bounds} is not a tuple of two elements.
+
+        TypeError: Raise this exception if the type is wrong. Must be a Integer or a List.
+
+        ValueError: If the value of label doesn't have a sense.
 
     Returns:
-        pd.DataFrame: _description_
+        pd.DataFrame: The data frame with the labeled feature added.
     """
     if data.isnull().values.any():
         raise Exception("NaN values has been found")
@@ -159,13 +207,15 @@ def split_pandas(
     data: pd.DataFrame,
     prop_snd_elem: float = 0.5
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    """Split a dataframe in two dataframes which keep the same columns.
+    """
+    Split a dataframe in two dataframes which keep the same columns.
     The {prop_snd_elem} is the proportion of row for the second element.
 
     Args:
         dataframe (pd.DataFrame): The dataframe we want to split in two
+
         prop_snd_elem (float, optional): The proportion of row of the second elements in percentage.
-        Defaults to 0.5.
+            Defaults to 0.5.
 
     Returns:
         Tuple[pd.DataFrame, pd.DataFrame]: The first and second part of the split
@@ -197,7 +247,8 @@ def split_train_val_test(
     prop_val_test: float,
     prop_val: float = 0.0
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """It splits the dataframe in train, val, and test set.
+    """
+    It splits the dataframe in train, val, and test set.
     The {prop_val_test} value defines the proportion of val and test rows.
     So the proportion of train rows: 1-{prop_val_test}.
     The {prop_val} value defines the proportion of val rows amoung the test set.
@@ -206,11 +257,13 @@ def split_train_val_test(
 
     Args:
         data (pd.DataFrame): The dataframe we want to split in 3 set: (train, val, test)
+
         prop_val_test (float): The val and test rows proportion. The proportion of train is
-        equal to: 1-{prop_val_test}.
+            equal to: 1-{prop_val_test}.
+
         prop_val (float, optional): The val set proportion amoung the test set. The proportion of
-        val rows is : {prop_val_test}*{prop_val}. The proportion of test part is :
-        {prop_val_test}*(1-{prop_val}). Defaults to 0.0.
+            val rows is : {prop_val_test}*{prop_val}. The proportion of test part is :
+            {prop_val_test}*(1-{prop_val}). Defaults to 0.0.
 
     Returns:
         Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: Return a tuple of respectively
@@ -220,3 +273,120 @@ def split_train_val_test(
     train_data, test_val_data = split_pandas(dataframe, prop_snd_elem=prop_val_test)
     val_data, test_data = split_pandas(test_val_data, prop_snd_elem=1-prop_val)
     return train_data, val_data, test_data
+
+
+def subset_selection(
+    element_list: List,
+    selection_list: List[int],
+    auto_completion: bool = True
+) -> List:
+    """The subset selection function allows to return a subset of a list according to a selection
+    list.
+
+    The selection list is a list which contains positive or negative integers. The positive numbers
+    indicate the number of elements we selection and negative numbers indicate the number of
+    elements we ignore.
+
+    Example:
+
+        .. code-block:: python
+
+            # Given the element list A = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+            # we keep the 5 first elements then we ignore the 3 which follows then we keep the 2
+            # last.
+            >>> subset_selection(A, selection_list = [5, -3, 2])
+            [1, 2, 3, 4, 5, 9, 10]
+            >>> subset_selection(A, selection_list = [2, -3, 1, -2, 2]),
+            [1, 2, 6, 9, 10]
+            >>> subset_selection(A, selection_list = [2, -3, -3, 2]),
+            [1, 2, 9, 10]
+            >>> subset_selection(A, selection_list = [2, -6, 2]),
+            [1, 2, 9, 10]
+            # we ignore the rest of the elements by default if the absolute sum of the selection
+            # list is less than the length of the element list.
+            >>> subset_selection(A, selection_list = [1]),
+            [1]
+            >>> subset_selection(A, selection_list = [1, -1]),
+            [1]
+            >>> subset_selection(A, selection_list = [-1]),
+            []
+            >>> subset_selection(A, selection_list = [2, -1]),
+            [1, 2]
+            # we can use the zero for auto completion.
+            # it must have at most one zero.
+            # zero has the opposite sign of its neighborhood.
+            # the two values of its neighborhood cannot have a different sign
+            >>> subset_selection(A, selection_list = [1, 0]),
+            [1]
+            >>> subset_selection(A, selection_list = [-1, 0]),
+            [2, 3, 4, 5, 6, 7, 8, 9, 10]
+            >>> subset_selection(A, selection_list = [-1, 0, -1]),
+            [2, 3, 4, 5, 6, 7, 8, 9]
+            >>> subset_selection(A, selection_list = [1, 0, 1]),
+            [1, 10]
+
+    Args:
+        element_list (List): The list of elements on which to select the subset.
+
+        selection_list (List[int]): The selection list is a list which contains positive or negative
+            integers. The positive numbers indicate the number of elements we selection and negative
+            numbers indicate the number of elements we ignore.
+
+        auto_completion (bool, optional): True if we want to interpret the 0 for auto_completion.
+            Defaults to True.
+
+    Raises:
+        ValueError: The subset selection function cannot interpret a selection list with more
+            than one 0
+        ValueError: The 0 must be given between two values of the same sign.
+
+    Returns:
+        List: The selected subset.
+    """
+    if auto_completion:
+        unique, counted = np.unique(selection_list, return_counts=True)
+        n_zeros = counted[np.where(unique == 0)]
+        if n_zeros > 1:
+            raise ValueError(
+                "The subset selection function cannot interpret " +
+                "a selection list with more than one 0."
+            )
+        elif n_zeros == 1:
+            abs_sum = np.sum(np.abs(selection_list))
+            if abs_sum == 0:
+                return element_list
+            if selection_list[0] == 0:
+                idx = 0
+                sign = 1 if selection_list[1] > 0 else -1
+            elif selection_list[-1] == 0:
+                idx = -1
+                sign = 1 if selection_list[-2] > 0 else -1
+            else:
+                idx = selection_list.index(0)
+                sign = 1 if selection_list[idx - 1] > 0 else -1
+                sign_bis = 1 if selection_list[idx + 1] > 0 else -1
+                if sign_bis != sign:
+                    raise ValueError("The 0 must be given between two values of the same sign.")
+
+            selection_list[idx] = (len(element_list) - abs_sum) * (-sign)
+            return subset_selection(
+                element_list,
+                selection_list,
+                auto_completion=False
+            )
+
+    if not len(selection_list):
+        return []
+
+    if selection_list[0] < 0:
+        return subset_selection(
+            element_list[abs(selection_list[0]):],
+            selection_list[1:],
+            auto_completion=False)
+    else:
+        return element_list[:selection_list[0]] + subset_selection(
+            element_list[abs(selection_list[0]):],
+            selection_list[1:],
+            auto_completion=False
+        )

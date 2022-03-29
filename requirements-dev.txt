@@ -12,3 +12,7 @@ flake8
 
 # http://www.mypy-lang.org/
 mypy
+
+sphinx
+myst_parser
+pydata-sphinx-theme

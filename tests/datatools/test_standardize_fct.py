@@ -1,7 +1,7 @@
 
 import numpy as np
 import pytest
-from mlcf.datatools.standardize_fct import (
+from mlcf.datatools.standardisation import (
     ClassicStd,
     MinMaxStd,
     standardize,

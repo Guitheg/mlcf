@@ -3,8 +3,8 @@ import pytest
 import pandas as pd
 import numpy as np
 from mlcf.datatools.data_intervals import DataIntervals
-from mlcf.datatools.standardize_fct import ClassicStd, MinMaxStd
-from mlcf.datatools.windowing.filter import LabelBalanceFilter
+from mlcf.datatools.standardisation import ClassicStd, MinMaxStd
+from mlcf.windowing.filtering import LabelBalanceFilter
 
 
 @pytest.mark.parametrize(
@@ -175,10 +175,10 @@ def test_standardize(ohlcvra_btc, test_input):
         ),
     ]
 )
-def test_data_windowing(ohlcvrl_btc, n_intervals, test_input, expected):
+def test_windowing(ohlcvrl_btc, n_intervals, test_input, expected):
     data = ohlcvrl_btc
     data_intervals = DataIntervals(data, n_intervals=n_intervals)
-    dataset = data_intervals.data_windowing(**test_input)
+    dataset = data_intervals.windowing(**test_input)
 
     assert len(dataset["train"]) == expected
 
