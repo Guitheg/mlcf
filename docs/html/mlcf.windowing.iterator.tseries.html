@@ -1,91 +1,291 @@
-<!DOCTYPE html>
-<html class="writer-html5" lang="en" >
-<head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>mlcf.windowing.iterator.tseries module &mdash; MLCF documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
-    <script src="_static/js/theme.js"></script>
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>mlcf.windowing.iterator.tseries module &#8212; MLCF documentation</title>
+    
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="mlcf.windowing.iterator.iterator module" href="mlcf.windowing.iterator.iterator.html" /> 
-</head>
+    <link rel="next" title="mlcf.windowing.iterator.tseries_lite module" href="mlcf.windowing.iterator.tseries_lite.html" />
+    <link rel="prev" title="mlcf.windowing.iterator.iterator module" href="mlcf.windowing.iterator.iterator.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="None">
+    
 
-<body class="wy-body-for-nav"> 
-  <div class="wy-grid-for-nav">
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> MLCF
-          </a>
-              <div class="version">
-                2.0.2
-              </div>
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
-<ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">mlcf</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="mlcf.html">mlcf package</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="mlcf.datatools.html">mlcf.datatools package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mlcf.indicators.html">mlcf.indicators package</a></li>
-<li class="toctree-l3 current"><a class="reference internal" href="mlcf.windowing.html">mlcf.windowing package</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="mlcf.windowing.filtering.html">mlcf.windowing.filtering package</a></li>
-<li class="toctree-l4 current"><a class="reference internal" href="mlcf.windowing.iterator.html">mlcf.windowing.iterator package</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+    
+    <div class="container-fluid" id="banner"></div>
 
-        </div>
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+  <div id="navbar-start">
+    
+    
+<a class="navbar-brand" href="index.html">
+<p class="title">MLCF</p>
+</a>
+
+    
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  
+  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <ul id="navbar-main-elements" class="navbar-nav">
+    <li class="toctree-l1 current active nav-item">
+ <a class="reference internal nav-link" href="modules.html">
+  mlcf
+ </a>
+</li>
+
+    
+</ul>
       </div>
-    </nav>
+      
+    </div>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">MLCF</a>
-      </nav>
-
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="Page navigation">
-  <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="modules.html">mlcf</a> &raquo;</li>
-          <li><a href="mlcf.html">mlcf package</a> &raquo;</li>
-          <li><a href="mlcf.windowing.html">mlcf.windowing package</a> &raquo;</li>
-          <li><a href="mlcf.windowing.iterator.html">mlcf.windowing.iterator package</a> &raquo;</li>
-      <li>mlcf.windowing.iterator.tseries module</li>
-      <li class="wy-breadcrumbs-aside">
-      </li>
-  </ul>
-  <hr/>
+    <div id="navbar-end">
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/Guitheg/mlcf/tree/main/" rel="noopener" target="_blank" title="GitHub"><span><i class="fab fa-github"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://pypi.org/project/MLCF/" rel="noopener" target="_blank" title="Pypi"><span><i class="fa fa-download"></i></span>
+            <label class="sr-only">Pypi</label></a>
+        </li>
+      </ul>
+      </div>
+      
+    </div>
+  </div>
 </div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-             
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar">
+              <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    <ul class="current nav bd-sidenav">
+ <li class="toctree-l1 current active has-children">
+  <a class="reference internal" href="mlcf.html">
+   mlcf package
+  </a>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul class="current">
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="mlcf.datatools.html">
+     mlcf.datatools package
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+    <label for="toctree-checkbox-2">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="mlcf.datatools.data_intervals.html">
+       mlcf.datatools.data_intervals module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="mlcf.datatools.data_reader.html">
+       mlcf.datatools.data_reader module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="mlcf.datatools.standardisation.html">
+       mlcf.datatools.standardisation module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="mlcf.datatools.utils.html">
+       mlcf.datatools.utils module
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="mlcf.indicators.html">
+     mlcf.indicators package
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+    <label for="toctree-checkbox-3">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="mlcf.indicators.add_indicators.html">
+       mlcf.indicators.add_indicators module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="mlcf.indicators.indicators_fct.html">
+       mlcf.indicators.indicators_fct module
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 current active has-children">
+    <a class="reference internal" href="mlcf.windowing.html">
+     mlcf.windowing package
+    </a>
+    <input checked="" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
+    <label for="toctree-checkbox-4">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul class="current">
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="mlcf.windowing.filtering.html">
+       mlcf.windowing.filtering package
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
+      <label for="toctree-checkbox-5">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="mlcf.windowing.filtering.filter.html">
+         mlcf.windowing.filtering.filter module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="mlcf.windowing.filtering.label_balance_filter.html">
+         mlcf.windowing.filtering.label_balance_filter module
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3 current active has-children">
+      <a class="reference internal" href="mlcf.windowing.iterator.html">
+       mlcf.windowing.iterator package
+      </a>
+      <input checked="" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/>
+      <label for="toctree-checkbox-6">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul class="current">
+       <li class="toctree-l4">
+        <a class="reference internal" href="mlcf.windowing.iterator.forecast_iterator.html">
+         mlcf.windowing.iterator.forecast_iterator module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="mlcf.windowing.iterator.iterator.html">
+         mlcf.windowing.iterator.iterator module
+        </a>
+       </li>
+       <li class="toctree-l4 current active">
+        <a class="current reference internal" href="#">
+         mlcf.windowing.iterator.tseries module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="mlcf.windowing.iterator.tseries_lite.html">
+         mlcf.windowing.iterator.tseries_lite module
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+  </div>
+</nav>
+              </div>
+              <div class="sidebar-end-items">
+              </div>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+            
+              
+              <div class="toc-item">
+                
+
+<nav id="bd-toc-nav">
+    
+</nav>
+              </div>
+              
+              <div class="toc-item">
+                
+              </div>
+              
+            
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
   <section id="module-mlcf.windowing.iterator.tseries">
-<span id="mlcf-windowing-iterator-tseries-module"></span><h1>mlcf.windowing.iterator.tseries module<a class="headerlink" href="#module-mlcf.windowing.iterator.tseries" title="Permalink to this headline"></a></h1>
-<p>Windowed Time Series Module
+<span id="mlcf-windowing-iterator-tseries-module"></span><h1>mlcf.windowing.iterator.tseries module<a class="headerlink" href="#module-mlcf.windowing.iterator.tseries" title="Permalink to this headline">#</a></h1>
+<p>Windowed Time Series Module.
 This module provides a data structure named “windowed time series (wtseries)”. This data structure
 allows us to handle a multi-indexed data frame that represents a windowed time series data frame.</p>
 <blockquote>
@@ -99,8 +299,7 @@ allows us to handle a multi-indexed data frame that represents a windowed time s
     <span class="n">window_width</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
     <span class="n">window_step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
     <span class="n">selected_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;close&quot;</span><span class="p">,</span> <span class="s2">&quot;return&quot;</span><span class="p">,</span> <span class="s2">&quot;adx&quot;</span><span class="p">],</span>
-    <span class="n">window_filter</span><span class="o">=</span><span class="n">LabelBalanceFilter</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">),</span>
-    <span class="n">std_by_feature</span><span class="o">=</span><span class="n">std_by_feautures</span>
+    <span class="n">window_filter</span><span class="o">=</span><span class="n">LabelBalanceFilter</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">)</span>
 <span class="p">)</span>
 <span class="c1"># Or from a wtseries .h5 file:</span>
 <span class="n">wtseries</span> <span class="o">=</span> <span class="n">WTSeries</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;/tests/testdata/wtseries.h5&quot;</span><span class="p">))</span>
@@ -114,7 +313,7 @@ allows us to handle a multi-indexed data frame that represents a windowed time s
 </div></blockquote>
 <dl class="py class">
 <dt class="sig sig-object py" id="mlcf.windowing.iterator.tseries.WTSeries">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mlcf.windowing.iterator.tseries.</span></span><span class="sig-name descname"><span class="pre">WTSeries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mlcf.windowing.iterator.tseries.</span></span><span class="sig-name descname"><span class="pre">WTSeries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="mlcf.windowing.iterator.iterator.html#mlcf.windowing.iterator.iterator.WindowIterator" title="mlcf.windowing.iterator.iterator.WindowIterator"><code class="xref py py-class docutils literal notranslate"><span class="pre">mlcf.windowing.iterator.iterator.WindowIterator</span></code></a></p>
 <p>A Windowed Time Series data structure.
 This class inherit of WindowIterator which allow us to iterate over a time series dataframe
@@ -123,9 +322,12 @@ The WTSeries contains {data} which is the Windowed Time Series.
 It is a multi-index pandas.DataFrame with a WindowIndex and a TimeIndex.
 WTSeries build the Windowed Time Series. So the iteration is performed on the WindowIndex
 of the dataframe.</p>
+<p>The memory complexity of the WTSeries is:</p>
+<p>T*(W*F)</p>
+<p>with T the length of the time series, W the window width and F the number of feature.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="mlcf.windowing.iterator.tseries.WTSeries.data">
-<span class="sig-name descname"><span class="pre">data</span></span><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.data" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">data</span></span><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.data" title="Permalink to this definition">#</a></dt>
 <dd><p>A multi-index windowed pandas.DataFrame with a WindowIndex
 and a TimeIndex.</p>
 <dl class="field-list simple">
@@ -137,7 +339,7 @@ and a TimeIndex.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mlcf.windowing.iterator.tseries.WTSeries.__getitem__">
-<span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.core.frame.DataFrame</span></span></span><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.__getitem__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.core.frame.DataFrame</span></span></span><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.__getitem__" title="Permalink to this definition">#</a></dt>
 <dd><p>Return the window corresponding to the index.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -154,7 +356,7 @@ and a TimeIndex.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mlcf.windowing.iterator.tseries.WTSeries.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.__init__" title="Permalink to this definition">#</a></dt>
 <dd><p>Build the WTSeries from a windowed data.
 Use <a class="reference internal" href="#mlcf.windowing.iterator.tseries.WTSeries.create_wtseries" title="mlcf.windowing.iterator.tseries.WTSeries.create_wtseries"><code class="xref py py-func docutils literal notranslate"><span class="pre">create_wtseries()</span></code></a> to build a WTSeries from a unwindowed data frame.</p>
 <dl class="field-list simple">
@@ -171,7 +373,7 @@ WindowIndex and a TimeIndex.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mlcf.windowing.iterator.tseries.WTSeries.__len__">
-<span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.__len__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.__len__" title="Permalink to this definition">#</a></dt>
 <dd><p>Return the number of window.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -185,8 +387,8 @@ WindowIndex and a TimeIndex.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mlcf.windowing.iterator.tseries.WTSeries.copy">
-<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#mlcf.windowing.iterator.tseries.WTSeries" title="mlcf.windowing.iterator.tseries.WTSeries"><span class="pre">mlcf.windowing.iterator.tseries.WTSeries</span></a></span></span><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.copy" title="Permalink to this definition"></a></dt>
-<dd><p>Return a copy of this WTSeries</p>
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#mlcf.windowing.iterator.tseries.WTSeries" title="mlcf.windowing.iterator.tseries.WTSeries"><span class="pre">mlcf.windowing.iterator.tseries.WTSeries</span></a></span></span><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.copy" title="Permalink to this definition">#</a></dt>
+<dd><p>Return a copy of this WTSeries.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>A copy of this WTSeries</p>
@@ -199,7 +401,7 @@ WindowIndex and a TimeIndex.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mlcf.windowing.iterator.tseries.WTSeries.create_wtseries">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_wtseries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selected_columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_filter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="mlcf.windowing.filtering.filter.html#mlcf.windowing.filtering.filter.WindowFilter" title="mlcf.windowing.filtering.filter.WindowFilter"><span class="pre">mlcf.windowing.filtering.filter.WindowFilter</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">std_by_feature</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="mlcf.datatools.standardisation.html#mlcf.datatools.standardisation.StandardisationModule" title="mlcf.datatools.standardisation.StandardisationModule"><span class="pre">mlcf.datatools.standardisation.StandardisationModule</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#mlcf.windowing.iterator.tseries.WTSeries" title="mlcf.windowing.iterator.tseries.WTSeries"><span class="pre">mlcf.windowing.iterator.tseries.WTSeries</span></a></span></span><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.create_wtseries" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_wtseries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selected_columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_filter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="mlcf.windowing.filtering.filter.html#mlcf.windowing.filtering.filter.WindowFilter" title="mlcf.windowing.filtering.filter.WindowFilter"><span class="pre">mlcf.windowing.filtering.filter.WindowFilter</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#mlcf.windowing.iterator.tseries.WTSeries" title="mlcf.windowing.iterator.tseries.WTSeries"><span class="pre">mlcf.windowing.iterator.tseries.WTSeries</span></a></span></span><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.create_wtseries" title="Permalink to this definition">#</a></dt>
 <dd><p>This function create a WTSeries given a time series dataframe.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -214,17 +416,10 @@ features. If None is given, then all features will be kept. Defaults to None.</p
 This allows to filter windows according to some condition.
 For example, filter the window in order to uniformise the histogram on a feature.
 If None, any window filtering is performed. Defaults to None.</p></li>
-<li><p><strong>std_by_feature</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional[Dict[str,</span> <span class="pre">StandardisationModule]],</span> <span class="pre">optional</span></code>) – A dictionary prodiving the standardisation to be applied on each column.
-Here, the standardisation is done independently on each window.
-The dictionary format must be as following:
-{string -&gt; <a class="reference internal" href="mlcf.datatools.standardisation.html#mlcf.datatools.standardisation.StandardisationModule" title="mlcf.datatools.standardisation.StandardisationModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">StandardisationModule</span></code></a>}.
-The key must correspond to a column name (a feature) of the data frame.
-The value is any object inheriting from the
-<a class="reference internal" href="mlcf.datatools.standardisation.html#mlcf.datatools.standardisation.StandardisationModule" title="mlcf.datatools.standardisation.StandardisationModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">StandardisationModule</span></code></a> class.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>DataEmptyException</strong> – Raise this exception if the time series dataframe
+<dd class="field-even"><p><a class="reference internal" href="mlcf.windowing.iterator.tseries_lite.html#mlcf.windowing.iterator.tseries_lite.DataEmptyException" title="mlcf.windowing.iterator.tseries_lite.DataEmptyException"><strong>DataEmptyException</strong></a> – Raise this exception if the time series dataframe
     is null or if the window width is to large.</p>
 </dd>
 <dt class="field-odd">Returns</dt>
@@ -237,8 +432,13 @@ The value is any object inheriting from the
 </dd></dl>
 
 <dl class="py property">
+<dt class="sig sig-object py" id="id0">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">data</span></span><a class="headerlink" href="#id0" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
 <dt class="sig sig-object py" id="mlcf.windowing.iterator.tseries.WTSeries.features">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">features</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.features" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">features</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.features" title="Permalink to this definition">#</a></dt>
 <dd><p>The list of features name (column name of the dataframe).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -252,7 +452,7 @@ The value is any object inheriting from the
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mlcf.windowing.iterator.tseries.WTSeries.merge">
-<span class="sig-name descname"><span class="pre">merge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wtseries</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#mlcf.windowing.iterator.tseries.WTSeries" title="mlcf.windowing.iterator.tseries.WTSeries"><span class="pre">mlcf.windowing.iterator.tseries.WTSeries</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#mlcf.windowing.iterator.tseries.WTSeries" title="mlcf.windowing.iterator.tseries.WTSeries"><span class="pre">mlcf.windowing.iterator.tseries.WTSeries</span></a></span></span><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.merge" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">merge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wtseries</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#mlcf.windowing.iterator.tseries.WTSeries" title="mlcf.windowing.iterator.tseries.WTSeries"><span class="pre">mlcf.windowing.iterator.tseries.WTSeries</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#mlcf.windowing.iterator.tseries.WTSeries" title="mlcf.windowing.iterator.tseries.WTSeries"><span class="pre">mlcf.windowing.iterator.tseries.WTSeries</span></a></span></span><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.merge" title="Permalink to this definition">#</a></dt>
 <dd><p>Merge a wtseries to the current WTSeries.
 It will add all the window of the given wtseries to the current WTSeries.</p>
 <dl class="field-list simple">
@@ -270,8 +470,8 @@ It will add all the window of the given wtseries to the current WTSeries.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="mlcf.windowing.iterator.tseries.WTSeries.n_window">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">n_window</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.n_window" title="Permalink to this definition"></a></dt>
-<dd><p>The number of window</p>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">n_window</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.n_window" title="Permalink to this definition">#</a></dt>
+<dd><p>The number of window.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>The number of window</p>
@@ -284,8 +484,8 @@ It will add all the window of the given wtseries to the current WTSeries.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="mlcf.windowing.iterator.tseries.WTSeries.ndim">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ndim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.ndim" title="Permalink to this definition"></a></dt>
-<dd><p>The number of features. ndim for number of dimension (for one row)</p>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ndim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.ndim" title="Permalink to this definition">#</a></dt>
+<dd><p>The number of features. ndim for number of dimension (for one row).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>The number of features.</p>
@@ -298,7 +498,7 @@ It will add all the window of the given wtseries to the current WTSeries.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mlcf.windowing.iterator.tseries.WTSeries.read">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_file_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#mlcf.windowing.iterator.tseries.WTSeries" title="mlcf.windowing.iterator.tseries.WTSeries"><span class="pre">mlcf.windowing.iterator.tseries.WTSeries</span></a></span></span><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.read" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_file_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#mlcf.windowing.iterator.tseries.WTSeries" title="mlcf.windowing.iterator.tseries.WTSeries"><span class="pre">mlcf.windowing.iterator.tseries.WTSeries</span></a></span></span><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.read" title="Permalink to this definition">#</a></dt>
 <dd><p>Read a WTSeries dataset .h5 file and return it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -319,8 +519,8 @@ Defaults to None.</p></li>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="mlcf.windowing.iterator.tseries.WTSeries.width">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">width</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.width" title="Permalink to this definition"></a></dt>
-<dd><p>The window width</p>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">width</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.width" title="Permalink to this definition">#</a></dt>
+<dd><p>The window width.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>The window width</p>
@@ -333,7 +533,7 @@ Defaults to None.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mlcf.windowing.iterator.tseries.WTSeries.write">
-<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dirpath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_file_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pathlib.Path</span></span></span><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.write" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dirpath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_file_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pathlib.Path</span></span></span><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries.write" title="Permalink to this definition">#</a></dt>
 <dd><p>Create a .h5 file dataset in the {dirpath}.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -358,33 +558,51 @@ namespace of the file. Defaults to None.</p></li>
 </section>
 
 
-           </div>
-          </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="mlcf.windowing.iterator.iterator.html" class="btn btn-neutral float-left" title="mlcf.windowing.iterator.iterator module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-    </div>
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>&#169; Copyright 2022, CGrbi.</p>
-  </div>
-
-  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
-
-</footer>
+              </div>
+              
+              
+              <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+    <a class='left-prev' id="prev-link" href="mlcf.windowing.iterator.iterator.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">mlcf.windowing.iterator.iterator module</p>
         </div>
-      </div>
-    </section>
-  </div>
-  <script>
-      jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
-      });
-  </script> 
+    </a>
+    <a class='right-next' id="next-link" href="mlcf.windowing.iterator.tseries_lite.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">mlcf.windowing.iterator.tseries_lite module</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
+              
+          </main>
+          
 
-</body>
+      </div>
+    </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+<footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    
+    <div class="footer-item">
+      <p class="copyright">
+    &copy; Copyright 2022, CGrbi.<br>
+</p>
+    </div>
+    
+    <div class="footer-item">
+      <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br>
+</p>
+    </div>
+    
+  </div>
+</footer>
+  </body>
 </html>

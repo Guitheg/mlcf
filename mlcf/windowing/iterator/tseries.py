@@ -28,10 +28,9 @@ allows us to handle a multi-indexed data frame that represents a windowed time s
 
 from __future__ import annotations
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import List, Optional
 import pandas as pd
 import numpy as np
-from mlcf.datatools.standardisation import StandardisationModule
 from mlcf.windowing.filtering.filter import WindowFilter
 from mlcf.windowing.iterator import WindowIterator, SUFFIX_FILE
 from mlcf.windowing.iterator.tseries_lite import WTSeriesLite, TIME_INDEX_NAME
@@ -102,8 +101,7 @@ class WTSeries(WindowIterator):
         window_width: int,
         window_step: int,
         selected_columns: Optional[List[str]] = None,
-        window_filter: Optional[WindowFilter] = None,
-        std_by_feature: Optional[Dict[str, StandardisationModule]] = None
+        window_filter: Optional[WindowFilter] = None
     ) -> WTSeries:
         """
         This function create a WTSeries given a time series dataframe.
@@ -124,17 +122,6 @@ class WTSeries(WindowIterator):
                 For example, filter the window in order to uniformise the histogram on a feature.
                 If None, any window filtering is performed. Defaults to None.
 
-            std_by_feature (Optional[Dict[str, StandardisationModule]], optional):
-                A dictionary prodiving the standardisation to be applied on each column.
-                Here, the standardisation is done independently on each window.
-                The dictionary format must be as following:
-                {string -> :py:class:`StandardisationModule
-                <mlcf.datatools.standardisation.StandardisationModule>`}.
-                The key must correspond to a column name (a feature) of the data frame.
-                The value is any object inheriting from the
-                :py:class:`StandardisationModule
-                <mlcf.datatools.standardisation.StandardisationModule>` class.
-
         Raises:
             DataEmptyException: Raise this exception if the time series dataframe
                 is null or if the window width is to large.
@@ -148,11 +135,8 @@ class WTSeries(WindowIterator):
             window_width=window_width,
             window_step=window_step,
             selected_columns=selected_columns,
-            window_filter=window_filter,
-            std_by_feature=std_by_feature
+            window_filter=window_filter
         )
-
-        dataframe = wtseries_lite.data.copy()
 
         # Set the indexes
         window_index = np.mgrid[
@@ -160,17 +144,11 @@ class WTSeries(WindowIterator):
             0: window_width: 1
         ][0].reshape(-1, 1)
 
-        windows = dataframe.iloc[wtseries_lite.index_array.values.reshape(-1)]
+        windows = wtseries_lite.data.iloc[wtseries_lite.index_array.values.reshape(-1)].copy()
         windows.rename_axis(TIME_INDEX_NAME, inplace=True)
-        windows[WINDOW_INDEX_NAME] = window_index
+        windows.loc[:, WINDOW_INDEX_NAME] = window_index
         windows.set_index(WINDOW_INDEX_NAME, append=True, inplace=True)
         windows = windows.reorder_levels([WINDOW_INDEX_NAME, TIME_INDEX_NAME])
-
-        # Standardization
-        if std_by_feature:
-            for feature, std_object in std_by_feature.items():
-                datafit = windows[feature].values.reshape(-1, window_width)[:, :].T
-                windows[feature] = std_object.fit_transform(datafit).T.reshape(-1)
 
         # Make list of window (dataframe)
         return WTSeries(data=windows)

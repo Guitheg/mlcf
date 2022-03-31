@@ -345,8 +345,7 @@ def subset_selection(
         List: The selected subset.
     """
     if auto_completion:
-        unique, counted = np.unique(selection_list, return_counts=True)
-        n_zeros = counted[np.where(unique == 0)]
+        n_zeros = len(np.where(np.array(selection_list) == 0)[0])
         if n_zeros > 1:
             raise ValueError(
                 "The subset selection function cannot interpret " +

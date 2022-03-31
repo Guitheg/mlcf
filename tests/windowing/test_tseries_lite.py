@@ -5,7 +5,6 @@ import numpy as np
 from mlcf.datatools.data_intervals import DataIntervals
 from mlcf.windowing.filtering import LabelBalanceFilter
 from mlcf.windowing.iterator.tseries_lite import DataEmptyException
-from mlcf.datatools.standardisation import ClassicStd
 from mlcf.windowing.iterator.tseries_lite import WTSeriesLite
 
 
@@ -33,8 +32,7 @@ from mlcf.windowing.iterator.tseries_lite import WTSeriesLite
             {
                 "window_width": 30,
                 "window_step": 2,
-                "selected_columns": ["close", "return"],
-                "std_by_feature": {"close": ClassicStd()}
+                "selected_columns": ["close", "return"]
             },
             {
                 "length": 7659,
@@ -46,7 +44,6 @@ from mlcf.windowing.iterator.tseries_lite import WTSeriesLite
                 "window_width": 300,
                 "window_step": 2,
                 "selected_columns": ["close", "return"],
-                "std_by_feature": {"close": ClassicStd()},
                 "window_filter": LabelBalanceFilter("label", sample_function=lambda li, k: li[:k])
             },
             {
@@ -121,8 +118,7 @@ def test_create_wtseries_lite_exception(
             {
                 "window_width": 30,
                 "window_step": 2,
-                "selected_columns": ["close", "return"],
-                "std_by_feature": {"close": ClassicStd()}
+                "selected_columns": ["close", "return"]
             }
         )
     ]
