@@ -7,18 +7,20 @@ from mlcf.windowing.iterator.tseries_lite import TIME_INDEX_NAME
 
 
 @pytest.mark.parametrize(
-    "max_occ, window_width, window_step, expected",
+    "max_occ, window_width, window_step, k, expected",
     [
-        (200, 30, 1, 2400),
-        (200, 30, 2, 2400),
-        (400, 30, 2, 4364),
-        (600, 100, 6, 2542),
+        (200, 30, 1, 1, 2400),
+        (200, 30, 2, 1, 2400),
+        (400, 30, 2, 1, 4364),
+        (600, 100, 6, 1, 2542),
+        (200, 30, 1, 2, 2400),
+        (200, 30, 2, 2, 2400),
     ]
 )
-def test_label_balance_filter(ohlcvrl_btc, max_occ, window_width, window_step, expected):
+def test_label_balance_filter(ohlcvrl_btc, max_occ, window_width, window_step, k, expected):
     data = ohlcvrl_btc.copy()
     data[TIME_INDEX_NAME] = np.arange(len(data), dtype=int)
-    window_filter = LabelBalanceFilter("label", max_occ, lambda li, k: li[:k])
+    window_filter = LabelBalanceFilter("label", max_occ, lambda li, k: li[:k], k)
 
     index_data = sliding_window_view(
         data[TIME_INDEX_NAME],
