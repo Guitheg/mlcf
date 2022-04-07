@@ -1,8 +1,7 @@
 from setuptools import setup
 
 install_requirements = [
-    "TA-Lib",
-    "pandas-ta",
+    "tsfresh",
     "sklearn",
     "tables"
 ]
