@@ -158,6 +158,21 @@ class WTSeriesLite(WindowIterator):
             index_array=pd.DataFrame(index_data)
         )
 
+    def filter(self, window_filter: WindowFilter) -> WTSeriesLite:
+        """Filter the windows given a window filter and returns the filtered WTSeriesLite.
+
+        Args:
+            window_filter (WindowFilter): The window filter use to filter the windows.
+
+        Returns:
+            WTSeriesLite: The filterd WTSeriesLite
+        """
+        index_data = self.index_array.iloc[window_filter(self.data, self.index_array.values)]
+        return WTSeriesLite(
+            data=self.data.copy(),
+            index_array=index_data
+        )
+
     def __len__(self) -> int:
         """Return the number of window.
 
