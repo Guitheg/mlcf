@@ -162,3 +162,4 @@ dmypy.json
 data/*
 models/*
 main*.py
+draft*
