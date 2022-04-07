@@ -21,7 +21,7 @@ It provides DataIntervals class allowing us to handle the Nx3 intervals data str
                                                # 0 and 100 and we
                                                # want to set it between 0 and 1.
         }
-        data_intervals = DataIntervals(data, n_intervals=10)
+        data_intervals = DataIntervals.create_data_intervals_obj(data, n_intervals=10)
         data_intervals.standardize(std_by_features)
 
         # We can apply a filter the dataset we want. Here we will filter the values in order
@@ -33,7 +33,7 @@ It provides DataIntervals class allowing us to handle the Nx3 intervals data str
         }
 
         # dict_train_val_test is a dict with the key 'train', 'val', 'test'.
-        # The value of the dict is a  WTSeries (a windowed time series).
+        # The value of the dict is a  WTSeriesLite (a windowed time series).
         dict_train_val_test = data_intervals.windowing(
             window_width=30,
             window_step=1,
@@ -42,13 +42,14 @@ It provides DataIntervals class allowing us to handle the Nx3 intervals data str
         )
 """
 
+from __future__ import annotations
 from typing import Dict, Iterator, List, Optional, Tuple
 import pandas as pd
 from mlcf.windowing.filtering import WindowFilter
-from mlcf.windowing.iterator import WTSeries
 
 from mlcf.datatools.utils import split_train_val_test
 from mlcf.datatools.standardisation import StandardisationModule, standardize
+from mlcf.windowing.iterator.tseries_lite import WTSeriesLite
 
 
 __all__ = [
@@ -61,10 +62,6 @@ class DataIntervals():
     It provides tools to divide a data frame into Nx3 parts and handles them.
 
     Attributes:
-        raw_data (pandas.DataFrame): Raw time series data frame (unsplit).
-
-        n_intervals (int): Number of intervals created after splitting the data frame.
-
         train_intervals (List[pandas.DataFrame]): List of data frame corresponding to training set
             whose length is {n_intervals}
 
@@ -80,40 +77,14 @@ class DataIntervals():
 
     def __init__(
         self,
-        data: pd.DataFrame,
-        n_intervals: int,
-        prop_val_test: float = 0.2,
-        prop_val: float = 0.3
+        train_intervals: List[pd.DataFrame],
+        val_intervals: Optional[List[pd.DataFrame]],
+        test_intervals: Optional[List[pd.DataFrame]]
     ):
-        """It creates a DataInterval object from a time series data frame.
+        self.train_intervals = train_intervals
+        self.val_intervals = val_intervals
+        self.test_intervals = test_intervals
 
-        The {data} will be split into {n_intervals}.
-        Then these parts will be split into 3 sets such as 'train', 'val' and 'test'.
-
-        Args:
-            data (pd.DataFrame): The time series data frame on which the split operation
-                will be performed.
-
-            n_intervals (int): The number of intervals to split the {data}.
-
-            prop_val_test (float, optional): The proportion of val and test rows.
-                The proportion of train is equal to 1-{prop_val_test}. It is set to 0.2 by default.
-
-            prop_val (float, optional): The proportion of val set amoung the test set.
-                The proportion of val rows is : {prop_val_test}*{prop_val}.
-                The proportion of test part is : {prop_val_test}*(1-{prop_val}).
-                It is set to 0.3 by default.
-        """
-        self.raw_data: pd.DataFrame = data
-        self.n_intervals: int = n_intervals
-        self.train_intervals, self.val_intervals, self.test_intervals = \
-            self.split_train_val_test(
-                list_intervals=self.create_list_interval(
-                    data=self.raw_data,
-                    n_intervals=self.n_intervals),
-                prop_val_test=prop_val_test,
-                prop_val=prop_val
-            )
         self.intervals: Dict = {
             "train": self.train_intervals,
             "val": self.val_intervals,
@@ -213,6 +184,47 @@ class DataIntervals():
         ]
         return list_intervals
 
+    @classmethod
+    def create_data_intervals_obj(
+        self,
+        data: pd.DataFrame,
+        n_intervals: int,
+        prop_val_test: float = 0.2,
+        prop_val: float = 0.3
+    ) -> DataIntervals:
+        """It creates a DataInterval object from a time series data frame.
+
+        The {data} will be split into {n_intervals}.
+        Then these parts will be split into 3 sets such as 'train', 'val' and 'test'.
+
+        Args:
+            data (pd.DataFrame): The time series data frame on which the split operation
+                will be performed.
+
+            n_intervals (int): The number of intervals to split the {data}.
+
+            prop_val_test (float, optional): The proportion of val and test rows.
+                The proportion of train is equal to 1-{prop_val_test}. It is set to 0.2 by default.
+
+            prop_val (float, optional): The proportion of val set amoung the test set.
+                The proportion of val rows is : {prop_val_test}*{prop_val}.
+                The proportion of test part is : {prop_val_test}*(1-{prop_val}).
+                It is set to 0.3 by default.
+        """
+        train_intervals, val_intervals, test_intervals = \
+            self.split_train_val_test(
+                list_intervals=self.create_list_interval(
+                    data=data,
+                    n_intervals=n_intervals),
+                prop_val_test=prop_val_test,
+                prop_val=prop_val
+            )
+        return DataIntervals(
+            train_intervals=train_intervals,
+            val_intervals=val_intervals,
+            test_intervals=test_intervals
+        )
+
     # TODO (refactoring) list comprehension to create split list interval
     # TODO (enhancement) handle if test or val is null
     @classmethod
@@ -305,11 +317,10 @@ class DataIntervals():
         window_width: int,
         window_step: int = 1,
         selected_columns: Optional[List[str]] = None,
-        filter_by_dataset: Optional[Dict[str, WindowFilter]] = None,
-        std_by_feature: Optional[Dict[str, StandardisationModule]] = None
-    ) -> Dict[str, WTSeries]:
+        filter_by_dataset: Optional[Dict[str, WindowFilter]] = None
+    ) -> Dict[str, WTSeriesLite]:
         """It performs the windowing operation over all intervals producing for each set a
-        :py:class:`WTSeries <mlcf.windowing.iterator.tseries.WTSeries>`
+        :py:class:`WTSeriesLite <mlcf.windowing.iterator.tseries_lite.WTSeriesLite>`
         (a windowed time series).
         We can provide a dictionnary indicating the standardisation used for each feature.
         We can provide a dictionary indicating the window filtering operation applied to each set.
@@ -333,13 +344,13 @@ class DataIntervals():
                 If None is set then no window filtering is applied. The default value is None.
 
         Returns:
-            Dict[str, WTSeries]:
+            Dict[str, WTSeriesLite]:
                 A dictionnary such as {key (string) ->
-                :py:class:`WTSeries <mlcf.windowing.iterator.tseries.WTSeries>` }
+                :py:class:`WTSeriesLite <mlcf.windowing.iterator.tseries_lite.WTSeriesLite>` }
                 where the key correspond to a set name.
         """
 
-        data_windowed: Dict[str, WTSeries] = {}
+        data_windowed: Dict[str, WTSeriesLite] = {}
         for key, intervals in self.intervals.items():
             if filter_by_dataset and key in filter_by_dataset:
                 window_filter = filter_by_dataset[key]
@@ -347,7 +358,7 @@ class DataIntervals():
                 window_filter = None
             for interval in intervals:
                 if len(interval) >= window_width:
-                    wtseries = WTSeries.create_wtseries(
+                    wtseries = WTSeriesLite.create_wtseries_lite(
                         data=interval,
                         window_width=window_width,
                         window_step=window_step,

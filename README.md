@@ -140,7 +140,7 @@ std_by_features = {
     "adx": MinMaxStd(minmax=(0, 100))  # the value observed in the adx are between 0 and 100 and we
                                        # want to set it between 0 and 1.
 }
-data_intervals = DataIntervals(data, n_intervals=10)
+data_intervals = DataIntervals.create_data_intervals_obj(data, n_intervals=10)
 data_intervals.standardize(std_by_features)
 
 # We can apply a filter the dataset we want. Here we will filter the values in order to balance
