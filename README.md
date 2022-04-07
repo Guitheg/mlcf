@@ -14,7 +14,7 @@ For now, the library provide only data tools, such as:
 
 This library doesn't provide models or an end-to-end trade bot.
 
-For more information, find the documentation here : https://guitheg.github.io/mlcf/
+For more information, find the documentation here : <https://guitheg.github.io/mlcf>
 
 ---
 
@@ -134,14 +134,14 @@ from mlcf.datatools.standardize_fct import ClassicStd, MinMaxStd
 from mlcf.datatools.windowing.filter import LabelBalanceFilter
 
 # We define a dict which give us the information about what standardization apply to each columns.
-std_by_feautures = {
+std_by_features = {
     "close": ClassicStd(),
     "return": ClassicStd(with_mean=False),  # to avoid to shift we don't center
     "adx": MinMaxStd(minmax=(0, 100))  # the value observed in the adx are between 0 and 100 and we
                                        # want to set it between 0 and 1.
 }
-data_intervals = DataIntervals(data, n_intervals=10)
-data_intervals.standardize(std_by_feautures)
+data_intervals = DataIntervals.create_data_intervals_obj(data, n_intervals=10)
+data_intervals.standardize(std_by_features)
 
 # We can apply a filter the dataset we want. Here we will filter the values in order to balance
 # the histogram of return value. For this, we use the label previously process on return.
