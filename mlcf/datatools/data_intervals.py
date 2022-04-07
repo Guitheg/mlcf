@@ -14,7 +14,7 @@ It provides DataIntervals class allowing us to handle the Nx3 intervals data str
 
         # We define a dict which give us the information about what standardization apply to each
         # columns.
-        std_by_feautures = {
+        std_by_features = {
             "close": ClassicStd(),
             "return": ClassicStd(with_mean=False),  # to avoid to shift we don't center
             "adx": MinMaxStd(minmax=(0, 100))  # the value observed in the adx are between
@@ -22,7 +22,7 @@ It provides DataIntervals class allowing us to handle the Nx3 intervals data str
                                                # want to set it between 0 and 1.
         }
         data_intervals = DataIntervals(data, n_intervals=10)
-        data_intervals.standardize(std_by_feautures)
+        data_intervals.standardize(std_by_features)
 
         # We can apply a filter the dataset we want. Here we will filter the values in order
         # to balance the histogram of return value. For this, we use the label previously process
@@ -299,6 +299,7 @@ class DataIntervals():
             transform_data=self.test_intervals
         )
 
+    # TODO (refactoring) remove std_by_feature argument
     def windowing(
         self,
         window_width: int,
