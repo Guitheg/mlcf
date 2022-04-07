@@ -167,10 +167,10 @@ dict_train_val_test = data_intervals.windowing(
 # -------------------- Window Iterator Tool --------------------
 
 # If we don't want to use the Data Interval Module. We can simple use a WTSeries with our data.
-from mlcf.datatools.windowing.tseries import WTSeries
+from mlcf.datatools.windowing.tseries import WTSeriesLite
 
 # To create a WTSeries from pandas.DataFrame
-wtseries = WTSeries.create_wtseries(
+wtseries = WTSeriesLite.create_wtseries_lite(
     dataframe=data,
     window_width=30,
     window_step=1,
@@ -179,7 +179,7 @@ wtseries = WTSeries.create_wtseries(
 )
 
 # Or from a wtseries .h5 file:
-wtseries = WTSeries.read(Path("/tests/testdata/wtseries.h5"))
+wtseries = WTSeriesLite.read(Path("/tests/testdata/wtseries.h5"))
 
 # We can save the wtseries as a file.
 wtseries.write(Path("/tests/testdata", "wtseries"))
