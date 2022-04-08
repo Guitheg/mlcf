@@ -53,7 +53,8 @@ def test_standardize_exception(
 def test_standardize(ohlcvra_btc):
     std_by_feature = {
         "close": ClassicStd(),
-        "adx": MinMaxStd(minmax=(0, 100))
+        "adx": MinMaxStd(minmax=(0, 100)),
+        "unknown": ClassicStd()
     }
     data = ohlcvra_btc.copy()
     train = data.iloc[:10000]

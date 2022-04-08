@@ -315,13 +315,15 @@ def standardize(
     if isinstance(fit_data, pd.DataFrame):
         if not fit_data.empty:
             for feature, std_obj in dict_std_by_feature.items():
-                std_obj.fit(fit_data[feature])
+                if feature in fit_data.columns:
+                    std_obj.fit(fit_data[feature])
 
     elif (isinstance(fit_data, list) and np.all([isinstance(i, pd.DataFrame) for i in fit_data])):
         for data in fit_data:
             if not data.empty:
                 for feature, std_obj in dict_std_by_feature.items():
-                    std_obj.partial_fit(data[feature])
+                    if feature in data.columns:
+                        std_obj.partial_fit(data[feature])
 
     else:
         raise TypeError(f"Bad fit_data ({type(fit_data)}) type in standardize")
@@ -329,14 +331,16 @@ def standardize(
     if isinstance(transform_data, pd.DataFrame):
         if not transform_data.empty:
             for feature, std_obj in dict_std_by_feature.items():
-                transform_data.loc[:, feature] = std_obj.transform(transform_data[feature])
+                if feature in transform_data.columns:
+                    transform_data.loc[:, feature] = std_obj.transform(transform_data[feature])
 
     elif (isinstance(transform_data, list) and
           np.all([isinstance(i, pd.DataFrame) for i in transform_data])):
         for data in transform_data:
             if not data.empty:
                 for feature, std_obj in dict_std_by_feature.items():
-                    data.loc[:, feature] = std_obj.transform(data[feature])
+                    if feature in data.columns:
+                        data.loc[:, feature] = std_obj.transform(data[feature])
     else:
         raise TypeError(f"Bad transform_data ({type(transform_data)}) type in standardize")
 
