@@ -297,15 +297,15 @@ It provides DataIntervals class allowing us to handle the Nx3 intervals data str
 
 <span class="c1"># We define a dict which give us the information about what standardization apply to each</span>
 <span class="c1"># columns.</span>
-<span class="n">std_by_feautures</span> <span class="o">=</span> <span class="p">{</span>
+<span class="n">std_by_features</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;close&quot;</span><span class="p">:</span> <span class="n">ClassicStd</span><span class="p">(),</span>
     <span class="s2">&quot;return&quot;</span><span class="p">:</span> <span class="n">ClassicStd</span><span class="p">(</span><span class="n">with_mean</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>  <span class="c1"># to avoid to shift we don&#39;t center</span>
     <span class="s2">&quot;adx&quot;</span><span class="p">:</span> <span class="n">MinMaxStd</span><span class="p">(</span><span class="n">minmax</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>  <span class="c1"># the value observed in the adx are between</span>
                                        <span class="c1"># 0 and 100 and we</span>
                                        <span class="c1"># want to set it between 0 and 1.</span>
 <span class="p">}</span>
-<span class="n">data_intervals</span> <span class="o">=</span> <span class="n">DataIntervals</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">n_intervals</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
-<span class="n">data_intervals</span><span class="o">.</span><span class="n">standardize</span><span class="p">(</span><span class="n">std_by_feautures</span><span class="p">)</span>
+<span class="n">data_intervals</span> <span class="o">=</span> <span class="n">DataIntervals</span><span class="o">.</span><span class="n">create_data_intervals_obj</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">n_intervals</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">data_intervals</span><span class="o">.</span><span class="n">standardize</span><span class="p">(</span><span class="n">std_by_features</span><span class="p">)</span>
 
 <span class="c1"># We can apply a filter the dataset we want. Here we will filter the values in order</span>
 <span class="c1"># to balance the histogram of return value. For this, we use the label previously process</span>
@@ -316,7 +316,7 @@ It provides DataIntervals class allowing us to handle the Nx3 intervals data str
 <span class="p">}</span>
 
 <span class="c1"># dict_train_val_test is a dict with the key &#39;train&#39;, &#39;val&#39;, &#39;test&#39;.</span>
-<span class="c1"># The value of the dict is a  WTSeries (a windowed time series).</span>
+<span class="c1"># The value of the dict is a  WTSeriesLite (a windowed time series).</span>
 <span class="n">dict_train_val_test</span> <span class="o">=</span> <span class="n">data_intervals</span><span class="o">.</span><span class="n">windowing</span><span class="p">(</span>
     <span class="n">window_width</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
     <span class="n">window_step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
@@ -328,32 +328,10 @@ It provides DataIntervals class allowing us to handle the Nx3 intervals data str
 </div></blockquote>
 <dl class="py class">
 <dt class="sig sig-object py" id="mlcf.datatools.data_intervals.DataIntervals">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mlcf.datatools.data_intervals.</span></span><span class="sig-name descname"><span class="pre">DataIntervals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_intervals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prop_val_test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prop_val</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mlcf.datatools.data_intervals.DataIntervals" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mlcf.datatools.data_intervals.</span></span><span class="sig-name descname"><span class="pre">DataIntervals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_intervals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">pandas.core.frame.DataFrame</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_intervals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">pandas.core.frame.DataFrame</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_intervals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">pandas.core.frame.DataFrame</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mlcf.datatools.data_intervals.DataIntervals" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Data Intervals Class.
 It provides tools to divide a data frame into Nx3 parts and handles them.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="mlcf.datatools.data_intervals.DataIntervals.raw_data">
-<span class="sig-name descname"><span class="pre">raw_data</span></span><a class="headerlink" href="#mlcf.datatools.data_intervals.DataIntervals.raw_data" title="Permalink to this definition">#</a></dt>
-<dd><p>Raw time series data frame (unsplit).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="mlcf.datatools.data_intervals.DataIntervals.n_intervals">
-<span class="sig-name descname"><span class="pre">n_intervals</span></span><a class="headerlink" href="#mlcf.datatools.data_intervals.DataIntervals.n_intervals" title="Permalink to this definition">#</a></dt>
-<dd><p>Number of intervals created after splitting the data frame.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="mlcf.datatools.data_intervals.DataIntervals.train_intervals">
 <span class="sig-name descname"><span class="pre">train_intervals</span></span><a class="headerlink" href="#mlcf.datatools.data_intervals.DataIntervals.train_intervals" title="Permalink to this definition">#</a></dt>
@@ -434,8 +412,22 @@ It must be chosen between ‘train’, ‘val’, ‘test’.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="mlcf.datatools.data_intervals.DataIntervals.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_intervals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prop_val_test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prop_val</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mlcf.datatools.data_intervals.DataIntervals.__init__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="mlcf.datatools.data_intervals.DataIntervals.__iter__">
+<span class="sig-name descname"><span class="pre">__iter__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span></span></span><a class="headerlink" href="#mlcf.datatools.data_intervals.DataIntervals.__iter__" title="Permalink to this definition">#</a></dt>
+<dd><p>It iterates over the {self.intervals} dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The dictionary iterator</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mlcf.datatools.data_intervals.DataIntervals.create_data_intervals_obj">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_data_intervals_obj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_intervals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prop_val_test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prop_val</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.3</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#mlcf.datatools.data_intervals.DataIntervals" title="mlcf.datatools.data_intervals.DataIntervals"><span class="pre">mlcf.datatools.data_intervals.DataIntervals</span></a></span></span><a class="headerlink" href="#mlcf.datatools.data_intervals.DataIntervals.create_data_intervals_obj" title="Permalink to this definition">#</a></dt>
 <dd><p>It creates a DataInterval object from a time series data frame.</p>
 <p>The {data} will be split into {n_intervals}.
 Then these parts will be split into 3 sets such as ‘train’, ‘val’ and ‘test’.</p>
@@ -452,20 +444,6 @@ The proportion of val rows is : {prop_val_test}*{prop_val}.
 The proportion of test part is : {prop_val_test}*(1-{prop_val}).
 It is set to 0.3 by default.</p></li>
 </ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="mlcf.datatools.data_intervals.DataIntervals.__iter__">
-<span class="sig-name descname"><span class="pre">__iter__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span></span></span><a class="headerlink" href="#mlcf.datatools.data_intervals.DataIntervals.__iter__" title="Permalink to this definition">#</a></dt>
-<dd><p>It iterates over the {self.intervals} dictionary.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>The dictionary iterator</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>Dict</p>
 </dd>
 </dl>
 </dd></dl>
@@ -572,9 +550,9 @@ The value is any object inheriting from the
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mlcf.datatools.data_intervals.DataIntervals.windowing">
-<span class="sig-name descname"><span class="pre">windowing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selected_columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_by_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="mlcf.windowing.filtering.filter.html#mlcf.windowing.filtering.filter.WindowFilter" title="mlcf.windowing.filtering.filter.WindowFilter"><span class="pre">mlcf.windowing.filtering.filter.WindowFilter</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">std_by_feature</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="mlcf.datatools.standardisation.html#mlcf.datatools.standardisation.StandardisationModule" title="mlcf.datatools.standardisation.StandardisationModule"><span class="pre">mlcf.datatools.standardisation.StandardisationModule</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="mlcf.windowing.iterator.tseries.html#mlcf.windowing.iterator.tseries.WTSeries" title="mlcf.windowing.iterator.tseries.WTSeries"><span class="pre">mlcf.windowing.iterator.tseries.WTSeries</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#mlcf.datatools.data_intervals.DataIntervals.windowing" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">windowing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selected_columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_by_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="mlcf.windowing.filtering.filter.html#mlcf.windowing.filtering.filter.WindowFilter" title="mlcf.windowing.filtering.filter.WindowFilter"><span class="pre">mlcf.windowing.filtering.filter.WindowFilter</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="mlcf.windowing.iterator.tseries_lite.html#mlcf.windowing.iterator.tseries_lite.WTSeriesLite" title="mlcf.windowing.iterator.tseries_lite.WTSeriesLite"><span class="pre">mlcf.windowing.iterator.tseries_lite.WTSeriesLite</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#mlcf.datatools.data_intervals.DataIntervals.windowing" title="Permalink to this definition">#</a></dt>
 <dd><p>It performs the windowing operation over all intervals producing for each set a
-<a class="reference internal" href="mlcf.windowing.iterator.tseries.html#mlcf.windowing.iterator.tseries.WTSeries" title="mlcf.windowing.iterator.tseries.WTSeries"><code class="xref py py-class docutils literal notranslate"><span class="pre">WTSeries</span></code></a>
+<a class="reference internal" href="mlcf.windowing.iterator.tseries_lite.html#mlcf.windowing.iterator.tseries_lite.WTSeriesLite" title="mlcf.windowing.iterator.tseries_lite.WTSeriesLite"><code class="xref py py-class docutils literal notranslate"><span class="pre">WTSeriesLite</span></code></a>
 (a windowed time series).
 We can provide a dictionnary indicating the standardisation used for each feature.
 We can provide a dictionary indicating the window filtering operation applied to each set.</p>
@@ -598,11 +576,11 @@ If None is set then no window filtering is applied. The default value is None.</
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>A dictionnary such as {key (string) -&gt;
-<a class="reference internal" href="mlcf.windowing.iterator.tseries.html#mlcf.windowing.iterator.tseries.WTSeries" title="mlcf.windowing.iterator.tseries.WTSeries"><code class="xref py py-class docutils literal notranslate"><span class="pre">WTSeries</span></code></a> }
+<a class="reference internal" href="mlcf.windowing.iterator.tseries_lite.html#mlcf.windowing.iterator.tseries_lite.WTSeriesLite" title="mlcf.windowing.iterator.tseries_lite.WTSeriesLite"><code class="xref py py-class docutils literal notranslate"><span class="pre">WTSeriesLite</span></code></a> }
 where the key correspond to a set name.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Dict[str, <a class="reference internal" href="mlcf.windowing.iterator.tseries.html#mlcf.windowing.iterator.tseries.WTSeries" title="mlcf.windowing.iterator.tseries.WTSeries">WTSeries</a>]</p>
+<dd class="field-odd"><p>Dict[str, <a class="reference internal" href="mlcf.windowing.iterator.tseries_lite.html#mlcf.windowing.iterator.tseries_lite.WTSeriesLite" title="mlcf.windowing.iterator.tseries_lite.WTSeriesLite">WTSeriesLite</a>]</p>
 </dd>
 </dl>
 </dd></dl>

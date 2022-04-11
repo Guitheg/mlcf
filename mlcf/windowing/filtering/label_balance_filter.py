@@ -40,7 +40,8 @@ Translated with www.DeepL.com/Translator (free version)
         self,
         column: str,
         max_occ: Optional[int] = None,
-        sample_function: Callable = random.sample
+        sample_function: Callable = random.sample,
+        k: int = 1
     ):
         """Create a Label balancing filter object.
 
@@ -60,12 +61,20 @@ Translated with www.DeepL.com/Translator (free version)
             sample_function (Callable, optional):
                 A selection function that respects this format: fct(list, k) -> list_of_k_values.
                 Defaults to random.sample.
+
+            k (int): The window index counted from the end of the window that is used for filtering.
+                Basically, we keep all the windows that have (for the label column used) the value
+                'True' at the k-th window index (starting from the end). This is especially useful
+                for filtering windows when the last index for the target will not be used.
+                Defaults to 1.
+
         """
 
         super(LabelBalanceFilter, self).__init__()
         self.column = column
         self.max_occ: Optional[int] = max_occ
         self.sample_function: Callable = sample_function
+        self.k: int = k
 
     @property
     def tag_name(self):
@@ -94,8 +103,8 @@ Translated with www.DeepL.com/Translator (free version)
 
         dataframe = data.copy()
 
-        # extract every last index which of each window
-        last_index_of_each_window = index_array[:, -1]
+        # extract every last index from every window
+        last_index_of_each_window = index_array[:, -self.k]
 
         # tag col with all values set to false
         tag_col = pd.Series([False]*len(dataframe), index=dataframe.index)
@@ -128,4 +137,4 @@ Translated with www.DeepL.com/Translator (free version)
                 ] = False
         self.data = data.copy()
         self.data[self.tag_name] = tag_col
-        return [self.data.loc[self.data.index[idx[-1]], self.tag_name] for idx in index_array]
+        return [self.data.loc[self.data.index[idx[-self.k]], self.tag_name] for idx in index_array]

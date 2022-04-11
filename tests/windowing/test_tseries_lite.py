@@ -191,3 +191,28 @@ def test_read(ohlcvr_btc, test_input, group_key, tmp_path: Path):
     wtseries_read = WTSeriesLite.read(file_path, group_key)
     assert np.all(wtseries.data.values == wtseries_read.data.values)
     assert np.all(wtseries.index_array.values == wtseries_read.index_array.values)
+
+
+@pytest.mark.parametrize(
+    "test_input, filter, expected",
+    [
+        (
+            {
+                "window_width": 300,
+                "window_step": 2,
+                "selected_columns": ["close", "return", "label"]
+            },
+            LabelBalanceFilter("label", sample_function=lambda li, k: li[:k]),
+            {
+                "length": 2616,
+                "first_window": lambda data: data["return"].iloc[68:368].index
+            }
+        )
+    ]
+)
+def test_filter(ohlcvrl_btc, test_input, filter, expected):
+    data = ohlcvrl_btc.copy()
+    wtseries = WTSeriesLite.create_wtseries_lite(data, **test_input)
+    wtseries_filtered = wtseries.filter(filter)
+    assert len(wtseries_filtered) == expected["length"]
+    assert np.all(wtseries_filtered[0]["return"].index == expected["first_window"](data))

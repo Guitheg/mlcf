@@ -1,4 +1,4 @@
-""" Windowed Time Series Module.
+""" Windowed Time Series Module. (deprecated)
 This module provides a data structure named "windowed time series (wtseries)". This data structure
 allows us to handle a multi-indexed data frame that represents a windowed time series data frame.
 
@@ -50,7 +50,7 @@ class IncompatibleDataException(Exception):
 
 # TODO (doc) review
 class WTSeries(WindowIterator):
-    """A Windowed Time Series data structure.
+    """A Windowed Time Series data structure. (deprecated)
     This class inherit of WindowIterator which allow us to iterate over a time series dataframe
     with a sliding window.
     The WTSeries contains {data} which is the Windowed Time Series.

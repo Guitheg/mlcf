@@ -71,12 +71,12 @@ def test_train_val_test(test_input, n_intervals, train_set, val_set, test_set, o
     ]
 )
 def test_data_intervals(ohlcv_btc, test_input, train_set, val_set, test_set):
-    data_in_intervals = DataIntervals(ohlcv_btc, **test_input)
+    data_in_intervals = DataIntervals.create_data_intervals_obj(ohlcv_btc, **test_input)
     assert len(data_in_intervals.intervals["train"][0]) == train_set
     assert len(data_in_intervals.intervals["val"][0]) == val_set
     assert len(data_in_intervals.intervals["test"][0]) == test_set
-    assert data_in_intervals.n_intervals == len(data_in_intervals.intervals["train"])
-    assert data_in_intervals.n_intervals == test_input["n_intervals"]
+    assert len(data_in_intervals["train"]) == len(data_in_intervals.intervals["train"])
+    assert len(data_in_intervals["train"]) == test_input["n_intervals"]
 
 
 @pytest.mark.parametrize(
@@ -97,7 +97,7 @@ def test_standardize(ohlcvra_btc, test_input):
         "return": ClassicStd(with_mean=False),
         "adx": MinMaxStd(minmax=(0, 100))
     }
-    data_intervals = DataIntervals(ohlcvra_btc, **test_input)
+    data_intervals = DataIntervals.create_data_intervals_obj(ohlcvra_btc, **test_input)
     data_intervals.standardize(std_by_feature)
 
     data = pd.DataFrame()
@@ -148,7 +148,7 @@ def test_standardize(ohlcvra_btc, test_input):
 )
 def test_windowing(ohlcvrl_btc, n_intervals, test_input, expected):
     data = ohlcvrl_btc
-    data_intervals = DataIntervals(data, n_intervals=n_intervals)
+    data_intervals = DataIntervals.create_data_intervals_obj(data, n_intervals=n_intervals)
     dataset = data_intervals.windowing(**test_input)
 
     assert len(dataset["train"]) == expected
