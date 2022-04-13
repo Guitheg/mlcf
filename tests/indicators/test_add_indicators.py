@@ -31,6 +31,32 @@ def test_add_extern_indicator(ohlcv_btc, rawdata_eth_path):
     assert np.isnan(dataframe.loc[pd.to_datetime(1571643900000, unit="ms"), "Eopen"])
 
 
-def test_add_intern_indicator(ohlcv_btc):
-    dataframe = add_intern_indicator(ohlcv_btc, "adx")
-    assert len(dataframe.columns) == len(ohlcv_btc.columns) + 1
+@pytest.mark.parametrize(
+    "test_input",
+    [
+        {
+            "indicator_name": "adx"
+        },
+        {
+            "indicator_name": "aroon",
+        },
+        {
+            "indicator_name": "abs_energy",
+            "column": "volume",
+            "timeperiod": 10,
+        },
+        {
+            "indicator_name": "autocorrelation",
+            "column": "close",
+            "timeperiod": 10,
+            "lag": 5
+        },
+        {
+            "indicator_name": "returns",
+            "column": "close",
+        }
+    ]
+)
+def test_add_intern_indicator(ohlcv_btc, test_input):
+    dataframe = add_intern_indicator(ohlcv_btc, **test_input)
+    assert len(dataframe)

@@ -14,7 +14,7 @@ on a time series dataframe.
         data.dropna(inplace=True)  # make sure to drop nan values
 
         # you can add intern indicator
-        data = add_intern_indicator(data, indice_name="adx")
+        data = add_intern_indicator(data, indicator_name="adx")
 """
 
 from typing import List
@@ -24,7 +24,14 @@ from mlcf.datatools import read_json_file
 import pandas as pd
 import numpy as np
 
-from mlcf.indicators.indicators_fct import indice_dict
+from mlcf.indicators.indicators_fct import (
+    TA_FEATURES,
+    TSFRESH_FEATURES,
+    CUSTOM_FEATURES,
+    add_ta_feature,
+    add_tsfresh_feature,
+    add_custom_feature
+)
 
 # TODO (doc) correct English
 
@@ -33,6 +40,13 @@ __all__ = [
     "add_extern_indicator",
     "add_intern_indicator"
 ]
+
+
+LIST_INTERN_INDICATORS = (
+    list(TSFRESH_FEATURES.keys()) +
+    list(TA_FEATURES.keys()) +
+    list(CUSTOM_FEATURES.keys())
+)
 
 
 class FeatureAlreadyExistException(Exception):
@@ -92,25 +106,60 @@ def add_extern_indicator(
 
 def add_intern_indicator(
     data: pd.DataFrame,
-    indice_name: str,
-    *args, **kwargs
+    indicator_name: str,
+    *args,
+    **kwargs
 ) -> pd.DataFrame:
     """
     This function allows adding new features with internally calculated indicators.
     (provided by processing the OHLCV data).
-    The new features will be merged into the given {data} pandas.DataFrame.
+    The new features will be merged into the given {{data}} pandas.DataFrame.
 
     Args:
         data (pd.DataFrame): The OHLCV pandas.DataFrame
 
-        indice_name (str): It is the name of the calculated indicator which corresponds to a key in
-            :obj:`INDICE_DICT <mlcf.indicators.indicators_fct.indice_dict>`
-            that refers the corresponding indicator function.
+        indicator_name (str): It is the name of the calculated feature which corresponds to a key
+            in :obj:`indicator_dict <mlcf.indicators.indicators_fct.indicator_dict>`
+            that refers the corresponding indicator function. It can also refers to a TSfresh
+            features:
+            :obj:`tsfresh_features
+            <mlcf.indicators.indicators_fct.statistical_indicators.TSFRESH_FEATURES>`.
+            Here the list of available features:
+            {feature_list}
 
 
     Returns:
         pd.DataFrame: The dataframe merged with the new features.
     """
     dataframe = data.copy()
-    dataframe = indice_dict(indice_name)(dataframe, *args, **kwargs)
+    if indicator_name in TSFRESH_FEATURES:
+        dataframe = add_tsfresh_feature(
+            dataframe,
+            indicator_name,
+            *args,
+            **kwargs
+        )
+    elif indicator_name in TA_FEATURES:
+        dataframe = add_ta_feature(
+            dataframe,
+            indicator_name,
+            *args,
+            **kwargs
+        )
+    elif indicator_name in CUSTOM_FEATURES:
+        dataframe = add_custom_feature(
+            dataframe,
+            indicator_name,
+            *args,
+            **kwargs
+        )
+    else:
+        raise KeyError(
+            f"This indicator ({indicator_name}) name doesn't exist in any dictionnary. " +
+            f"Please choose between: {LIST_INTERN_INDICATORS}")
     return dataframe
+
+
+add_intern_indicator.__doc__ = str(add_intern_indicator.__doc__).format(
+    feature_list=LIST_INTERN_INDICATORS
+)
