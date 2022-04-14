@@ -17,7 +17,7 @@ on a time series dataframe.
         data = add_intern_indicator(data, indicator_name="adx")
 """
 
-from typing import List
+from typing import Dict, List
 
 from pathlib import Path
 from mlcf.datatools import read_json_file
@@ -38,7 +38,8 @@ from mlcf.indicators.indicators_fct import (
 __all__ = [
     "FeatureAlreadyExistException",
     "add_extern_indicator",
-    "add_intern_indicator"
+    "add_intern_indicator",
+    "add_all_intern_indicators"
 ]
 
 
@@ -118,12 +119,14 @@ def add_intern_indicator(
     Args:
         data (pd.DataFrame): The OHLCV pandas.DataFrame
 
-        indicator_name (str): It is the name of the calculated feature which corresponds to a key
-            in :obj:`indicator_dict <mlcf.indicators.indicators_fct.indicator_dict>`
-            that refers the corresponding indicator function. It can also refers to a TSfresh
-            features:
-            :obj:`tsfresh_features
-            <mlcf.indicators.indicators_fct.statistical_indicators.TSFRESH_FEATURES>`.
+        indicator_name (str): It is the name of a calculated feature which corresponds to a key
+            in :obj:`TA_FEATURES <mlcf.indicators.indicators_fct.ta_indicators.add_ta_feature>`,
+            :obj:`TSFRESH_FEATURES
+            <mlcf.indicators.indicators_fct.statistical_indicators.add_tsfresh_feature>`
+            or in
+            :obj:`CUSTOM_FEATURES
+            <mlcf.indicators.indicators_fct.custom_indicators.add_custom_feature>`
+
             Here the list of available features:
             {feature_list}
 
@@ -163,3 +166,50 @@ def add_intern_indicator(
 add_intern_indicator.__doc__ = str(add_intern_indicator.__doc__).format(
     feature_list=LIST_INTERN_INDICATORS
 )
+
+
+def add_all_intern_indicators(
+    data: pd.DataFrame,
+    indicator_dict: Dict[str, Dict],
+    dropna: bool = True
+) -> pd.DataFrame:
+    """From a dictionnary of indicator (str) -> parameters (dict), add all the indicators to the
+    dataframe according to the corresponding parameters.
+
+    Args:
+        data (pd.DataFrame): The dataframe
+
+        indicator_dict (Dict[str, Dict]): A dictionnary such as the key is an indicator name and the
+            value is the corresponding parameters.
+
+                Example:
+
+                .. code-block:: python
+
+                    indicator_dict = {
+                        "adx": {},
+                        "aroon": {},
+                        "abs_energy": {"column": "volume", "timeperiod": 10},
+                        "autocorrelation": {"column": "close", "timeperiod": 10, "lag": 5},
+                        "returns": {"column": "close"}
+                    }
+
+        dropna (bool, optional): True to drop nan value before returns. Defaults to True.
+
+    Raises:
+        TypeError: Parameters (value) must be a dictionnary.
+        TypeError: Indicator (key) must be a name.
+
+    Returns:
+        pd.DataFrame: The dataframe with all the added indicator_dict indicators
+    """
+    dataframe = data.copy()
+    for indicator_name, param in indicator_dict.items():
+        if not isinstance(param, dict):
+            raise TypeError(f"Parameters (value) must be a dictionnary. param = {param}")
+        if not isinstance(indicator_name, str):
+            raise TypeError(f"Indicator (key) must be a name. indicator_name = {indicator_name}")
+        dataframe = add_intern_indicator(dataframe, indicator_name, **param)
+    if dropna:
+        dataframe.dropna(inplace=True)
+    return dataframe

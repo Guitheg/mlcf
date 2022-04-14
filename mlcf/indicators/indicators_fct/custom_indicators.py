@@ -105,7 +105,7 @@ def add_custom_feature(
     if isinstance(results, pd.Series):
         results.name = custom_feature_name+str(param_string)
     if len(results.columns) == 1:
-        results = results.rename(columns={0: custom_feature_name+str(param_string)})
+        results.columns = [custom_feature_name+str(param_string)]
     return pd.concat([dataframe, results], axis=1)
 
 

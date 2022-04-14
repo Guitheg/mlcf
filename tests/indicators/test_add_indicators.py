@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from mlcf.indicators.add_indicators import (
     FeatureAlreadyExistException,
+    add_all_intern_indicators,
     add_extern_indicator,
     add_intern_indicator
 )
@@ -59,4 +60,21 @@ def test_add_extern_indicator(ohlcv_btc, rawdata_eth_path):
 )
 def test_add_intern_indicator(ohlcv_btc, test_input):
     dataframe = add_intern_indicator(ohlcv_btc, **test_input)
+    assert len(dataframe)
+
+
+@pytest.mark.parametrize(
+    "indicator_dict",
+    [
+        {
+            "adx": {},
+            "aroon": {},
+            "abs_energy": {"column": "volume", "timeperiod": 10},
+            "autocorrelation": {"column": "close", "timeperiod": 10, "lag": 5},
+            "returns": {"column": "close"}
+        }
+    ]
+)
+def test_add_all_intern_indicators(ohlcv_btc, indicator_dict):
+    dataframe = add_all_intern_indicators(ohlcv_btc, indicator_dict)
     assert len(dataframe)
