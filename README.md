@@ -39,7 +39,7 @@ Python version officially supported:
 - MLCF package
 
 ```bash
-pip install mlcf
+pip install mlcf --no-binary TA-LIB
 ```
 
 ---

@@ -5,7 +5,7 @@ install_requirements = [
     "tsfresh",
     "sklearn",
     "tables",
-    "TA-LIB"
+    "TA-Lib"
 ]
 
 setup(
