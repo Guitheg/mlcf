@@ -1,11 +1,14 @@
-# https://mrjbq7.github.io/ta-lib/
-TA-Lib==0.4.24
-
 # https://github.com/twopirllc/pandas-ta
-pandas-ta
+pandas-ta==0.3.14b
 
 # https://scikit-learn.org/stable/
 sklearn
 
 # https://pypi.org/project/tables/
 tables
+
+# https://tsfresh.readthedocs.io/
+tsfresh
+
+# https://mrjbq7.github.io/ta-lib/
+TA-Lib==0.4.24 --no-binary TA-Lib

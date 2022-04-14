@@ -5,8 +5,8 @@ from pathlib import Path
 import random
 
 from mlcf.datatools.data_reader import read_ohlcv_json_from_file
-from mlcf.indicators.indicators_fct import add_adx
 from mlcf.datatools.utils import labelize
+from mlcf.indicators.indicators_fct.ta_indicators import add_ta_feature
 random.seed(0)
 
 
@@ -49,7 +49,7 @@ def ohlcvr_btc(ohlcv_btc):
 
 @pytest.fixture
 def ohlcvra_btc(ohlcvr_btc):
-    dataframe = add_adx(ohlcvr_btc)
+    dataframe = add_ta_feature(ohlcvr_btc, "adx")
     return dataframe.dropna()
 
 
