@@ -3,7 +3,7 @@ import sys
 
 
 def main():
-    """Build the documentation thanks to sphinx from the docstring in the source code"""
+    """Build the documentation using sphinx from the docstring in the source code"""
     curr_dir = os.path.dirname(os.path.abspath(__file__))
     sphinx_doc_dir = f"{curr_dir}/source"
     project_src_dir = f"{curr_dir}/../../mlcf"
