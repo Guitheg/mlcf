@@ -31,8 +31,8 @@
     <script src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="mlcf.indicators.indicators_fct module" href="mlcf.indicators.indicators_fct.html" />
-    <link rel="prev" title="mlcf.indicators package" href="mlcf.indicators.html" />
+    <link rel="next" title="mlcf.windowing package" href="mlcf.windowing.html" />
+    <link rel="prev" title="mlcf.indicators.indicators_fct.ta_indicators module" href="mlcf.indicators.indicators_fct.ta_indicators.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
     
@@ -164,14 +164,36 @@
      </i>
     </label>
     <ul class="current">
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="mlcf.indicators.indicators_fct.html">
+       mlcf.indicators.indicators_fct package
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
+      <label for="toctree-checkbox-4">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="mlcf.indicators.indicators_fct.custom_indicators.html">
+         mlcf.indicators.indicators_fct.custom_indicators module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="mlcf.indicators.indicators_fct.statistical_indicators.html">
+         mlcf.indicators.indicators_fct.statistical_indicators module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="mlcf.indicators.indicators_fct.ta_indicators.html">
+         mlcf.indicators.indicators_fct.ta_indicators module
+        </a>
+       </li>
+      </ul>
+     </li>
      <li class="toctree-l3 current active">
       <a class="current reference internal" href="#">
        mlcf.indicators.add_indicators module
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="mlcf.indicators.indicators_fct.html">
-       mlcf.indicators.indicators_fct module
       </a>
      </li>
     </ul>
@@ -180,8 +202,8 @@
     <a class="reference internal" href="mlcf.windowing.html">
      mlcf.windowing package
     </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
-    <label for="toctree-checkbox-4">
+    <input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
+    <label for="toctree-checkbox-5">
      <i class="fas fa-chevron-down">
      </i>
     </label>
@@ -190,8 +212,8 @@
       <a class="reference internal" href="mlcf.windowing.filtering.html">
        mlcf.windowing.filtering package
       </a>
-      <input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
-      <label for="toctree-checkbox-5">
+      <input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/>
+      <label for="toctree-checkbox-6">
        <i class="fas fa-chevron-down">
        </i>
       </label>
@@ -212,8 +234,8 @@
       <a class="reference internal" href="mlcf.windowing.iterator.html">
        mlcf.windowing.iterator package
       </a>
-      <input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/>
-      <label for="toctree-checkbox-6">
+      <input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" type="checkbox"/>
+      <label for="toctree-checkbox-7">
        <i class="fas fa-chevron-down">
        </i>
       </label>
@@ -283,84 +305,8 @@
               
               <div>
                 
-  <section id="module-mlcf.indicators.add_indicators">
-<span id="mlcf-indicators-add-indicators-module"></span><h1>mlcf.indicators.add_indicators module<a class="headerlink" href="#module-mlcf.indicators.add_indicators" title="Permalink to this headline">#</a></h1>
-<p>Indicators Module.</p>
-<p>This module provide function to add intern or extern indicators as features
-on a time series dataframe.</p>
-<blockquote>
-<div><p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mlcf.indicators.add_indicators</span> <span class="kn">import</span> <span class="n">add_intern_indicator</span>
-
-<span class="c1"># you can add yoursel your own indicators or features</span>
-<span class="n">data</span><span class="p">[</span><span class="s2">&quot;return&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;close&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">pct_change</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">data</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># make sure to drop nan values</span>
-
-<span class="c1"># you can add intern indicator</span>
-<span class="n">data</span> <span class="o">=</span> <span class="n">add_intern_indicator</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">indice_name</span><span class="o">=</span><span class="s2">&quot;adx&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div></blockquote>
-<dl class="py exception">
-<dt class="sig sig-object py" id="mlcf.indicators.add_indicators.FeatureAlreadyExistException">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mlcf.indicators.add_indicators.</span></span><span class="sig-name descname"><span class="pre">FeatureAlreadyExistException</span></span><a class="headerlink" href="#mlcf.indicators.add_indicators.FeatureAlreadyExistException" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="mlcf.indicators.add_indicators.add_extern_indicator">
-<span class="sig-prename descclassname"><span class="pre">mlcf.indicators.add_indicators.</span></span><span class="sig-name descname"><span class="pre">add_extern_indicator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'date'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.core.frame.DataFrame</span></span></span><a class="headerlink" href="#mlcf.indicators.add_indicators.add_extern_indicator" title="Permalink to this definition">#</a></dt>
-<dd><p>This function allows to add new features with extern indicators (provided by a json file).
-The data file must have as index a time column that fits with your data.
-The data format must be such as : {column -&gt; {index -&gt; value}}.
-The new features will be merged to the given {data} pandas.DataFrame.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>data</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">pd.DataFrame</span></code>) – The pandas.DataFrame time series OHLCV data</p></li>
-<li><p><strong>file_path</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>) – The file path to the extern indicators file.</p></li>
-<li><p><strong>feature_names</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">List[str]</span></code>) – The names of the new features.</p></li>
-<li><p><strong>time_index_name</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str,</span> <span class="pre">optional</span></code>) – The name of the time index column of the file data.
-Defaults to “date”.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><p><a class="reference internal" href="#mlcf.indicators.add_indicators.FeatureAlreadyExistException" title="mlcf.indicators.add_indicators.FeatureAlreadyExistException"><strong>FeatureAlreadyExistException</strong></a> – Raise this exception if a feature in the extern file
-    indicator already exist in the given dataframe.</p>
-</dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>The passed data plus the new extern features.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>pd.DataFrame</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="mlcf.indicators.add_indicators.add_intern_indicator">
-<span class="sig-prename descclassname"><span class="pre">mlcf.indicators.add_indicators.</span></span><span class="sig-name descname"><span class="pre">add_intern_indicator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indice_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.core.frame.DataFrame</span></span></span><a class="headerlink" href="#mlcf.indicators.add_indicators.add_intern_indicator" title="Permalink to this definition">#</a></dt>
-<dd><p>This function allows adding new features with internally calculated indicators.
-(provided by processing the OHLCV data).
-The new features will be merged into the given {data} pandas.DataFrame.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>data</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">pd.DataFrame</span></code>) – The OHLCV pandas.DataFrame</p></li>
-<li><p><strong>indice_name</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – It is the name of the calculated indicator which corresponds to a key in
-<a class="reference internal" href="mlcf.indicators.indicators_fct.html#mlcf.indicators.indicators_fct.indice_dict" title="mlcf.indicators.indicators_fct.indice_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">INDICE_DICT</span></code></a>
-that refers the corresponding indicator function.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The dataframe merged with the new features.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>pd.DataFrame</p>
-</dd>
-</dl>
-</dd></dl>
-
+  <section id="mlcf-indicators-add-indicators-module">
+<h1>mlcf.indicators.add_indicators module<a class="headerlink" href="#mlcf-indicators-add-indicators-module" title="Permalink to this headline">#</a></h1>
 </section>
 
 
@@ -369,17 +315,17 @@ that refers the corresponding indicator function.</p></li>
               
               <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="mlcf.indicators.html" title="previous page">
+    <a class='left-prev' id="prev-link" href="mlcf.indicators.indicators_fct.ta_indicators.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
             <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">mlcf.indicators package</p>
+            <p class="prev-next-title">mlcf.indicators.indicators_fct.ta_indicators module</p>
         </div>
     </a>
-    <a class='right-next' id="next-link" href="mlcf.indicators.indicators_fct.html" title="next page">
+    <a class='right-next' id="next-link" href="mlcf.windowing.html" title="next page">
     <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">mlcf.indicators.indicators_fct module</p>
+        <p class="prev-next-title">mlcf.windowing package</p>
     </div>
     <i class="fas fa-angle-right"></i>
     </a>

@@ -1,6 +1,14 @@
 mlcf.indicators package
 =======================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   mlcf.indicators.indicators_fct
+
 Submodules
 ----------
 
@@ -8,7 +16,6 @@ Submodules
    :maxdepth: 4
 
    mlcf.indicators.add_indicators
-   mlcf.indicators.indicators_fct
 
 Module contents
 ---------------

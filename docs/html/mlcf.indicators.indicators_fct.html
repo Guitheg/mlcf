@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>mlcf.indicators.indicators_fct module &#8212; MLCF documentation</title>
+    <title>mlcf.indicators.indicators_fct package &#8212; MLCF documentation</title>
     
   <!-- Loaded before other Sphinx assets -->
   <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -31,8 +31,8 @@
     <script src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="mlcf.windowing package" href="mlcf.windowing.html" />
-    <link rel="prev" title="mlcf.indicators.add_indicators module" href="mlcf.indicators.add_indicators.html" />
+    <link rel="next" title="mlcf.indicators.indicators_fct.custom_indicators module" href="mlcf.indicators.indicators_fct.custom_indicators.html" />
+    <link rel="prev" title="mlcf.indicators package" href="mlcf.indicators.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
     
@@ -164,14 +164,36 @@
      </i>
     </label>
     <ul class="current">
+     <li class="toctree-l3 current active has-children">
+      <a class="current reference internal" href="#">
+       mlcf.indicators.indicators_fct package
+      </a>
+      <input checked="" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
+      <label for="toctree-checkbox-4">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="mlcf.indicators.indicators_fct.custom_indicators.html">
+         mlcf.indicators.indicators_fct.custom_indicators module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="mlcf.indicators.indicators_fct.statistical_indicators.html">
+         mlcf.indicators.indicators_fct.statistical_indicators module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="mlcf.indicators.indicators_fct.ta_indicators.html">
+         mlcf.indicators.indicators_fct.ta_indicators module
+        </a>
+       </li>
+      </ul>
+     </li>
      <li class="toctree-l3">
       <a class="reference internal" href="mlcf.indicators.add_indicators.html">
        mlcf.indicators.add_indicators module
-      </a>
-     </li>
-     <li class="toctree-l3 current active">
-      <a class="current reference internal" href="#">
-       mlcf.indicators.indicators_fct module
       </a>
      </li>
     </ul>
@@ -180,8 +202,8 @@
     <a class="reference internal" href="mlcf.windowing.html">
      mlcf.windowing package
     </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
-    <label for="toctree-checkbox-4">
+    <input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
+    <label for="toctree-checkbox-5">
      <i class="fas fa-chevron-down">
      </i>
     </label>
@@ -190,8 +212,8 @@
       <a class="reference internal" href="mlcf.windowing.filtering.html">
        mlcf.windowing.filtering package
       </a>
-      <input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
-      <label for="toctree-checkbox-5">
+      <input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/>
+      <label for="toctree-checkbox-6">
        <i class="fas fa-chevron-down">
        </i>
       </label>
@@ -212,8 +234,8 @@
       <a class="reference internal" href="mlcf.windowing.iterator.html">
        mlcf.windowing.iterator package
       </a>
-      <input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/>
-      <label for="toctree-checkbox-6">
+      <input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" type="checkbox"/>
+      <label for="toctree-checkbox-7">
        <i class="fas fa-chevron-down">
        </i>
       </label>
@@ -261,9 +283,24 @@
               
               <div class="toc-item">
                 
+<div class="tocsection onthispage mt-5 pt-1 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
 
 <nav id="bd-toc-nav">
-    
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#submodules">
+   Submodules
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-contents">
+   Module contents
+  </a>
+ </li>
+</ul>
+
 </nav>
               </div>
               
@@ -283,44 +320,21 @@
               
               <div>
                 
-  <section id="module-mlcf.indicators.indicators_fct">
-<span id="mlcf-indicators-indicators-fct-module"></span><h1>mlcf.indicators.indicators_fct module<a class="headerlink" href="#module-mlcf.indicators.indicators_fct" title="Permalink to this headline">#</a></h1>
-<p>Indicators Function mododule.</p>
-<p>Provide a set of indicators functions and INDICE_DICT which give one of these function given a
-string key.</p>
-<dl class="py function">
-<dt class="sig sig-object py" id="mlcf.indicators.indicators_fct.add_adx">
-<span class="sig-prename descclassname"><span class="pre">mlcf.indicators.indicators_fct.</span></span><span class="sig-name descname"><span class="pre">add_adx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mlcf.indicators.indicators_fct.add_adx" title="Permalink to this definition">#</a></dt>
-<dd><p>Average Directional Index (ADX)
-The average directional index (ADX) is a technical analysis indicator used by some traders
-to determine the strength of a trend.
-note: The ADX function has an unstable period.
-real = ADX(high, low, close, timeperiod=14)</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="mlcf.indicators.indicators_fct.indice_dict">
-<span class="sig-prename descclassname"><span class="pre">mlcf.indicators.indicators_fct.</span></span><span class="sig-name descname"><span class="pre">indice_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indice_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="headerlink" href="#mlcf.indicators.indicators_fct.indice_dict" title="Permalink to this definition">#</a></dt>
-<dd><p>From an indicator name it returns the corresponding indicator function.</p>
-<p>Indicators available:</p>
-<dl class="py attribute">
-<dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">['adx']</span></span></dt>
-<dd></dd></dl>
-
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>indice_name</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – An indicator name.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The corresponding function.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Callable</p>
-</dd>
-</dl>
-</dd></dl>
-
+  <section id="mlcf-indicators-indicators-fct-package">
+<h1>mlcf.indicators.indicators_fct package<a class="headerlink" href="#mlcf-indicators-indicators-fct-package" title="Permalink to this headline">#</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">#</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="mlcf.indicators.indicators_fct.custom_indicators.html">mlcf.indicators.indicators_fct.custom_indicators module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mlcf.indicators.indicators_fct.statistical_indicators.html">mlcf.indicators.indicators_fct.statistical_indicators module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mlcf.indicators.indicators_fct.ta_indicators.html">mlcf.indicators.indicators_fct.ta_indicators module</a></li>
+</ul>
+</div>
+</section>
+<section id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">#</a></h2>
+</section>
 </section>
 
 
@@ -329,17 +343,17 @@ real = ADX(high, low, close, timeperiod=14)</p>
               
               <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="mlcf.indicators.add_indicators.html" title="previous page">
+    <a class='left-prev' id="prev-link" href="mlcf.indicators.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
             <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">mlcf.indicators.add_indicators module</p>
+            <p class="prev-next-title">mlcf.indicators package</p>
         </div>
     </a>
-    <a class='right-next' id="next-link" href="mlcf.windowing.html" title="next page">
+    <a class='right-next' id="next-link" href="mlcf.indicators.indicators_fct.custom_indicators.html" title="next page">
     <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">mlcf.windowing package</p>
+        <p class="prev-next-title">mlcf.indicators.indicators_fct.custom_indicators module</p>
     </div>
     <i class="fas fa-angle-right"></i>
     </a>
