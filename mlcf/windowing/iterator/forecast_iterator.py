@@ -236,8 +236,10 @@ class WindowForecastIterator():
     @property
     def input_features(self) -> List[str]:
         """The list of the selected features for the input window"""
-
-        if not self.__input_features:
+        # print(self.__input_features)
+        # print(self.__input_features)
+        # if not len(self.__input_features):
+        if self.__input_features is not None:
             return self.features
         return self.__input_features
 

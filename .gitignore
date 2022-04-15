@@ -163,3 +163,7 @@ data/*
 models/*
 main*.py
 draft*
+first_test/*
+wandb/*
+best_chromosome*
+genetic*
