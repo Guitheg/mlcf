@@ -446,7 +446,7 @@ def bollinger_bands(data, window=20, stds=2):
     )
 
     bollinger["bb_width"] = (
-        (dataframe["bb_upper"] - dataframe["bb_lower"]) / dataframe["bb_mid"]
+        (bollinger["bb_upper"] - bollinger["bb_lower"]) / bollinger["bb_mid"]
     )
 
     return bollinger
@@ -474,7 +474,7 @@ def weighted_bollinger_bands(data, window=20, stds=2):
     )
 
     bollinger["wbb_width"] = (
-        (dataframe["wbb_upper"] - dataframe["wbb_lower"]) / dataframe["wbb_mid"]
+        (bollinger["wbb_upper"] - bollinger["wbb_lower"]) / bollinger["wbb_mid"]
     )
 
     return bollinger
