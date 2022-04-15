@@ -34,9 +34,17 @@ Python version officially supported:
 
 ---
 
-### Installation for Linux (python v3.7, v3.8, v3.9)
+### Installation for Linux (python v3.7)
 
 - MLCF package
+
+```bash
+pip install mlcf
+```
+
+---
+
+### Installation for Linux (python  v3.8, v3.9)
 
 ```bash
 pip install mlcf --no-binary TA-LIB
