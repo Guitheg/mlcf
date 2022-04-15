@@ -426,32 +426,58 @@ def macd(series, fast=3, slow=10, smooth=16):
 
 # ---------------------------------------------
 
-def bollinger_bands(series, window=20, stds=2):
+def bollinger_bands(data, window=20, stds=2):
+    dataframe = data.copy()
+    series = typical_price(dataframe)
     ma = rolling_mean(series, window=window, min_periods=1)
     std = rolling_std(series, window=window, min_periods=1)
     upper = ma + std * stds
     lower = ma - std * stds
 
-    return pd.DataFrame(index=series.index, data={
-        'upper': upper,
-        'mid': ma,
-        'lower': lower
+    bollinger = pd.DataFrame(index=series.index, data={
+        'bb_upper': upper,
+        'bb_mid': ma,
+        'bb_lower': lower
     })
+
+    bollinger['bb_percent'] = (
+        (dataframe["close"] - bollinger["bb_lower"]) /
+        (bollinger["bb_upper"] - bollinger["bb_lower"])
+    )
+
+    bollinger["bb_width"] = (
+        (bollinger["bb_upper"] - bollinger["bb_lower"]) / bollinger["bb_mid"]
+    )
+
+    return bollinger
 
 
 # ---------------------------------------------
 
-def weighted_bollinger_bands(series, window=20, stds=2):
+def weighted_bollinger_bands(data, window=20, stds=2):
+    dataframe = data.copy()
+    series = typical_price(dataframe)
     ema = rolling_weighted_mean(series, window=window)
     std = rolling_std(series, window=window)
     upper = ema + std * stds
     lower = ema - std * stds
 
-    return pd.DataFrame(index=series.index, data={
-        'upper': upper.values,
-        'mid': ema.values,
-        'lower': lower.values
+    bollinger = pd.DataFrame(index=series.index, data={
+        'wbb_upper': upper.values,
+        'wbb_mid': ema.values,
+        'wbb_lower': lower.values
     })
+
+    bollinger['wbb_percent'] = (
+        (dataframe["close"] - bollinger["wbb_lower"]) /
+        (bollinger["wbb_upper"] - bollinger["wbb_lower"])
+    )
+
+    bollinger["wbb_width"] = (
+        (bollinger["wbb_upper"] - bollinger["wbb_lower"]) / bollinger["wbb_mid"]
+    )
+
+    return bollinger
 
 
 # ---------------------------------------------

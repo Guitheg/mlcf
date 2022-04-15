@@ -164,14 +164,36 @@
      </i>
     </label>
     <ul>
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="mlcf.indicators.indicators_fct.html">
+       mlcf.indicators.indicators_fct package
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
+      <label for="toctree-checkbox-4">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="mlcf.indicators.indicators_fct.custom_indicators.html">
+         mlcf.indicators.indicators_fct.custom_indicators module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="mlcf.indicators.indicators_fct.statistical_indicators.html">
+         mlcf.indicators.indicators_fct.statistical_indicators module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="mlcf.indicators.indicators_fct.ta_indicators.html">
+         mlcf.indicators.indicators_fct.ta_indicators module
+        </a>
+       </li>
+      </ul>
+     </li>
      <li class="toctree-l3">
       <a class="reference internal" href="mlcf.indicators.add_indicators.html">
        mlcf.indicators.add_indicators module
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="mlcf.indicators.indicators_fct.html">
-       mlcf.indicators.indicators_fct module
       </a>
      </li>
     </ul>
@@ -180,8 +202,8 @@
     <a class="reference internal" href="mlcf.windowing.html">
      mlcf.windowing package
     </a>
-    <input checked="" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
-    <label for="toctree-checkbox-4">
+    <input checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
+    <label for="toctree-checkbox-5">
      <i class="fas fa-chevron-down">
      </i>
     </label>
@@ -190,8 +212,8 @@
       <a class="reference internal" href="mlcf.windowing.filtering.html">
        mlcf.windowing.filtering package
       </a>
-      <input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
-      <label for="toctree-checkbox-5">
+      <input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/>
+      <label for="toctree-checkbox-6">
        <i class="fas fa-chevron-down">
        </i>
       </label>
@@ -212,8 +234,8 @@
       <a class="reference internal" href="mlcf.windowing.iterator.html">
        mlcf.windowing.iterator package
       </a>
-      <input checked="" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/>
-      <label for="toctree-checkbox-6">
+      <input checked="" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" type="checkbox"/>
+      <label for="toctree-checkbox-7">
        <i class="fas fa-chevron-down">
        </i>
       </label>
@@ -285,7 +307,7 @@
                 
   <section id="module-mlcf.windowing.iterator.tseries">
 <span id="mlcf-windowing-iterator-tseries-module"></span><h1>mlcf.windowing.iterator.tseries module<a class="headerlink" href="#module-mlcf.windowing.iterator.tseries" title="Permalink to this headline">#</a></h1>
-<p>Windowed Time Series Module.
+<p>Windowed Time Series Module. (deprecated)
 This module provides a data structure named “windowed time series (wtseries)”. This data structure
 allows us to handle a multi-indexed data frame that represents a windowed time series data frame.</p>
 <blockquote>
@@ -315,7 +337,7 @@ allows us to handle a multi-indexed data frame that represents a windowed time s
 <dt class="sig sig-object py" id="mlcf.windowing.iterator.tseries.WTSeries">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mlcf.windowing.iterator.tseries.</span></span><span class="sig-name descname"><span class="pre">WTSeries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mlcf.windowing.iterator.tseries.WTSeries" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="mlcf.windowing.iterator.iterator.html#mlcf.windowing.iterator.iterator.WindowIterator" title="mlcf.windowing.iterator.iterator.WindowIterator"><code class="xref py py-class docutils literal notranslate"><span class="pre">mlcf.windowing.iterator.iterator.WindowIterator</span></code></a></p>
-<p>A Windowed Time Series data structure.
+<p>A Windowed Time Series data structure. (deprecated)
 This class inherit of WindowIterator which allow us to iterate over a time series dataframe
 with a sliding window.
 The WTSeries contains {data} which is the Windowed Time Series.

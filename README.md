@@ -32,27 +32,22 @@ Python version officially supported:
 
 - **3.9**
 
-To succeed the installation, it needs to install some dependencies, which are:
-
-- the TA-LIB C library
-
 ---
 
-### Installation for Linux (python v3.7, v3.8, v3.9)
-
-- TA-LIB C library installation:  
-
-*Note: the talib-install.sh file and the ta-lib-0.4.0-src.tar.gz archive will be downloaded on your PC. They can be manually deleted at the end of the installation.*  
-
-```bash
-wget https://raw.githubusercontent.com/Guitheg/mlcf/main/build_helper/talib-install.sh
-sh talib-install.sh
-```
+### Installation for Linux (python v3.7)
 
 - MLCF package
 
 ```bash
 pip install mlcf
+```
+
+---
+
+### Installation for Linux (python  v3.8, v3.9)
+
+```bash
+pip install mlcf --no-binary TA-LIB
 ```
 
 ---

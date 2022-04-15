@@ -31,8 +31,8 @@
     <script src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="mlcf.indicators.indicators_fct module" href="mlcf.indicators.indicators_fct.html" />
-    <link rel="prev" title="mlcf.indicators package" href="mlcf.indicators.html" />
+    <link rel="next" title="mlcf.windowing package" href="mlcf.windowing.html" />
+    <link rel="prev" title="mlcf.indicators.indicators_fct.ta_indicators module" href="mlcf.indicators.indicators_fct.ta_indicators.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
     
@@ -164,14 +164,36 @@
      </i>
     </label>
     <ul class="current">
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="mlcf.indicators.indicators_fct.html">
+       mlcf.indicators.indicators_fct package
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
+      <label for="toctree-checkbox-4">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="mlcf.indicators.indicators_fct.custom_indicators.html">
+         mlcf.indicators.indicators_fct.custom_indicators module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="mlcf.indicators.indicators_fct.statistical_indicators.html">
+         mlcf.indicators.indicators_fct.statistical_indicators module
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="mlcf.indicators.indicators_fct.ta_indicators.html">
+         mlcf.indicators.indicators_fct.ta_indicators module
+        </a>
+       </li>
+      </ul>
+     </li>
      <li class="toctree-l3 current active">
       <a class="current reference internal" href="#">
        mlcf.indicators.add_indicators module
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="mlcf.indicators.indicators_fct.html">
-       mlcf.indicators.indicators_fct module
       </a>
      </li>
     </ul>
@@ -180,8 +202,8 @@
     <a class="reference internal" href="mlcf.windowing.html">
      mlcf.windowing package
     </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
-    <label for="toctree-checkbox-4">
+    <input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
+    <label for="toctree-checkbox-5">
      <i class="fas fa-chevron-down">
      </i>
     </label>
@@ -190,8 +212,8 @@
       <a class="reference internal" href="mlcf.windowing.filtering.html">
        mlcf.windowing.filtering package
       </a>
-      <input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
-      <label for="toctree-checkbox-5">
+      <input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/>
+      <label for="toctree-checkbox-6">
        <i class="fas fa-chevron-down">
        </i>
       </label>
@@ -212,8 +234,8 @@
       <a class="reference internal" href="mlcf.windowing.iterator.html">
        mlcf.windowing.iterator package
       </a>
-      <input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/>
-      <label for="toctree-checkbox-6">
+      <input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" type="checkbox"/>
+      <label for="toctree-checkbox-7">
        <i class="fas fa-chevron-down">
        </i>
       </label>
@@ -297,7 +319,7 @@ on a time series dataframe.</p>
 <span class="n">data</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># make sure to drop nan values</span>
 
 <span class="c1"># you can add intern indicator</span>
-<span class="n">data</span> <span class="o">=</span> <span class="n">add_intern_indicator</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">indice_name</span><span class="o">=</span><span class="s2">&quot;adx&quot;</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">add_intern_indicator</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">indicator_name</span><span class="o">=</span><span class="s2">&quot;adx&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -305,6 +327,48 @@ on a time series dataframe.</p>
 <dt class="sig sig-object py" id="mlcf.indicators.add_indicators.FeatureAlreadyExistException">
 <em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mlcf.indicators.add_indicators.</span></span><span class="sig-name descname"><span class="pre">FeatureAlreadyExistException</span></span><a class="headerlink" href="#mlcf.indicators.add_indicators.FeatureAlreadyExistException" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mlcf.indicators.add_indicators.add_all_intern_indicators">
+<span class="sig-prename descclassname"><span class="pre">mlcf.indicators.add_indicators.</span></span><span class="sig-name descname"><span class="pre">add_all_intern_indicators</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indicator_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropna</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.core.frame.DataFrame</span></span></span><a class="headerlink" href="#mlcf.indicators.add_indicators.add_all_intern_indicators" title="Permalink to this definition">#</a></dt>
+<dd><p>From a dictionnary of indicator (str) -&gt; parameters (dict), add all the indicators to the
+dataframe according to the corresponding parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">pd.DataFrame</span></code>) – The dataframe</p></li>
+<li><p><strong>indicator_dict</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">Dict]</span></code>) – <p>A dictionnary such as the key is an indicator name and the
+value is the corresponding parameters.</p>
+<blockquote>
+<div><p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">indicator_dict</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;adx&quot;</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="s2">&quot;aroon&quot;</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="s2">&quot;abs_energy&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;volume&quot;</span><span class="p">,</span> <span class="s2">&quot;timeperiod&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">},</span>
+    <span class="s2">&quot;autocorrelation&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;close&quot;</span><span class="p">,</span> <span class="s2">&quot;timeperiod&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;lag&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">},</span>
+    <span class="s2">&quot;returns&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;close&quot;</span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+</p></li>
+<li><p><strong>dropna</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool,</span> <span class="pre">optional</span></code>) – True to drop nan value before returns. Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>TypeError</strong> – Parameters (value) must be a dictionnary.</p></li>
+<li><p><strong>TypeError</strong> – Indicator (key) must be a name.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The dataframe with all the added indicator_dict indicators</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>pd.DataFrame</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -339,7 +403,7 @@ Defaults to “date”.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="mlcf.indicators.add_indicators.add_intern_indicator">
-<span class="sig-prename descclassname"><span class="pre">mlcf.indicators.add_indicators.</span></span><span class="sig-name descname"><span class="pre">add_intern_indicator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indice_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.core.frame.DataFrame</span></span></span><a class="headerlink" href="#mlcf.indicators.add_indicators.add_intern_indicator" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">mlcf.indicators.add_indicators.</span></span><span class="sig-name descname"><span class="pre">add_intern_indicator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indicator_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.core.frame.DataFrame</span></span></span><a class="headerlink" href="#mlcf.indicators.add_indicators.add_intern_indicator" title="Permalink to this definition">#</a></dt>
 <dd><p>This function allows adding new features with internally calculated indicators.
 (provided by processing the OHLCV data).
 The new features will be merged into the given {data} pandas.DataFrame.</p>
@@ -347,9 +411,14 @@ The new features will be merged into the given {data} pandas.DataFrame.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>data</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">pd.DataFrame</span></code>) – The OHLCV pandas.DataFrame</p></li>
-<li><p><strong>indice_name</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – It is the name of the calculated indicator which corresponds to a key in
-<a class="reference internal" href="mlcf.indicators.indicators_fct.html#mlcf.indicators.indicators_fct.indice_dict" title="mlcf.indicators.indicators_fct.indice_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">INDICE_DICT</span></code></a>
-that refers the corresponding indicator function.</p></li>
+<li><p><strong>indicator_name</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – <p>It is the name of a calculated feature which corresponds to a key
+in <a class="reference internal" href="mlcf.indicators.indicators_fct.ta_indicators.html#mlcf.indicators.indicators_fct.ta_indicators.add_ta_feature" title="mlcf.indicators.indicators_fct.ta_indicators.add_ta_feature"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TA_FEATURES</span></code></a>,
+<a class="reference internal" href="mlcf.indicators.indicators_fct.statistical_indicators.html#mlcf.indicators.indicators_fct.statistical_indicators.add_tsfresh_feature" title="mlcf.indicators.indicators_fct.statistical_indicators.add_tsfresh_feature"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TSFRESH_FEATURES</span></code></a>
+or in
+<a class="reference internal" href="mlcf.indicators.indicators_fct.custom_indicators.html#mlcf.indicators.indicators_fct.custom_indicators.add_custom_feature" title="mlcf.indicators.indicators_fct.custom_indicators.add_custom_feature"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CUSTOM_FEATURES</span></code></a></p>
+<p>Here the list of available features:
+[‘abs_energy’, ‘absolute_maximum’, ‘absolute_sum_of_changes’, ‘agg_autocorrelation’, ‘agg_linear_trend’, ‘approximate_entropy’, ‘ar_coefficient’, ‘augmented_dickey_fuller’, ‘autocorrelation’, ‘benford_correlation’, ‘binned_entropy’, ‘c3’, ‘change_quantiles’, ‘cid_ce’, ‘count_above’, ‘count_above_mean’, ‘count_below’, ‘count_below_mean’, ‘cwt_coefficients’, ‘energy_ratio_by_chunks’, ‘fft_aggregated’, ‘fft_coefficient’, ‘first_location_of_maximum’, ‘first_location_of_minimum’, ‘fourier_entropy’, ‘friedrich_coefficients’, ‘has_duplicate’, ‘has_duplicate_max’, ‘has_duplicate_min’, ‘index_mass_quantile’, ‘kurtosis’, ‘large_standard_deviation’, ‘last_location_of_maximum’, ‘last_location_of_minimum’, ‘lempel_ziv_complexity’, ‘length’, ‘linear_trend’, ‘linear_trend_timewise’, ‘longest_strike_above_mean’, ‘longest_strike_below_mean’, ‘matrix_profile’, ‘max_langevin_fixed_point’, ‘maximum’, ‘mean’, ‘mean_abs_change’, ‘mean_change’, ‘mean_n_absolute_max’, ‘mean_second_derivative_central’, ‘median’, ‘minimum’, ‘number_crossing_m’, ‘number_cwt_peaks’, ‘number_peaks’, ‘partial_autocorrelation’, ‘percentage_of_reoccurring_datapoints_to_all_datapoints’, ‘percentage_of_reoccurring_values_to_all_values’, ‘permutation_entropy’, ‘quantile’, ‘query_similarity_count’, ‘range_count’, ‘ratio_beyond_r_sigma’, ‘ratio_value_number_to_time_series_length’, ‘root_mean_square’, ‘sample_entropy’, ‘set_property’, ‘skewness’, ‘spkt_welch_density’, ‘standard_deviation’, ‘sum_of_reoccurring_data_points’, ‘sum_of_reoccurring_values’, ‘sum_values’, ‘symmetry_looking’, ‘time_reversal_asymmetry_statistic’, ‘value_count’, ‘variance’, ‘variance_larger_than_standard_deviation’, ‘variation_coefficient’, ‘adx’, ‘adxr’, ‘apo’, ‘aroon’, ‘aroonosc’, ‘bop’, ‘cci’, ‘cmo’, ‘dx’, ‘macd’, ‘macdext’, ‘macdfix’, ‘mfi’, ‘minus_di’, ‘minus_dm’, ‘mom’, ‘plus_di’, ‘plus_dm’, ‘ppo’, ‘roc’, ‘rocp’, ‘rocr’, ‘rocr100’, ‘rsi’, ‘stoch’, ‘stochf’, ‘stochrsi’, ‘trix’, ‘ultosc’, ‘willr’, ‘bbands’, ‘dema’, ‘ema’, ‘ht_trendline’, ‘kama’, ‘ma’, ‘mama’, ‘mavp’, ‘midpoint’, ‘midprice’, ‘sar’, ‘sarext’, ‘sma’, ‘t3’, ‘tema’, ‘trima’, ‘wma’, ‘ad’, ‘adosc’, ‘obv’, ‘ht_dcperiod’, ‘ht_dcphase’, ‘ht_phasor’, ‘ht_sine’, ‘ht_trendmode’, ‘avgprice’, ‘medprice’, ‘typprice’, ‘wclprice’, ‘atr’, ‘natr’, ‘trange’, ‘cdl2crows’, ‘cdl3blackcrows’, ‘cdl3inside’, ‘cdl3linestrike’, ‘cdl3outside’, ‘cdl3starsinsouth’, ‘cdl3whitesoldiers’, ‘cdlabandonedbaby’, ‘cdladvanceblock’, ‘cdlbelthold’, ‘cdlbreakaway’, ‘cdlclosingmarubozu’, ‘cdlconcealbabyswall’, ‘cdlcounterattack’, ‘cdldarkcloudcover’, ‘cdldoji’, ‘cdldojistar’, ‘cdldragonflydoji’, ‘cdlengulfing’, ‘cdleveningdojistar’, ‘cdleveningstar’, ‘cdlgapsidesidewhite’, ‘cdlgravestonedoji’, ‘cdlhammer’, ‘cdlhangingman’, ‘cdlharami’, ‘cdlharamicross’, ‘cdlhighwave’, ‘cdlhikkake’, ‘cdlhikkakemod’, ‘cdlhomingpigeon’, ‘cdlidentical3crows’, ‘cdlinneck’, ‘cdlinvertedhammer’, ‘cdlkicking’, ‘cdlkickingbylength’, ‘cdlladderbottom’, ‘cdllongleggeddoji’, ‘cdllongline’, ‘cdlmarubozu’, ‘cdlmatchinglow’, ‘cdlmathold’, ‘cdlmorningdojistar’, ‘cdlmorningstar’, ‘cdlonneck’, ‘cdlpiercing’, ‘cdlrickshawman’, ‘cdlrisefall3methods’, ‘cdlseparatinglines’, ‘cdlshootingstar’, ‘cdlshortline’, ‘cdlspinningtop’, ‘cdlstalledpattern’, ‘cdlsticksandwich’, ‘cdltakuri’, ‘cdltasukigap’, ‘cdlthrusting’, ‘cdltristar’, ‘cdlunique3river’, ‘cdlupsidegap2crows’, ‘cdlxsidegap3methods’, ‘beta’, ‘correl’, ‘linearreg’, ‘linearreg_angle’, ‘linearreg_intercept’, ‘linearreg_slope’, ‘stddev’, ‘tsf’, ‘var’, ‘acos’, ‘asin’, ‘atan’, ‘ceil’, ‘cos’, ‘cosh’, ‘exp’, ‘floor’, ‘ln’, ‘log10’, ‘sin’, ‘sinh’, ‘sqrt’, ‘tan’, ‘tanh’, ‘add’, ‘div’, ‘max’, ‘maxindex’, ‘min’, ‘minindex’, ‘minmax’, ‘minmaxindex’, ‘mult’, ‘sub’, ‘sum’, ‘heikinashi’, ‘tdi’, ‘ao’, ‘t_price’, ‘mid_price’, ‘ibs’, ‘true_range’, ‘rvwap’, ‘wbbands’, ‘kc’, ‘zscore’, ‘pvt’, ‘chopiness’, ‘crossed’, ‘crossed_above’, ‘crossed_below’, ‘hma’, ‘returns’, ‘log_returns’, ‘implied_volatility’, ‘zlma’, ‘pct_change’]</p>
+</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -369,17 +438,17 @@ that refers the corresponding indicator function.</p></li>
               
               <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="mlcf.indicators.html" title="previous page">
+    <a class='left-prev' id="prev-link" href="mlcf.indicators.indicators_fct.ta_indicators.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
             <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">mlcf.indicators package</p>
+            <p class="prev-next-title">mlcf.indicators.indicators_fct.ta_indicators module</p>
         </div>
     </a>
-    <a class='right-next' id="next-link" href="mlcf.indicators.indicators_fct.html" title="next page">
+    <a class='right-next' id="next-link" href="mlcf.windowing.html" title="next page">
     <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">mlcf.indicators.indicators_fct module</p>
+        <p class="prev-next-title">mlcf.windowing package</p>
     </div>
     <i class="fas fa-angle-right"></i>
     </a>
