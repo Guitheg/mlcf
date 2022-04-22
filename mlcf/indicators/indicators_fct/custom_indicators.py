@@ -84,6 +84,7 @@ CUSTOM_FEATURES: Dict[str, Callable] = {
 def add_custom_feature(
     data: pd.DataFrame,
     custom_feature_name: str,
+    custom_column_name: str = None,
     *args,
     **kwargs
 ) -> pd.DataFrame:
@@ -95,6 +96,9 @@ def add_custom_feature(
         custom_feature_name (str): The custom feature name. Please choose among this :
             {feature_list}
 
+        custom_column_name (str, optional): The custom name for the new created column.
+            Default to None.
+
     Returns:
         pd.DataFrame: The dataframe with the added feature
     """
@@ -102,10 +106,14 @@ def add_custom_feature(
     results = pd.DataFrame(CUSTOM_FEATURES[custom_feature_name](dataframe, *args, **kwargs))
 
     param_string: str = "" if not len(kwargs) else f"{kwargs}"
+    if custom_column_name is not None and isinstance(custom_column_name, str):
+        new_column_name = custom_column_name
+    else:
+        new_column_name = custom_feature_name+str(param_string)
     if isinstance(results, pd.Series):
-        results.name = custom_feature_name+str(param_string)
+        results.name = new_column_name
     if len(results.columns) == 1:
-        results.columns = [custom_feature_name+str(param_string)]
+        results.columns = [new_column_name]
     return pd.concat([dataframe, results], axis=1)
 
 
