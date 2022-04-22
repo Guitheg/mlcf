@@ -179,7 +179,7 @@ def add_all_intern_indicators(
     Args:
         data (pd.DataFrame): The dataframe
 
-        indicator_list (List[Tuple[str, Dict]]): A List of tuple such as (key, values) where 
+        indicator_list (List[Tuple[str, Dict]]): A List of tuple such as (key, values) where
             the key is an indicator name and the value is the corresponding parameters.
 
                 Example:
