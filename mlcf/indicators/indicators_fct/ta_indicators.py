@@ -193,6 +193,7 @@ TA_FEATURES: Dict[str, Callable] = {
 def add_ta_feature(
     data: pd.DataFrame,
     ta_feature_name: str,
+    custom_column_name: str = None,
     *args,
     **kwargs
 ) -> pd.DataFrame:
@@ -206,6 +207,9 @@ def add_ta_feature(
         ta_feature_name (str): The name of the technical indicator. Please choose among this list:
             {feature_list}
 
+        custom_column_name (str, optional): The custom name for the new created column.
+            Default to None.
+
     Returns:
         pd.DataFrame: The dataframe with the added indicator.
     """
@@ -213,10 +217,19 @@ def add_ta_feature(
     results = pd.DataFrame(TA_FEATURES[ta_feature_name](dataframe, *args, **kwargs))
 
     param_string: str = "" if not len(kwargs) else f"{kwargs}"
+    if custom_column_name is not None and isinstance(custom_column_name, str):
+        new_column_name = custom_column_name
+    else:
+        new_column_name = ta_feature_name+str(param_string)
     if isinstance(results, pd.Series):
-        results.name = ta_feature_name+str(param_string)
+        results.name = new_column_name
+
     if len(results.columns) == 1:
-        results = results.rename(columns={0: ta_feature_name+str(param_string)})
+        results = results.rename(columns={results.columns[0]: new_column_name})
+    else:
+        for col in results.columns:
+            results = results.rename(columns={col: f"({col})"+new_column_name})
+
     return pd.concat([dataframe, results], axis=1)
 
 
