@@ -17,7 +17,7 @@ on a time series dataframe.
         data = add_intern_indicator(data, indicator_name="adx")
 """
 
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from pathlib import Path
 from mlcf.datatools import read_json_file
@@ -170,7 +170,7 @@ add_intern_indicator.__doc__ = str(add_intern_indicator.__doc__).format(
 
 def add_all_intern_indicators(
     data: pd.DataFrame,
-    indicator_dict: Dict[str, Dict],
+    indicator_list: List[Tuple[str, Dict]],
     dropna: bool = True
 ) -> pd.DataFrame:
     """From a dictionnary of indicator (str) -> parameters (dict), add all the indicators to the
@@ -179,20 +179,20 @@ def add_all_intern_indicators(
     Args:
         data (pd.DataFrame): The dataframe
 
-        indicator_dict (Dict[str, Dict]): A dictionnary such as the key is an indicator name and the
-            value is the corresponding parameters.
+        indicator_list (List[Tuple[str, Dict]]): A List of tuple such as (key, values) where 
+            the key is an indicator name and the value is the corresponding parameters.
 
                 Example:
 
                 .. code-block:: python
 
-                    indicator_dict = {
-                        "adx": {},
-                        "aroon": {},
-                        "abs_energy": {"column": "volume", "timeperiod": 10},
-                        "autocorrelation": {"column": "close", "timeperiod": 10, "lag": 5},
-                        "returns": {"column": "close"}
-                    }
+                    indicator_list = [
+                        ("adx", {}),
+                        ("aroon", {}),
+                        ("abs_energy", {"column": "volume", "timeperiod": 10}),
+                        ("autocorrelation", {"column": "close", "timeperiod": 10, "lag": 5}),
+                        ("returns", {"column": "close"})
+                    ]
 
         dropna (bool, optional): True to drop nan value before returns. Defaults to True.
 
@@ -201,10 +201,11 @@ def add_all_intern_indicators(
         TypeError: Indicator (key) must be a name.
 
     Returns:
-        pd.DataFrame: The dataframe with all the added indicator_dict indicators
+        pd.DataFrame: The dataframe with all the added indicator_list indicators
     """
     dataframe = data.copy()
-    for indicator_name, param in indicator_dict.items():
+    for elem in indicator_list:
+        indicator_name, param = elem
         if not isinstance(param, dict):
             raise TypeError(f"Parameters (value) must be a dictionnary. param = {param}")
         if not isinstance(indicator_name, str):
