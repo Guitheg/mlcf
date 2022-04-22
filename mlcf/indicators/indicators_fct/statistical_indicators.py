@@ -101,7 +101,7 @@ def add_tsfresh_feature(
     tsfresh_feature_name: str,
     column: str,
     timeperiod: int,
-    added_column_name: str = None,
+    custom_column_name: str = None,
     *args, **kwargs
 ) -> pd.DataFrame:
     """Add a tsfresh (statistical) feature to the dataframe.
@@ -118,18 +118,18 @@ def add_tsfresh_feature(
 
         timeperiod (int): The timeperiod of the rolling window.
 
-        added_column_name (str, optional): The new name of the added column. Defaults to None.
+        custom_column_name (str, optional): The new name of the added column. Defaults to None.
 
     Returns:
         pd.DataFrame: The dataframe with the added feature.
     """
     dataframe = data.copy()
-    if added_column_name is None:
+    if custom_column_name is None:
         param_string: str = "" if not len(kwargs) else f"{kwargs}"
-        added_column_name = f"{tsfresh_feature_name}({column})[{timeperiod}]{param_string}"
+        custom_column_name = f"{tsfresh_feature_name}({column})[{timeperiod}]{param_string}"
 
     partial_function = partial(TSFRESH_FEATURES[tsfresh_feature_name], *args, **kwargs)
-    dataframe[added_column_name] = dataframe[column].rolling(timeperiod).apply(partial_function)
+    dataframe[custom_column_name] = dataframe[column].rolling(timeperiod).apply(partial_function)
     return dataframe
 
 
