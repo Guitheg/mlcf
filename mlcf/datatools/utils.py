@@ -163,7 +163,7 @@ def labelize(
         raise TypeError(
             f"The type of the labels : ({labels}) is unknown (should have a int or list)")
 
-    if not label_col_name:
+    if label_col_name is None:
         label_col_name = f"{column}_label"
 
     if n_labels == 2 and not bounds:
@@ -196,7 +196,7 @@ def labelize(
         bins.append(bounds[1])
     bins.append(np.inf)
 
-    if not label_col_name:
+    if label_col_name is None:
         label_col_name = f"{column}_label"
     dataframe[label_col_name] = label_names.loc[
         pd.cut(dataframe[column], bins, right=False).cat.codes].values
