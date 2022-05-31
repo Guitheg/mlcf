@@ -258,10 +258,10 @@ class WTSeriesLite(WindowIterator):
         Returns:
             WTSeriesLite: The current and the given WTSeriesLite merged.
         """
-
+        line_count = self.data.shape[0]
         return WTSeriesLite(
-            data=self.data,
-            index_array=pd.concat([self.index_array, wtseries_lite.index_array])
+            data=pd.concat([self.data, wtseries_lite.data]),
+            index_array=pd.concat([self.index_array, wtseries_lite.index_array+line_count])
         )
 
     def write(self, dirpath: Path, filename: str, group_file_key: str = None) -> Path:
